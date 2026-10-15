@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6e69">
+</head>
+<body>
+<title>Lista de espera</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Atril de recepción: barra de estado arriba, formulario de alta a la izquierda, fila de mesas a la derecha; en celular se apila. */
+:root {
+  --bg: #e9eef2; --surface: #ffffff; --ink: #14202b; --muted: #56636f; --line: #d3dbe2;
+  --accent: #0b6e69; --accent-ink: #ffffff; --accent-soft: #d8ecea;
+  --warn: #a85a06; --warn-soft: #fbecd7; --bad: #b3261e; --bad-soft: #f8dedb; --ok: #2c7a30;
+  --f-display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e161d; --surface: #16212b; --ink: #e5ecf1; --muted: #93a2ae; --line: #273643;
+  --accent: #43b9ae; --accent-ink: #04201e; --accent-soft: #143a39;
+  --warn: #eba24c; --warn-soft: #3a2a14; --bad: #f1786d; --bad-soft: #3d1c19; --ok: #6cc070; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e161d; --surface: #16212b; --ink: #e5ecf1; --muted: #93a2ae; --line: #273643;
+  --accent: #43b9ae; --accent-ink: #04201e; --accent-soft: #143a39;
+  --warn: #eba24c; --warn-soft: #3a2a14; --bad: #f1786d; --bad-soft: #3d1c19; --ok: #6cc070; color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.4;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 40px }
+button, input, select, textarea { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+.num { font-variant-numeric: tabular-nums }
+
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding-block: 6px 14px; border-bottom: 1px solid var(--line) }
+.brand { display: flex; flex-direction: column; min-width: 0; margin-right: auto }
+.brand small { color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase }
+.brand h1 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: clamp(22px, 3vw, 30px); line-height: 1.05; overflow-wrap: anywhere }
+.stats { display: flex; gap: 8px; flex-wrap: wrap }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; display: flex; flex-direction: column; min-width: 92px }
+.stat b { font-family: var(--f-display); font-size: 24px; line-height: 1.1 }
+.stat span { font-size: 12px; color: var(--muted) }
+nav.tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px }
+nav.tabs button { border: 0; background: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; color: var(--muted) }
+nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink) }
+
+.demo { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; background: var(--warn-soft); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-size: 14px }
+.demo button { border: 1px solid var(--warn); background: none; color: var(--warn); border-radius: 8px; padding: 4px 10px; font-weight: 700 }
+
+main { margin-top: 16px }
+.cola { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 20px; align-items: start }
+@media (max-width: 760px) { .cola { grid-template-columns: minmax(0, 1fr) } }
+
+form.alta { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px) }
+@media (max-width: 760px) { form.alta { position: static } }
+form.alta h2 { margin: 0; font-family: var(--f-display); font-size: 20px }
+label { display: grid; gap: 6px; font-weight: 700; font-size: 14px }
+label .hint { font-weight: 400; color: var(--muted); font-size: 13px }
+input[type=text], input[type=tel], input[type=number], textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 18px }
+textarea { font-size: 15px; resize: vertical; min-height: 70px }
+.pax { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px }
+.pax button { padding: 10px 0; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; font-weight: 700; font-size: 17px }
+.pax button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink) }
+.estimado { font-size: 14px; color: var(--muted) }
+.estimado b { color: var(--ink) }
+.btn { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 700; font-size: 16px }
+.btn.primary { background: var(--accent); color: var(--accent-ink); font-size: 18px; padding: 14px }
+.btn.ghost { background: none; border: 1px solid var(--line) }
+.btn:disabled { opacity: .45; cursor: not-allowed }
+
+.lista { display: grid; gap: 10px; min-width: 0 }
+.vacio { background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; padding: 28px; text-align: center; color: var(--muted) }
+.ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; border-left: 6px solid var(--line) }
+.ticket.amarillo { border-left-color: var(--warn) }
+.ticket.rojo { border-left-color: var(--bad) }
+.ticket.avisado { border-left-color: var(--accent); background: linear-gradient(90deg, var(--accent-soft), var(--surface) 55%) }
+.pos { font-family: var(--f-display); font-weight: 800; font-size: 28px; color: var(--muted); text-align: center }
+.who { min-width: 0 }
+.who h3 { margin: 0; font-size: 20px; overflow-wrap: anywhere }
+.who .meta { color: var(--muted); font-size: 14px; display: flex; gap: 4px 12px; flex-wrap: wrap }
+.who .nota { font-size: 14px; margin-top: 4px; overflow-wrap: anywhere }
+.chip { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 99px; padding: 2px 8px; background: var(--bg); border: 1px solid var(--line) }
+.chip.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn) }
+.chip.bad { background: var(--bad-soft); border-color: transparent; color: var(--bad) }
+.chip.acc { background: var(--accent-soft); border-color: transparent; color: var(--accent) }
+.reloj { text-align: right }
+.reloj b { font-family: var(--f-display); font-size: 30px; line-height: 1 }
+.reloj span { display: block; font-size: 12px; color: var(--muted) }
+.acciones { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px }
+.acciones .btn { padding: 10px 14px; font-size: 15px }
+.acciones a.btn { text-decoration: none; display: inline-flex; align-items: center }
+.btn.wa { background: var(--accent); color: var(--accent-ink) }
+.btn.sentar { background: var(--ink); color: var(--surface) }
+.btn.fue { background: none; border: 1px solid var(--line); color: var(--muted) }
+@media (max-width: 480px) { .ticket { grid-template-columns: 30px minmax(0, 1fr) auto; padding: 12px } .pos { font-size: 22px } .acciones { grid-column: 1 / -1 } }
+
+h2.sec { font-family: var(--f-display); font-size: 22px; margin: 0 0 12px }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px }
+.kpi b { display: block; font-family: var(--f-display); font-size: 34px; line-height: 1.1 }
+.kpi span { color: var(--muted); font-size: 14px }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-top: 16px; min-width: 0 }
+.panel h3 { margin: 0 0 4px; font-size: 17px }
+.panel p.sub { margin: 0 0 14px; color: var(--muted); font-size: 14px }
+.barras { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(32px, 56px); gap: 10px; align-items: end; overflow-x: auto; padding-bottom: 2px; border-bottom: 1px solid var(--line) }
+.barra { display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; text-align: center; font-size: 12px; color: var(--muted) }
+.barra .pila { display: flex; flex-direction: column; justify-content: flex-end; height: 130px }
+.barra .col { background: var(--accent) }
+.barra .pila > :first-child { border-radius: 5px 5px 0 0 }
+.barra .col.perdidos { background: var(--bad) }
+.barra .v { color: var(--ink); font-weight: 700 }
+.leyenda { display: flex; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 8px }
+.leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--accent); margin-right: 5px }
+.leyenda i.r { background: var(--bad) }
+.tabla-wrap { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap }
+th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em }
+.fila-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+
+.ajustes { display: grid; gap: 14px; max-width: 640px }
+.ajustes .panel { margin: 0; display: grid; gap: 14px }
+.preview { background: var(--accent-soft); border-radius: 12px 12px 12px 2px; padding: 10px 14px; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere }
+.peligro { border-color: var(--bad) }
+.peligro .btn { background: var(--bad); color: #fff }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--surface); padding: 10px 12px 10px 16px; border-radius: 12px; display: flex; gap: 12px; align-items: center; max-width: calc(100% - 32px); box-shadow: 0 6px 24px rgba(0,0,0,.25); z-index: 10 }
+.toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 8px; padding: 4px 10px; font-weight: 700 }
+.confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px }
+@media (prefers-reduced-motion: no-preference) { .ticket { transition: background .3s } }
+</style>
+
+<header class="top">
+  <div class="brand"><small>Lista de espera</small><h1 id="nombreLocal">Mi restaurante</h1></div>
+  <div class="stats">
+    <div class="stat"><b class="num" id="sEspera">0</b><span>en espera</span></div>
+    <div class="stat"><b class="num" id="sEstim">—</b><span>espera estimada</span></div>
+    <div class="stat"><b class="num" id="sHora">--:--</b><span id="sFecha">hoy</span></div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-cola" aria-selected="true" data-tab="cola">Fila</button>
+    <button role="tab" id="tab-resumen" aria-selected="false" data-tab="resumen">Resumen</button>
+    <button role="tab" id="tab-ajustes" aria-selected="false" data-tab="ajustes">Ajustes</button>
+  </nav>
+</header>
+
+<div class="demo" id="demo" hidden>
+  <span><b>Datos de ejemplo.</b> Así se ve un sábado a la noche. Borralos para empezar a usarla de verdad.</span>
+  <button type="button" id="borrarDemo">Borrar ejemplos</button>
+</div>
+
+<main>
+  <section id="v-cola" class="cola">
+    <form class="alta" id="formAlta" autocomplete="off">
+      <h2>Anotar</h2>
+      <label for="fNombre">Nombre<input type="text" id="fNombre" required maxlength="40" placeholder="Ej.: Laura"></label>
+      <div>
+        <label id="lblPax">Personas</label>
+        <div class="pax" id="pax" role="group" aria-labelledby="lblPax"></div>
+      </div>
+      <label for="fTel">WhatsApp <span class="hint">Opcional. Con o sin 15, con o sin característica.</span>
+        <input type="tel" id="fTel" inputmode="tel" placeholder="Ej.: 223 512-3456"></label>
+      <label for="fNota">Nota <span class="hint">Opcional: silla de bebé, afuera, cumpleaños…</span>
+        <input type="text" id="fNota" maxlength="80"></label>
+      <div class="estimado" id="estimado"></div>
+      <button class="btn primary" type="submit">Anotar en la fila</button>
+    </form>
+    <div class="lista" id="lista" aria-live="polite"></div>
+  </section>
+
+  <section id="v-resumen" hidden>
+    <h2 class="sec">Resumen del turno <span id="rTurno" class="num" style="color:var(--muted);font-weight:600"></span></h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <h3>Llegadas por hora</h3>
+      <p class="sub">Cuánta gente se anotó en cada franja y cuántos se fueron sin sentarse. Sirve para decidir a qué hora reforzar el salón.</p>
+      <div class="barras" id="barras"></div>
+      <div class="leyenda"><span><i></i>Sentados</span><span><i class="r"></i>Se fueron</span></div>
+    </div>
+    <div class="panel">
+      <h3>Registro del turno</h3>
+      <div class="tabla-wrap"><table><thead><tr><th>Llegó</th><th>Nombre</th><th>Pers.</th><th>Espera</th><th>Resultado</th></tr></thead><tbody id="tabla"></tbody></table></div>
+      <div class="fila-btns">
+        <button class="btn ghost" type="button" id="descargarCsv">Descargar planilla (CSV)</button>
+        <button class="btn ghost" type="button" id="copiarCsv">Copiar planilla</button>
+      </div>
+      <textarea id="csvFallback" hidden readonly aria-label="Planilla en CSV"></textarea>
+    </div>
+  </section>
+
+  <section id="v-ajustes" hidden>
+    <div class="ajustes">
+      <div class="panel">
+        <h2 class="sec" style="margin:0">Ajustes del local</h2>
+        <label for="cLocal">Nombre del local<input type="text" id="cLocal" maxlength="40"></label>
+        <label for="cArea">Característica por defecto <span class="hint">Se agrega cuando anotan el número sin característica. Mar del Plata: 223.</span>
+          <input type="text" id="cArea" inputmode="numeric" maxlength="4"></label>
+        <label for="cTol">Minutos de tolerancia después de avisar <span class="hint">Pasado ese tiempo, la mesa se marca en rojo.</span>
+          <input type="number" id="cTol" min="1" max="60"></label>
+        <label for="cMsg">Mensaje de WhatsApp <span class="hint">Podés usar {nombre}, {personas}, {local} y {minutos}.</span>
+          <textarea id="cMsg" rows="3"></textarea></label>
+        <div><div class="hint" style="font-size:13px;color:var(--muted);margin-bottom:6px">Así le llega al cliente:</div><div class="preview" id="cPreview"></div></div>
+      </div>
+      <div class="panel peligro">
+        <h3>Borrar todo</h3>
+        <p class="sub">Elimina la fila y el historial guardados en este dispositivo. Descargá la planilla antes si la necesitás.</p>
+        <div class="confirm" id="zonaBorrar"><button class="btn" type="button" id="borrarTodo">Borrar todo</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" hidden role="status"><span id="toastTxt"></span><button type="button" id="toastUndo">Deshacer</button></div>
+
+<script>
+(function () {
+  "use strict";
+  var CLAVE = "lista-espera-v1";
+  var MIN = 60000;
+  var conf = { local: "Mi restaurante", area: "223", tol: 10,
+    msg: "Hola {nombre}, tu mesa para {personas} en {local} ya está lista. Te la guardamos {minutos} minutos. ¡Te esperamos!" };
+  var filas = [];
+  var esDemo = false;
+  var paxSel = 2;
+  var deshacer = null, toastTimer = null;
+
+  // ---------- Guardado ----------
+  function guardar() {
+    try { localStorage.setItem(CLAVE, JSON.stringify({ conf: conf, filas: filas, demo: esDemo })); } catch (e) {}
+  }
+  function cargar() {
+    try {
+      var d = JSON.parse(localStorage.getItem(CLAVE) || "null");
+      if (d && d.filas) { conf = Object.assign(conf, d.conf || {}); filas = d.filas; esDemo = !!d.demo; return true; }
+    } catch (e) {}
+    return false;
+  }
+
+  // ---------- Teléfonos argentinos -> número de WhatsApp ----------
+  // Acepta "223 15 512-3456", "0223-155123456", "+54 9 223 512 3456", "155123456" (usa la característica por defecto).
+  function numeroWa(raw, area) {
+    var d = String(raw || "").replace(/\D/g, "");
+    if (!d) return null;
+    d = d.replace(/^00/, "");
+    if (d.indexOf("54") === 0 && d.length >= 12) d = d.slice(2);
+    if (d.charAt(0) === "9" && d.length === 11) d = d.slice(1);
+    d = d.replace(/^0/, "");
+    area = String(area || "").replace(/\D/g, "");
+    if (d.indexOf("15") === 0 && area && d.length === 12 - area.length) d = d.slice(2);
+    if (area && d.length === 10 - area.length) d = area + d;
+    if (d.length === 12) {
+      for (var L = 2; L <= 4; L++) if (d.substr(L, 2) === "15") { d = d.slice(0, L) + d.slice(L + 2); break; }
+    }
+    return d.length === 10 ? "549" + d : null;
+  }
+  window.__numeroWa = numeroWa;
+
+  // ---------- Utilidades ----------
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function hhmm(t) { var d = new Date(t); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+  function mins(a, b) { return Math.max(0, Math.round(((b || Date.now()) - a) / MIN)); }
+  // El turno empieza a las 6 de la mañana: una cena que termina a la 1:30 cuenta para el día anterior.
+  function turno(t) { var d = new Date(t - 6 * 3600000); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function personas(n) { return n + (n === 1 ? " persona" : " personas"); }
+  function enCola() { return filas.filter(function (f) { return f.estado === "espera" || f.estado === "avisado"; }).sort(function (a, b) { return a.alta - b.alta; }); }
+  function delTurno() { var t = turno(Date.now()); return filas.filter(function (f) { return turno(f.alta) === t; }); }
+
+  // Espera estimada: promedio de las últimas 6 mesas sentadas en los últimos 90 minutos.
+  function estimada() {
+    var desde = Date.now() - 90 * MIN;
+    var r = filas.filter(function (f) { return f.estado === "sentado" && f.fin >= desde; })
+      .sort(function (a, b) { return b.fin - a.fin; }).slice(0, 6);
+    if (!r.length) return null;
+    return Math.round(r.reduce(function (s, f) { return s + (f.fin - f.alta); }, 0) / r.length / MIN);
+  }
+
+  function mensaje(f) {
+    return conf.msg.replace(/\{nombre\}/g, f.nombre).replace(/\{personas\}/g, personas(f.pax))
+      .replace(/\{local\}/g, conf.local).replace(/\{minutos\}/g, conf.tol);
+  }
+
+  // ---------- Fila ----------
+  function pintarPax() {
+    var h = "";
+    for (var i = 1; i <= 12; i++) h += '<button type="button" aria-pressed="' + (i === paxSel) + '" data-pax="' + i + '">' + (i === 12 ? "12+" : i) + "</button>";
+    $("pax").innerHTML = h;
+  }
+
+  function pintarCola() {
+    var c = enCola();
+    var est = estimada();
+    $("sEspera").textContent = c.length;
+    $("sEstim").textContent = est == null ? "—" : est + " min";
+    $("estimado").innerHTML = est == null
+      ? "Todavía no hay mesas sentadas para estimar la espera."
+      : "Decile al cliente: <b>unos " + est + " minutos</b>" + (c.length ? " (hay " + c.length + " antes)" : "") + ".";
+    if (!c.length) {
+      $("lista").innerHTML = '<div class="vacio"><b>No hay nadie esperando.</b><br>Anotá a la primera mesa con el formulario.</div>';
+      return;
+    }
+    $("lista").innerHTML = c.map(function (f, i) {
+      var espera = mins(f.alta);
+      var wa = numeroWa(f.tel, conf.area);
+      var cls = "ticket", chip = "";
+      if (f.estado === "avisado") {
+        var desde = mins(f.avisado);
+        var vencido = desde >= conf.tol;
+        cls += vencido ? " rojo" : " avisado";
+        chip = vencido ? '<span class="chip bad">Avisado hace ' + desde + " min, no llegó</span>" : '<span class="chip acc">Avisado hace ' + desde + " min</span>";
+      } else if (est != null && espera > est * 1.5 && espera >= 15) { cls += " rojo"; chip = '<span class="chip bad">Esperando de más</span>'; }
+      else if (est != null && espera > est) { cls += " amarillo"; chip = '<span class="chip warn">Pasó la estimada</span>'; }
+      if (f.tel && !wa) chip += ' <span class="chip warn">Teléfono incompleto</span>';
+      var avisar = wa
+        ? '<a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/' + wa + "?text=" + encodeURIComponent(mensaje(f)) + '" data-acc="avisar" data-id="' + f.id + '">' + (f.estado === "avisado" ? "Avisar de nuevo" : "Avisar por WhatsApp") + "</a>"
+        : '<button class="btn wa" type="button" data-acc="avisar" data-id="' + f.id + '">' + (f.estado === "avisado" ? "Llamado de nuevo" : "Llamar en voz alta") + "</button>";
+      return '<article class="' + cls + '">' +
+        '<div class="pos num">' + (i + 1) + "</div>" +
+        '<div class="who"><h3>' + esc(f.nombre) + '</h3><div class="meta"><span>' + personas(f.pax) + "</span><span class=num>llegó " + hhmm(f.alta) + "</span>" +
+        (f.tel ? "<span class=num>" + esc(f.tel) + "</span>" : "") + "</div>" +
+        (f.nota ? '<div class="nota">' + esc(f.nota) + "</div>" : "") + (chip ? '<div style="margin-top:6px">' + chip + "</div>" : "") + "</div>" +
+        '<div class="reloj"><b class="num">' + espera + "</b><span>min</span></div>" +
+        '<div class="acciones">' + avisar +
+        '<button class="btn sentar" type="button" data-acc="sentar" data-id="' + f.id + '">Sentar</button>' +
+        '<button class="btn fue" type="button" data-acc="fue" data-id="' + f.id + '">Se fue</button></div></article>';
+    }).join("");
+  }
+
+  function reloj() {
+    var d = new Date();
+    $("sHora").textContent = hhmm(d);
+    $("sFecha").textContent = d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "short" });
+  }
+
+  function accion(acc, id) {
+    var f = filas.find(function (x) { return x.id === id; });
+    if (!f) return;
+    var antes = JSON.stringify(f);
+    if (acc === "avisar") { f.estado = "avisado"; f.avisado = Date.now(); f.avisos = (f.avisos || 0) + 1; }
+    if (acc === "sentar") { f.estado = "sentado"; f.fin = Date.now(); toast(f.nombre + " sentado", antes); }
+    if (acc === "fue") { f.estado = "se_fue"; f.fin = Date.now(); toast(f.nombre + " se fue", antes); }
+    guardar(); pintarTodo();
+  }
+
+  function toast(txt, antes) {
+    deshacer = antes;
+    $("toastTxt").textContent = txt;
+    $("toastUndo").hidden = !antes;
+    $("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $("toast").hidden = true; deshacer = null; }, 6000);
+  }
+
+  // ---------- Resumen ----------
+  function pintarResumen() {
+    var t = delTurno();
+    $("rTurno").textContent = new Date(Date.now() - 6 * 3600000).toLocaleDateString("es-AR", { day: "numeric", month: "long" });
+    var sent = t.filter(function (f) { return f.estado === "sentado"; });
+    var fue = t.filter(function (f) { return f.estado === "se_fue"; });
+    var esperas = sent.map(function (f) { return (f.fin - f.alta) / MIN; });
+    var prom = esperas.length ? Math.round(esperas.reduce(function (a, b) { return a + b; }, 0) / esperas.length) : null;
+    var max = esperas.length ? Math.round(Math.max.apply(null, esperas)) : null;
+    var cerradas = sent.length + fue.length;
+    var pctFue = cerradas ? Math.round(fue.length / cerradas * 100) : 0;
+    var paxPerd = fue.reduce(function (s, f) { return s + f.pax; }, 0);
+    $("kpis").innerHTML = [
+      [t.length, "mesas anotadas"],
+      [sent.length, "se sentaron"],
+      [fue.length + (cerradas ? ' <small style="font-size:16px;color:var(--muted)">' + pctFue + "%</small>" : ""), "se fueron sin sentarse"],
+      [paxPerd, "personas perdidas"],
+      [prom == null ? "—" : prom + "′", "espera promedio"],
+      [max == null ? "—" : max + "′", "espera más larga"]
+    ].map(function (k) { return '<div class="kpi"><b class="num">' + k[0] + "</b><span>" + k[1] + "</span></div>"; }).join("");
+
+    var porHora = {};
+    t.forEach(function (f) { var h = new Date(f.alta).getHours(); porHora[h] = porHora[h] || { s: 0, p: 0 }; if (f.estado === "se_fue") porHora[h].p++; else porHora[h].s++; });
+    var horas = Object.keys(porHora).map(Number).sort(function (a, b) { return ((a + 18) % 24) - ((b + 18) % 24); });
+    var tope = Math.max.apply(null, [1].concat(horas.map(function (h) { return porHora[h].s + porHora[h].p; })));
+    $("barras").innerHTML = horas.length ? horas.map(function (h) {
+      var v = porHora[h];
+      var px = function (k) { return Math.round(k / tope * 130); };
+      return '<div class="barra"><span class="v num">' + (v.s + v.p) + '</span><div class="pila">' +
+        (v.p ? '<div class="col perdidos" style="height:' + px(v.p) + 'px"></div>' : "") +
+        (v.s ? '<div class="col" style="height:' + px(v.s) + 'px"></div>' : "") + '</div><span class="num">' + h + "h</span></div>";
+    }).join("") : '<p class="sub" style="align-self:center">Sin datos en este turno.</p>';
+
+    var nombres = { espera: "Esperando", avisado: "Avisado", sentado: "Sentado", se_fue: "Se fue" };
+    $("tabla").innerHTML = t.slice().sort(function (a, b) { return b.alta - a.alta; }).map(function (f) {
+      return "<tr><td>" + hhmm(f.alta) + "</td><td>" + esc(f.nombre) + "</td><td>" + f.pax + "</td><td>" + mins(f.alta, f.fin) + " min</td><td>" + nombres[f.estado] + "</td></tr>";
+    }).join("") || '<tr><td colspan="5">Sin registros.</td></tr>';
+  }
+
+  function csv() {
+    var nombres = { espera: "esperando", avisado: "avisado", sentado: "sentado", se_fue: "se fue" };
+    var q = function (s) { return '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"'; };
+    var rows = [["turno", "llegada", "nombre", "personas", "telefono", "nota", "avisado", "fin", "espera_min", "resultado"]];
+    filas.slice().sort(function (a, b) { return a.alta - b.alta; }).forEach(function (f) {
+      rows.push([turno(f.alta), new Date(f.alta).toLocaleString("es-AR"), f.nombre, f.pax, f.tel, f.nota, f.avisado ? hhmm(f.avisado) : "", f.fin ? hhmm(f.fin) : "", f.fin ? mins(f.alta, f.fin) : "", nombres[f.estado]]);
+    });
+    return rows.map(function (r) { return r.map(q).join(";"); }).join("\r\n");
+  }
+
+  // ---------- Ajustes ----------
+  function pintarAjustes() {
+    $("cLocal").value = conf.local; $("cArea").value = conf.area; $("cTol").value = conf.tol; $("cMsg").value = conf.msg;
+    previewMsg();
+  }
+  function previewMsg() { $("cPreview").textContent = mensaje({ nombre: "Laura", pax: 4 }); }
+
+  function pintarTodo() {
+    $("nombreLocal").textContent = conf.local;
+    $("demo").hidden = !esDemo;
+    pintarCola();
+    if (!$("v-resumen").hidden) pintarResumen();
+  }
+
+  // ---------- Ejemplo de un sábado a la noche ----------
+  function sembrarDemo() {
+    var ahora = Date.now(), m = function (x) { return ahora - x * MIN; }, n = 0;
+    var mk = function (nombre, pax, alta, estado, fin, extra) { return Object.assign({ id: "d" + (n++), nombre: nombre, pax: pax, tel: "", nota: "", alta: m(alta), estado: estado, fin: fin == null ? null : m(fin) }, extra || {}); };
+    filas = [
+      mk("Familia Ruiz", 5, 150, "sentado", 128), mk("Mariano", 2, 142, "sentado", 125), mk("Gaby", 3, 135, "se_fue", 105),
+      mk("Los de Rosario", 6, 120, "sentado", 92), mk("Sofía", 2, 110, "sentado", 88), mk("Hernán", 4, 96, "se_fue", 70),
+      mk("Carla", 2, 80, "sentado", 58), mk("Equipo de vóley", 8, 75, "sentado", 44), mk("Tomás", 2, 66, "sentado", 41),
+      mk("Paula y Nico", 2, 52, "sentado", 30), mk("Abuela Nelly", 3, 45, "sentado", 22),
+      mk("Martín", 4, 34, "avisado", null, { tel: "223 15 512-3456", avisado: m(4), avisos: 1, nota: "Prefieren afuera" }),
+      mk("Lucía", 2, 27, "espera", null, { tel: "0223-155987654" }),
+      mk("Cumple de Juli", 7, 19, "espera", null, { nota: "Traen torta, avisar a cocina" }),
+      mk("Diego", 3, 9, "espera", null, { tel: "11 6543-2109" }),
+      mk("Romina", 2, 3, "espera", null, { tel: "4789" })
+    ];
+    conf.local = "Cantina del Puerto";
+    esDemo = true;
+  }
+
+  // ---------- Eventos ----------
+  $("pax").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-pax]"); if (!b) return;
+    paxSel = Number(b.dataset.pax); pintarPax();
+  });
+  $("formAlta").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var nombre = $("fNombre").value.trim(); if (!nombre) return;
+    filas.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nombre: nombre, pax: paxSel,
+      tel: $("fTel").value.trim(), nota: $("fNota").value.trim(), alta: Date.now(), estado: "espera", fin: null });
+    $("fNombre").value = ""; $("fTel").value = ""; $("fNota").value = ""; paxSel = 2; pintarPax();
+    guardar(); pintarTodo(); $("fNombre").focus();
+  });
+  $("lista").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-acc]"); if (!b) return;
+    accion(b.dataset.acc, b.dataset.id);
+  });
+  $("toastUndo").addEventListener("click", function () {
+    if (!deshacer) return;
+    var prev = JSON.parse(deshacer);
+    filas = filas.map(function (f) { return f.id === prev.id ? prev : f; });
+    deshacer = null; $("toast").hidden = true; guardar(); pintarTodo();
+  });
+  document.querySelector("nav.tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tab]"); if (!b) return;
+    ["cola", "resumen", "ajustes"].forEach(function (t) {
+      $("v-" + t).hidden = t !== b.dataset.tab;
+      $("tab-" + t).setAttribute("aria-selected", String(t === b.dataset.tab));
+    });
+    if (b.dataset.tab === "resumen") pintarResumen();
+    if (b.dataset.tab === "ajustes") pintarAjustes();
+  });
+  $("borrarDemo").addEventListener("click", function () {
+    filas = []; esDemo = false; conf.local = "Mi restaurante"; guardar(); pintarTodo();
+  });
+  ["cLocal", "cArea", "cTol", "cMsg"].forEach(function (id) {
+    $(id).addEventListener("input", function () {
+      conf.local = $("cLocal").value.trim() || "Mi restaurante";
+      conf.area = $("cArea").value.replace(/\D/g, "");
+      conf.tol = Math.min(60, Math.max(1, Number($("cTol").value) || 10));
+      conf.msg = $("cMsg").value || conf.msg;
+      previewMsg(); guardar(); $("nombreLocal").textContent = conf.local;
+    });
+  });
+  $("descargarCsv").addEventListener("click", function () {
+    var blob = new Blob(["﻿" + csv()], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "lista-de-espera-" + turno(Date.now()) + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+  $("copiarCsv").addEventListener("click", function () {
+    var txt = csv(), ta = $("csvFallback");
+    var mostrar = function () { ta.value = txt; ta.hidden = false; ta.style.width = "100%"; ta.style.marginTop = "10px"; ta.select(); };
+    try { navigator.clipboard.writeText(txt).then(function () { toast("Planilla copiada: pegala en Excel o Google Sheets", null); }, mostrar); } catch (err) { mostrar(); }
+  });
+  $("zonaBorrar").addEventListener("click", function (e) {
+    var id = e.target.id;
+    if (id === "borrarTodo") {
+      $("zonaBorrar").innerHTML = '<span>¿Seguro? No se puede deshacer.</span><button class="btn" type="button" id="siBorrar">Sí, borrar todo</button><button class="btn ghost" type="button" id="noBorrar" style="background:none;color:var(--ink)">Cancelar</button>';
+      return;
+    }
+    if (id === "siBorrar") { filas = []; esDemo = false; guardar(); pintarTodo(); toast("Se borró todo", null); }
+    if (id === "siBorrar" || id === "noBorrar") $("zonaBorrar").innerHTML = '<button class="btn" type="button" id="borrarTodo">Borrar todo</button>';
+  });
+
+  // ---------- Arranque ----------
+  if (!cargar()) sembrarDemo();
+  pintarPax(); reloj(); pintarTodo();
+  setInterval(function () { reloj(); pintarCola(); }, 20000);
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(function () {}); } catch (e) {}
+})();
+</script>
+
+</body>
+</html>

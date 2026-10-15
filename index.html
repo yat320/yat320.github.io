@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apps para restaurantes</title>
+<style>
+:root { --bg: #e9eef2; --surface: #fff; --ink: #14202b; --muted: #56636f; --line: #d3dbe2; --accent: #0b6e69 }
+@media (prefers-color-scheme: dark) { :root { --bg: #0e161d; --surface: #16212b; --ink: #e5ecf1; --muted: #93a2ae; --line: #273643; --accent: #43b9ae; color-scheme: dark } }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 40px max(16px, env(safe-area-inset-left, 0px)) }
+main { max-width: 620px; margin: 0 auto; display: grid; gap: 14px }
+h1 { margin: 0 0 6px; font-size: 28px }
+p { margin: 0; color: var(--muted) }
+a.app { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; color: inherit; text-decoration: none }
+a.app b { color: var(--accent); font-size: 20px }
+</style>
+</head>
+<body>
+<main>
+  <h1>Apps para restaurantes</h1>
+  <p>Herramientas simples para usar desde el celular o una tablet. Los datos quedan en el dispositivo.</p>
+  <a class="app" href="reservas/"><b>Libro de reservas</b><p>Anotá reservas, pedí confirmación por WhatsApp y medí cuántas no vienen.</p></a>
+  <a class="app" href="lista-de-espera/"><b>Lista de espera</b><p>Para la fila en la puerta: avisá por WhatsApp cuando la mesa está lista.</p></a>
+</main>
+</body>
+</html>

@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6e69">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="icono-192.png">
+</head>
+<body>
+<title>Libro de reservas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Libro de reservas: barra de estado, navegación por día, formulario a la izquierda y reservas agrupadas por horario a la derecha. */
+:root {
+  --bg: #e9eef2; --surface: #ffffff; --ink: #14202b; --muted: #56636f; --line: #d3dbe2;
+  --accent: #0b6e69; --accent-ink: #ffffff; --accent-soft: #d8ecea;
+  --warn: #a85a06; --warn-soft: #fbecd7; --bad: #b3261e; --bad-soft: #f8dedb; --ok: #2c7a30;
+  --f-display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e161d; --surface: #16212b; --ink: #e5ecf1; --muted: #93a2ae; --line: #273643;
+  --accent: #43b9ae; --accent-ink: #04201e; --accent-soft: #143a39;
+  --warn: #eba24c; --warn-soft: #3a2a14; --bad: #f1786d; --bad-soft: #3d1c19; --ok: #6cc070; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e161d; --surface: #16212b; --ink: #e5ecf1; --muted: #93a2ae; --line: #273643;
+  --accent: #43b9ae; --accent-ink: #04201e; --accent-soft: #143a39;
+  --warn: #eba24c; --warn-soft: #3a2a14; --bad: #f1786d; --bad-soft: #3d1c19; --ok: #6cc070; color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.4;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 40px }
+button, input, select, textarea { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+.num { font-variant-numeric: tabular-nums }
+
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding-block: 6px 14px; border-bottom: 1px solid var(--line) }
+.brand { display: flex; flex-direction: column; min-width: 0; margin-right: auto }
+.brand small { color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase }
+.brand h1 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: clamp(22px, 3vw, 30px); line-height: 1.05; overflow-wrap: anywhere }
+.stats { display: flex; gap: 8px; flex-wrap: wrap }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; display: flex; flex-direction: column; min-width: 92px }
+.stat b { font-family: var(--f-display); font-size: 24px; line-height: 1.1 }
+.stat span { font-size: 12px; color: var(--muted) }
+nav.tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px }
+nav.tabs button { border: 0; background: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; color: var(--muted) }
+nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink) }
+
+.demo { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; background: var(--warn-soft); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-size: 14px }
+.demo button { border: 1px solid var(--warn); background: none; color: var(--warn); border-radius: 8px; padding: 4px 10px; font-weight: 700 }
+
+main { margin-top: 16px }
+.cola { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 20px; align-items: start }
+@media (max-width: 760px) { .cola { grid-template-columns: minmax(0, 1fr) } }
+
+form.alta { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px) }
+@media (max-width: 760px) { form.alta { position: static } }
+form.alta h2 { margin: 0; font-family: var(--f-display); font-size: 20px }
+label { display: grid; gap: 6px; font-weight: 700; font-size: 14px }
+label .hint { font-weight: 400; color: var(--muted); font-size: 13px }
+input[type=text], input[type=tel], input[type=number], textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 18px }
+textarea { font-size: 15px; resize: vertical; min-height: 70px }
+.pax { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px }
+.pax button { padding: 10px 0; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; font-weight: 700; font-size: 17px }
+.pax button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink) }
+.estimado { font-size: 14px; color: var(--muted) }
+.estimado b { color: var(--ink) }
+.btn { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 700; font-size: 16px }
+.btn.primary { background: var(--accent); color: var(--accent-ink); font-size: 18px; padding: 14px }
+.btn.ghost { background: none; border: 1px solid var(--line) }
+.btn:disabled { opacity: .45; cursor: not-allowed }
+
+.lista { display: grid; gap: 10px; min-width: 0 }
+.vacio { background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; padding: 28px; text-align: center; color: var(--muted) }
+.ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; border-left: 6px solid var(--line) }
+.ticket.amarillo { border-left-color: var(--warn) }
+.ticket.rojo { border-left-color: var(--bad) }
+.ticket.avisado { border-left-color: var(--accent); background: linear-gradient(90deg, var(--accent-soft), var(--surface) 55%) }
+.pos { font-family: var(--f-display); font-weight: 800; font-size: 28px; color: var(--muted); text-align: center }
+.who { min-width: 0 }
+.who h3 { margin: 0; font-size: 20px; overflow-wrap: anywhere }
+.who .meta { color: var(--muted); font-size: 14px; display: flex; gap: 4px 12px; flex-wrap: wrap }
+.who .nota { font-size: 14px; margin-top: 4px; overflow-wrap: anywhere }
+.chip { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 99px; padding: 2px 8px; background: var(--bg); border: 1px solid var(--line) }
+.chip.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn) }
+.chip.bad { background: var(--bad-soft); border-color: transparent; color: var(--bad) }
+.chip.acc { background: var(--accent-soft); border-color: transparent; color: var(--accent) }
+.reloj { text-align: right }
+.reloj b { font-family: var(--f-display); font-size: 30px; line-height: 1 }
+.reloj span { display: block; font-size: 12px; color: var(--muted) }
+.acciones { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px }
+.acciones .btn { padding: 10px 14px; font-size: 15px }
+.acciones a.btn { text-decoration: none; display: inline-flex; align-items: center }
+.btn.wa { background: var(--accent); color: var(--accent-ink) }
+.btn.sentar { background: var(--ink); color: var(--surface) }
+.btn.fue { background: none; border: 1px solid var(--line); color: var(--muted) }
+.btn.borrar { background: none; color: var(--muted); text-decoration: underline; padding-inline: 6px; margin-left: auto }
+@media (max-width: 480px) { .ticket { grid-template-columns: 30px minmax(0, 1fr) auto; padding: 12px } .pos { font-size: 22px } .acciones { grid-column: 1 / -1 } }
+
+h2.sec { font-family: var(--f-display); font-size: 22px; margin: 0 0 12px }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px }
+.kpi b { display: block; font-family: var(--f-display); font-size: 34px; line-height: 1.1 }
+.kpi span { color: var(--muted); font-size: 14px }
+.kpi.plata { grid-column: 1 / -1; border-color: var(--bad); background: var(--bad-soft) }
+.kpi.plata b { color: var(--bad); font-size: clamp(30px, 6vw, 44px) }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-top: 16px; min-width: 0 }
+.panel h3 { margin: 0 0 4px; font-size: 17px }
+.panel p.sub { margin: 0 0 14px; color: var(--muted); font-size: 14px }
+.barras { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(32px, 56px); gap: 10px; align-items: end; overflow-x: auto; padding-bottom: 2px; border-bottom: 1px solid var(--line) }
+.barra { display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; text-align: center; font-size: 12px; color: var(--muted) }
+.barra .pila { display: flex; flex-direction: column; justify-content: flex-end; height: 130px }
+.barra .col { background: var(--accent) }
+.barra .pila > :first-child { border-radius: 5px 5px 0 0 }
+.barra .col.perdidos { background: var(--bad) }
+.barra .v { color: var(--ink); font-weight: 700 }
+.leyenda { display: flex; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 8px }
+.leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--accent); margin-right: 5px }
+.leyenda i.r { background: var(--bad) }
+.tabla-wrap { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap }
+th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em }
+.fila-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+
+.ajustes { display: grid; gap: 14px; max-width: 640px }
+.ajustes .panel { margin: 0; display: grid; gap: 14px }
+.preview { background: var(--accent-soft); border-radius: 12px 12px 12px 2px; padding: 10px 14px; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere }
+.peligro { border-color: var(--bad) }
+.peligro .btn { background: var(--bad); color: #fff }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--surface); padding: 10px 12px 10px 16px; border-radius: 12px; display: flex; gap: 12px; align-items: center; max-width: calc(100% - 32px); box-shadow: 0 6px 24px rgba(0,0,0,.25); z-index: 10 }
+.toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 8px; padding: 4px 10px; font-weight: 700 }
+.confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px }
+@media (prefers-reduced-motion: no-preference) { .ticket { transition: background .3s } }
+.dia-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px }
+.dia-nav h2 { margin: 0 auto 0 4px; font-family: var(--f-display); font-size: 22px; min-width: 0 }
+.dia-nav button { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 14px; font-weight: 700 }
+.turno { display: grid; gap: 8px }
+.turno + .turno { margin-top: 10px }
+.turno-cab { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 4px 2px }
+.turno-cab b { font-family: var(--f-display); font-size: 26px; line-height: 1 }
+.turno-cab span { color: var(--muted); font-size: 14px }
+.ocup { flex: 1 1 140px; height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; align-self: center }
+.ocup i { display: block; height: 100%; background: var(--accent) }
+.ocup.lleno i { background: var(--warn) }
+.ticket.confirmada { border-left-color: var(--accent) }
+.ticket.cerrada { opacity: .62; grid-template-columns: 44px minmax(0, 1fr) auto; padding-block: 8px }
+.ticket.cerrada h3 { font-size: 16px }
+.ticket .pos { font-size: 22px }
+.comparar { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px }
+.comparar div { border: 1px solid var(--line); border-radius: 12px; padding: 14px }
+.comparar b { font-family: var(--f-display); font-size: 40px; line-height: 1; display: block }
+.comparar .c-bad b { color: var(--bad) }
+.comparar .c-ok b { color: var(--accent) }
+input[type=date], select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 18px }
+.doble { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+</style>
+
+<header class="top">
+  <div class="brand"><small>Libro de reservas</small><h1 id="nombreLocal">Mi restaurante</h1></div>
+  <div class="stats">
+    <div class="stat"><b class="num" id="sCub">0</b><span>cubiertos hoy</span></div>
+    <div class="stat"><b class="num" id="sSin">0</b><span>sin confirmar</span></div>
+    <div class="stat"><b class="num" id="sHora">--:--</b><span id="sFecha">hoy</span></div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-dia" aria-selected="true" data-tab="dia">Reservas</button>
+    <button role="tab" id="tab-resumen" aria-selected="false" data-tab="resumen">Resumen</button>
+    <button role="tab" id="tab-ajustes" aria-selected="false" data-tab="ajustes">Ajustes</button>
+  </nav>
+</header>
+
+<div class="demo" id="demo" hidden>
+  <span><b>Datos de ejemplo.</b> Cuatro semanas de un bodegón con reservas. Borralos para empezar a usarlo de verdad.</span>
+  <button type="button" id="borrarDemo">Borrar ejemplos</button>
+</div>
+
+<main>
+  <section id="v-dia" class="cola">
+    <form class="alta" id="formAlta" autocomplete="off">
+      <h2>Nueva reserva</h2>
+      <label for="fNombre">Nombre<input type="text" id="fNombre" required maxlength="40" placeholder="Ej.: Laura Gómez"></label>
+      <div>
+        <label id="lblPax">Personas</label>
+        <div class="pax" id="pax" role="group" aria-labelledby="lblPax"></div>
+      </div>
+      <div class="doble">
+        <label for="fFecha">Día<input type="date" id="fFecha" required></label>
+        <label for="fHora">Horario<select id="fHora"></select></label>
+      </div>
+      <div class="estimado" id="lugar"></div>
+      <label for="fTel">WhatsApp <span class="hint">Para pedirle que confirme el mismo día.</span>
+        <input type="tel" id="fTel" inputmode="tel" placeholder="Ej.: 223 512-3456"></label>
+      <label for="fNota">Nota <span class="hint">Opcional: cumpleaños, celíaco, mesa afuera…</span>
+        <input type="text" id="fNota" maxlength="80"></label>
+      <button class="btn primary" type="submit">Guardar reserva</button>
+    </form>
+    <div class="lista">
+      <div class="dia-nav">
+        <h2 id="diaTitulo">Hoy</h2>
+        <button type="button" id="diaAnt" aria-label="Día anterior">‹</button>
+        <button type="button" id="diaHoy">Hoy</button>
+        <button type="button" id="diaSig" aria-label="Día siguiente">›</button>
+      </div>
+      <div id="turnos" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="v-resumen" hidden>
+    <h2 class="sec">Últimos 30 días</h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <h3>¿Sirve pedir confirmación?</h3>
+      <p class="sub">Porcentaje de reservas que no vinieron ni avisaron, según si confirmaron el mismo día o no.</p>
+      <div class="comparar" id="comparar"></div>
+    </div>
+    <div class="panel">
+      <h3>Cubiertos por día de la semana</h3>
+      <p class="sub">Cubiertos que llegaron y cubiertos que quedaron vacíos porque la reserva no vino.</p>
+      <div class="barras" id="barras"></div>
+      <div class="leyenda"><span><i></i>Vinieron</span><span><i class="r"></i>No vinieron</span></div>
+    </div>
+    <div class="panel">
+      <h3>Planilla</h3>
+      <p class="sub">Todas las reservas guardadas en este dispositivo, para Excel o Google Sheets.</p>
+      <div class="fila-btns" style="margin-top:0">
+        <button class="btn ghost" type="button" id="descargarCsv">Descargar planilla (CSV)</button>
+        <button class="btn ghost" type="button" id="copiarCsv">Copiar planilla</button>
+      </div>
+      <textarea id="csvFallback" hidden readonly aria-label="Planilla en CSV"></textarea>
+    </div>
+  </section>
+
+  <section id="v-ajustes" hidden>
+    <div class="ajustes">
+      <div class="panel">
+        <h2 class="sec" style="margin:0">Ajustes del local</h2>
+        <label for="cLocal">Nombre del local<input type="text" id="cLocal" maxlength="40"></label>
+        <label for="cHoras">Horarios de reserva <span class="hint">Separados por coma. Ej.: 12:30, 13:30, 20:30, 22:30</span>
+          <input type="text" id="cHoras"></label>
+        <label for="cCap">Cubiertos por horario <span class="hint">Cuántas personas entran en cada horario.</span>
+          <input type="number" id="cCap" min="1" max="500"></label>
+        <label for="cTicket">Gasto promedio por persona ($) <span class="hint">Lo que deja en promedio cada persona que se sienta: total de la noche dividido cubiertos. Con esto el Resumen muestra la plata perdida.</span>
+          <input type="number" id="cTicket" min="0" step="500" inputmode="numeric"></label>
+        <label for="cArea">Característica por defecto <span class="hint">Mar del Plata: 223.</span>
+          <input type="text" id="cArea" inputmode="numeric" maxlength="4"></label>
+        <label for="cTol">Minutos de tolerancia <span class="hint">Pasado ese tiempo desde la hora de la reserva, se marca "¿vino?".</span>
+          <input type="number" id="cTol" min="5" max="90"></label>
+        <label for="cMsg">Mensaje para pedir confirmación <span class="hint">Podés usar {nombre}, {personas}, {local}, {dia} y {hora}.</span>
+          <textarea id="cMsg" rows="4"></textarea></label>
+        <div><div class="hint" style="font-size:13px;color:var(--muted);margin-bottom:6px">Así le llega al cliente:</div><div class="preview" id="cPreview"></div></div>
+      </div>
+      <div class="panel peligro">
+        <h3>Borrar todo</h3>
+        <p class="sub">Elimina todas las reservas guardadas en este dispositivo. Descargá la planilla antes si la necesitás.</p>
+        <div class="confirm" id="zonaBorrar"><button class="btn" type="button" id="borrarTodo">Borrar todo</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" hidden role="status"><span id="toastTxt"></span><button type="button" id="toastUndo">Deshacer</button></div>
+
+<script>
+(function () {
+  "use strict";
+  var CLAVE = "libro-reservas-v1";
+  var MIN = 60000;
+  var conf = { local: "Mi restaurante", horas: "13:00, 20:30, 22:30", cap: 40, area: "223", tol: 20, ticket: 0,
+    msg: "Hola {nombre}! Te escribimos de {local} por tu reserva de {dia} a las {hora} para {personas}. ¿Nos confirmás que venís? Si no podés, avisanos así le damos la mesa a otra persona. ¡Gracias!" };
+  var res = [];
+  var esDemo = false;
+  var paxSel = 2;
+  var diaSel = hoy();
+  var deshacer = null, toastTimer = null;
+
+  function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify({ conf: conf, res: res, demo: esDemo })); } catch (e) {} }
+  function cargar() {
+    try {
+      var d = JSON.parse(localStorage.getItem(CLAVE) || "null");
+      if (d && d.res) { conf = Object.assign(conf, d.conf || {}); res = d.res; esDemo = !!d.demo; return true; }
+    } catch (e) {}
+    return false;
+  }
+
+  // Teléfono argentino -> número de WhatsApp (mismo criterio que la lista de espera).
+  function numeroWa(raw, area) {
+    var d = String(raw || "").replace(/\D/g, "");
+    if (!d) return null;
+    d = d.replace(/^00/, "");
+    if (d.indexOf("54") === 0 && d.length >= 12) d = d.slice(2);
+    if (d.charAt(0) === "9" && d.length === 11) d = d.slice(1);
+    d = d.replace(/^0/, "");
+    area = String(area || "").replace(/\D/g, "");
+    if (d.indexOf("15") === 0 && area && d.length === 12 - area.length) d = d.slice(2);
+    if (area && d.length === 10 - area.length) d = area + d;
+    if (d.length === 12) {
+      for (var L = 2; L <= 4; L++) if (d.substr(L, 2) === "15") { d = d.slice(0, L) + d.slice(L + 2); break; }
+    }
+    return d.length === 10 ? "549" + d : null;
+  }
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function p2(n) { return String(n).padStart(2, "0"); }
+  function iso(d) { return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()); }
+  function hoy() { return iso(new Date()); }
+  function fechaDe(s) { var a = s.split("-"); return new Date(+a[0], +a[1] - 1, +a[2]); }
+  function sumarDias(s, n) { var d = fechaDe(s); d.setDate(d.getDate() + n); return iso(d); }
+  function momento(r) { var d = fechaDe(r.fecha), h = r.hora.split(":"); d.setHours(+h[0], +h[1]); return d.getTime(); }
+  function personas(n) { return n + (n === 1 ? " persona" : " personas"); }
+  function horarios() { return conf.horas.split(/[,;\s]+/).filter(function (h) { return /^\d{1,2}:\d{2}$/.test(h); }).map(function (h) { return h.length === 4 ? "0" + h : h; }).sort(); }
+  function nombreDia(s) {
+    if (s === hoy()) return "hoy";
+    if (s === sumarDias(hoy(), 1)) return "mañana";
+    return fechaDe(s).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "numeric" });
+  }
+  function activas(r) { return r.estado === "pendiente" || r.estado === "confirmada"; }
+  function cubiertos(fecha, hora) { return res.filter(function (r) { return r.fecha === fecha && (!hora || r.hora === hora) && r.estado !== "cancelada"; }).reduce(function (s, r) { return s + r.pax; }, 0); }
+
+  function mensaje(r) {
+    return conf.msg.replace(/\{nombre\}/g, r.nombre.split(" ")[0]).replace(/\{personas\}/g, personas(r.pax))
+      .replace(/\{local\}/g, conf.local).replace(/\{dia\}/g, nombreDia(r.fecha)).replace(/\{hora\}/g, r.hora);
+  }
+
+  // ---------- Día ----------
+  function pintarPax() {
+    var h = "";
+    for (var i = 1; i <= 12; i++) h += '<button type="button" aria-pressed="' + (i === paxSel) + '" data-pax="' + i + '">' + (i === 12 ? "12+" : i) + "</button>";
+    $("pax").innerHTML = h;
+  }
+  function pintarHoras() {
+    var sel = $("fHora").value;
+    $("fHora").innerHTML = horarios().map(function (h) { return "<option>" + h + "</option>"; }).join("");
+    if (sel && horarios().indexOf(sel) >= 0) $("fHora").value = sel;
+    pintarLugar();
+  }
+  function pintarLugar() {
+    var f = $("fFecha").value, h = $("fHora").value;
+    if (!f || !h) { $("lugar").textContent = ""; return; }
+    var libre = conf.cap - cubiertos(f, h);
+    $("lugar").innerHTML = libre >= paxSel
+      ? "Quedan <b>" + libre + " lugares</b> a las " + h + "."
+      : '<b style="color:var(--bad)">A las ' + h + " quedan " + Math.max(0, libre) + " lugares.</b> Ofrecé otro horario.";
+  }
+
+  function tarjeta(r, i) {
+    var ahora = Date.now(), t = momento(r);
+    var cerrada = !activas(r);
+    var cls = "ticket" + (r.estado === "confirmada" ? " confirmada" : "") + (cerrada ? " cerrada" : "");
+    var chip = "";
+    if (r.estado === "confirmada") chip = '<span class="chip acc">Confirmó</span>';
+    if (r.estado === "pendiente" && r.pedido) chip = '<span class="chip warn">Se pidió confirmación ' + new Date(r.pedido).getHours() + ":" + p2(new Date(r.pedido).getMinutes()) + "</span>";
+    if (r.estado === "pendiente" && !r.pedido && r.fecha === hoy()) chip = '<span class="chip warn">Sin confirmar</span>';
+    if (activas(r) && ahora > t + conf.tol * MIN) { cls += " rojo"; chip += ' <span class="chip bad">Pasaron ' + Math.round((ahora - t) / MIN) + " min, ¿vino?</span>"; }
+    if (r.estado === "llego") chip = '<span class="chip acc">Vino</span>';
+    if (r.estado === "no_vino") chip = '<span class="chip bad">No vino</span>';
+    if (r.estado === "cancelada") chip = '<span class="chip">Canceló con aviso</span>';
+    var wa = numeroWa(r.tel, conf.area);
+    if (r.tel && !wa) chip += ' <span class="chip warn">Teléfono incompleto</span>';
+    var b = function (acc, txt, k) { return '<button class="btn ' + k + '" type="button" data-acc="' + acc + '" data-id="' + r.id + '">' + txt + "</button>"; };
+    var acciones = "";
+    if (cerrada) acciones = b("reabrir", "Reabrir", "fue") + b("borrar", "Borrar", "borrar");
+    else {
+      if (r.estado === "pendiente" && wa) acciones += '<a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/' + wa + "?text=" + encodeURIComponent(mensaje(r)) + '" data-acc="pedir" data-id="' + r.id + '">' + (r.pedido ? "Volver a pedir" : "Pedir confirmación") + "</a>";
+      if (r.estado === "pendiente") acciones += b("confirmar", "Confirmó", "fue");
+      acciones += b("llego", "Llegó", "sentar") + b("no_vino", "No vino", "fue") + b("cancelar", "Canceló", "fue") + b("borrar", "Borrar", "borrar");
+    }
+    return '<article class="' + cls + '"><div class="pos num">' + r.pax + "</div>" +
+      '<div class="who"><h3>' + esc(r.nombre) + '</h3><div class="meta"><span>' + personas(r.pax) + "</span>" + (r.tel ? "<span class=num>" + esc(r.tel) + "</span>" : "") + "</div>" +
+      (r.nota ? '<div class="nota">' + esc(r.nota) + "</div>" : "") + (chip ? '<div style="margin-top:6px">' + chip + "</div>" : "") + "</div>" +
+      "<div></div>" + (cerrada ? '<div class="acciones" style="margin-top:0">' + acciones + "</div>" : '<div class="acciones">' + acciones + "</div>") + "</article>";
+  }
+
+  function pintarDia() {
+    var t = hoy();
+    var largo = fechaDe(diaSel).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    $("diaTitulo").textContent = diaSel === t ? "Hoy, " + largo : largo.charAt(0).toUpperCase() + largo.slice(1);
+    var delDia = res.filter(function (r) { return r.fecha === diaSel; });
+    var hs = horarios();
+    delDia.forEach(function (r) { if (hs.indexOf(r.hora) < 0) hs.push(r.hora); });
+    hs.sort();
+    var orden = { pendiente: 0, confirmada: 0, llego: 1, no_vino: 1, cancelada: 2 };
+    var html = hs.map(function (h) {
+      var rs = delDia.filter(function (r) { return r.hora === h; }).sort(function (a, b) { return orden[a.estado] - orden[b.estado] || a.creada - b.creada; });
+      var cub = cubiertos(diaSel, h), pct = Math.min(100, cub / conf.cap * 100);
+      return '<div class="turno"><div class="turno-cab"><b class="num">' + h + '</b><span class="num">' + cub + " de " + conf.cap + " cubiertos · " + rs.filter(activas).length + " reservas</span>" +
+        '<div class="ocup' + (pct >= 90 ? " lleno" : "") + '"><i style="width:' + pct + '%"></i></div></div>' +
+        (rs.length ? rs.map(tarjeta).join("") : '<div class="vacio" style="padding:14px">Sin reservas a esta hora.</div>') + "</div>";
+    }).join("");
+    $("turnos").innerHTML = html || '<div class="vacio">Cargá los horarios en Ajustes.</div>';
+  }
+
+  function pintarStats() {
+    var t = hoy();
+    $("sCub").textContent = cubiertos(t);
+    $("sSin").textContent = res.filter(function (r) { return r.fecha === t && r.estado === "pendiente"; }).length;
+    var d = new Date();
+    $("sHora").textContent = p2(d.getHours()) + ":" + p2(d.getMinutes());
+    $("sFecha").textContent = d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "short" });
+  }
+
+  function accion(acc, id) {
+    var r = res.find(function (x) { return x.id === id; });
+    if (!r) return;
+    var antes = JSON.stringify(r);
+    if (acc === "pedir") { r.pedido = Date.now(); }
+    if (acc === "confirmar") { r.estado = "confirmada"; r.confirmo = true; }
+    if (acc === "llego") { r.estado = "llego"; toast(r.nombre + ": llegó", antes); }
+    if (acc === "no_vino") { r.estado = "no_vino"; toast(r.nombre + ": no vino", antes); }
+    if (acc === "cancelar") { r.estado = "cancelada"; toast(r.nombre + ": canceló", antes); }
+    if (acc === "reabrir") { r.estado = r.confirmo ? "confirmada" : "pendiente"; }
+    if (acc === "borrar") { res = res.filter(function (x) { return x.id !== id; }); toast("Reserva de " + r.nombre + " borrada", antes); }
+    guardar(); pintarTodo();
+  }
+
+  function toast(txt, antes) {
+    deshacer = antes;
+    $("toastTxt").textContent = txt;
+    $("toastUndo").hidden = !antes;
+    $("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $("toast").hidden = true; deshacer = null; }, 6000);
+  }
+
+  // ---------- Resumen ----------
+  function pintarResumen() {
+    var desde = sumarDias(hoy(), -30), t = hoy();
+    var rs = res.filter(function (r) { return r.fecha >= desde && r.fecha <= t; });
+    var cerr = rs.filter(function (r) { return r.estado === "llego" || r.estado === "no_vino"; });
+    var nv = rs.filter(function (r) { return r.estado === "no_vino"; });
+    var canc = rs.filter(function (r) { return r.estado === "cancelada"; });
+    var suma = function (a) { return a.reduce(function (s, r) { return s + r.pax; }, 0); };
+    var pct = function (a, b) { return b ? Math.round(a / b * 100) : 0; };
+    $("kpis").innerHTML = [
+      [rs.length, "reservas"],
+      [suma(cerr), "cubiertos reservados"],
+      [nv.length + ' <small style="font-size:16px;color:var(--muted)">' + pct(nv.length, cerr.length) + "%</small>", "no vinieron ni avisaron"],
+      [suma(nv), "cubiertos vacíos por no venir"],
+      [canc.length, "cancelaron con aviso"],
+      [pct(rs.filter(function (r) { return r.confirmo; }).length, rs.length) + "%", "confirmaron el mismo día"]
+    ].map(function (k) { return '<div class="kpi"><b class="num">' + k[0] + "</b><span>" + k[1] + "</span></div>"; }).join("");
+    $("kpis").insertAdjacentHTML("afterbegin", '<div class="kpi plata"><b class="num">' +
+      (conf.ticket ? "$" + Math.round(suma(nv) * conf.ticket).toLocaleString("es-AR") : "—") + "</b><span>" +
+      (conf.ticket ? "dejados de facturar por reservas que no vinieron ni avisaron" : "Cargá el gasto promedio por persona en Ajustes para ver la plata perdida por no-shows") + "</span></div>");
+
+    var conC = cerr.filter(function (r) { return r.confirmo; }), sinC = cerr.filter(function (r) { return !r.confirmo; });
+    var nvC = conC.filter(function (r) { return r.estado === "no_vino"; }).length, nvS = sinC.filter(function (r) { return r.estado === "no_vino"; }).length;
+    $("comparar").innerHTML = cerr.length
+      ? '<div class="c-ok"><b class="num">' + pct(nvC, conC.length) + '%</b>no vino, entre las <b style="display:inline;font-size:inherit;font-family:inherit;color:inherit">' + conC.length + "</b> que confirmaron</div>" +
+        '<div class="c-bad"><b class="num">' + pct(nvS, sinC.length) + '%</b>no vino, entre las <b style="display:inline;font-size:inherit;font-family:inherit;color:inherit">' + sinC.length + "</b> que no confirmaron</div>"
+      : '<p class="sub">Todavía no hay reservas cerradas.</p>';
+
+    var dias = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"], porDia = dias.map(function () { return { s: 0, p: 0 }; });
+    cerr.forEach(function (r) { var k = (fechaDe(r.fecha).getDay() + 6) % 7; if (r.estado === "no_vino") porDia[k].p += r.pax; else porDia[k].s += r.pax; });
+    var tope = Math.max.apply(null, [1].concat(porDia.map(function (v) { return v.s + v.p; })));
+    $("barras").innerHTML = porDia.map(function (v, i) {
+      var px = function (k) { return Math.round(k / tope * 130); };
+      return '<div class="barra"><span class="v num">' + (v.s + v.p) + '</span><div class="pila">' +
+        (v.p ? '<div class="col perdidos" style="height:' + px(v.p) + 'px"></div>' : "") +
+        (v.s ? '<div class="col" style="height:' + px(v.s) + 'px"></div>' : "") + "</div><span>" + dias[i] + "</span></div>";
+    }).join("");
+  }
+
+  function csv() {
+    var nombres = { pendiente: "sin confirmar", confirmada: "confirmada", llego: "vino", no_vino: "no vino", cancelada: "cancelo con aviso" };
+    var q = function (s) { return '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"'; };
+    var rows = [["fecha", "hora", "nombre", "personas", "telefono", "nota", "confirmo", "resultado"]];
+    res.slice().sort(function (a, b) { return momento(a) - momento(b); }).forEach(function (r) {
+      rows.push([r.fecha, r.hora, r.nombre, r.pax, r.tel, r.nota, r.confirmo ? "si" : "no", nombres[r.estado]]);
+    });
+    return rows.map(function (r) { return r.map(q).join(";"); }).join("\r\n");
+  }
+
+  // ---------- Ajustes ----------
+  function pintarAjustes() {
+    $("cLocal").value = conf.local; $("cHoras").value = conf.horas; $("cCap").value = conf.cap; $("cTicket").value = conf.ticket || "";
+    $("cArea").value = conf.area; $("cTol").value = conf.tol; $("cMsg").value = conf.msg;
+    previewMsg();
+  }
+  function previewMsg() { $("cPreview").textContent = mensaje({ nombre: "Laura Gómez", pax: 4, fecha: hoy(), hora: horarios()[1] || horarios()[0] || "21:00" }); }
+
+  function pintarTodo() {
+    $("nombreLocal").textContent = conf.local;
+    $("demo").hidden = !esDemo;
+    pintarStats(); pintarDia(); pintarLugar();
+    if (!$("v-resumen").hidden) pintarResumen();
+  }
+
+  // ---------- Ejemplo: cuatro semanas de un bodegón ----------
+  function sembrarDemo() {
+    var semilla = 7;
+    var azar = function () { semilla = (semilla * 16807) % 2147483647; return (semilla - 1) / 2147483646; };
+    var nombres = ["Laura Gómez", "Familia Pérez", "Martín R.", "Sofía", "Hernán Díaz", "Carla", "Los Fernández", "Gaby", "Tomás", "Paula y Nico", "Cumple de Juli", "Diego", "Romina", "Abuela Nelly", "Federico", "Mariana", "Equipo de fútbol", "Ceci", "Juan Pablo", "Vero"];
+    var tels = ["223 15 512-3456", "0223-155987654", "11 6543-2109", "2235 44-1122", "", "223 6123456"];
+    var hs = ["13:00", "20:30", "22:30"], n = 0, t = hoy(), ahora = Date.now();
+    res = [];
+    for (var d = -28; d <= 2; d++) {
+      var f = sumarDias(t, d), dow = fechaDe(f).getDay();
+      var cant = dow === 5 || dow === 6 ? 13 : dow === 0 ? 9 : dow === 1 ? 2 : 5;
+      for (var k = 0; k < cant; k++) {
+        var r = { id: "d" + (n++), nombre: nombres[Math.floor(azar() * nombres.length)], pax: [2, 2, 2, 3, 4, 4, 5, 6, 8][Math.floor(azar() * 9)],
+          fecha: f, hora: hs[(dow === 0 ? 0 : 1) + Math.floor(azar() * 2) % (dow === 0 ? 3 : 2)], tel: tels[Math.floor(azar() * tels.length)], nota: "", creada: n, estado: "pendiente" };
+        if (momento(r) + 40 * MIN < ahora) {
+          r.confirmo = azar() < 0.55;
+          var x = azar();
+          r.estado = x < 0.07 ? "cancelada" : (r.confirmo ? x < 0.1 : x < 0.29) ? "no_vino" : "llego";
+          if (r.confirmo) r.pedido = momento(r) - 5 * 3600000;
+        } else if (d === 0 && azar() < 0.5) { r.estado = "confirmada"; r.confirmo = true; r.pedido = ahora - 2 * 3600000; }
+        res.push(r);
+      }
+    }
+    res.push({ id: "d" + (n++), nombre: "Cumple de Juli", pax: 9, fecha: t, hora: "22:30", tel: "", nota: "Traen torta, avisar a cocina", creada: n, estado: "pendiente" });
+    conf.local = "Bodegón Constitución";
+    conf.ticket = 30000; // valor de ejemplo
+    esDemo = true;
+  }
+
+  // ---------- Eventos ----------
+  $("pax").addEventListener("click", function (e) { var b = e.target.closest("[data-pax]"); if (!b) return; paxSel = Number(b.dataset.pax); pintarPax(); pintarLugar(); });
+  $("fFecha").addEventListener("change", pintarLugar);
+  $("fHora").addEventListener("change", pintarLugar);
+  $("formAlta").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var nombre = $("fNombre").value.trim(); if (!nombre || !$("fFecha").value || !$("fHora").value) return;
+    var r = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nombre: nombre, pax: paxSel, fecha: $("fFecha").value, hora: $("fHora").value,
+      tel: $("fTel").value.trim(), nota: $("fNota").value.trim(), creada: Date.now(), estado: "pendiente" };
+    res.push(r);
+    $("fNombre").value = ""; $("fTel").value = ""; $("fNota").value = ""; paxSel = 2; pintarPax();
+    diaSel = r.fecha; guardar(); pintarTodo();
+    toast("Reserva guardada: " + r.nombre + ", " + nombreDia(r.fecha) + " " + r.hora, null);
+    $("fNombre").focus();
+  });
+  $("turnos").addEventListener("click", function (e) { var b = e.target.closest("[data-acc]"); if (!b) return; accion(b.dataset.acc, b.dataset.id); });
+  $("diaAnt").addEventListener("click", function () { diaSel = sumarDias(diaSel, -1); $("fFecha").value = diaSel; pintarTodo(); });
+  $("diaSig").addEventListener("click", function () { diaSel = sumarDias(diaSel, 1); $("fFecha").value = diaSel; pintarTodo(); });
+  $("diaHoy").addEventListener("click", function () { diaSel = hoy(); $("fFecha").value = diaSel; pintarTodo(); });
+  $("toastUndo").addEventListener("click", function () {
+    if (!deshacer) return;
+    var prev = JSON.parse(deshacer);
+    if (res.some(function (r) { return r.id === prev.id; })) res = res.map(function (r) { return r.id === prev.id ? prev : r; });
+    else res.push(prev);
+    deshacer = null; $("toast").hidden = true; guardar(); pintarTodo();
+  });
+  document.querySelector("nav.tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tab]"); if (!b) return;
+    ["dia", "resumen", "ajustes"].forEach(function (t) {
+      $("v-" + t).hidden = t !== b.dataset.tab;
+      $("tab-" + t).setAttribute("aria-selected", String(t === b.dataset.tab));
+    });
+    if (b.dataset.tab === "resumen") pintarResumen();
+    if (b.dataset.tab === "ajustes") pintarAjustes();
+  });
+  $("borrarDemo").addEventListener("click", function () { res = []; esDemo = false; conf.local = "Mi restaurante"; guardar(); pintarTodo(); });
+  ["cLocal", "cHoras", "cCap", "cTicket", "cArea", "cTol", "cMsg"].forEach(function (id) {
+    $(id).addEventListener("input", function () {
+      conf.local = $("cLocal").value.trim() || "Mi restaurante";
+      conf.horas = $("cHoras").value;
+      conf.cap = Math.max(1, Number($("cCap").value) || 40);
+      conf.ticket = Math.max(0, Number($("cTicket").value) || 0);
+      conf.area = $("cArea").value.replace(/\D/g, "");
+      conf.tol = Math.min(90, Math.max(5, Number($("cTol").value) || 20));
+      conf.msg = $("cMsg").value || conf.msg;
+      previewMsg(); guardar(); pintarHoras(); $("nombreLocal").textContent = conf.local;
+    });
+  });
+  $("descargarCsv").addEventListener("click", function () {
+    var blob = new Blob(["﻿" + csv()], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "reservas-" + hoy() + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+  $("copiarCsv").addEventListener("click", function () {
+    var txt = csv(), ta = $("csvFallback");
+    var mostrar = function () { ta.value = txt; ta.hidden = false; ta.style.width = "100%"; ta.style.marginTop = "10px"; ta.select(); };
+    try { navigator.clipboard.writeText(txt).then(function () { toast("Planilla copiada: pegala en Excel o Google Sheets", null); }, mostrar); } catch (err) { mostrar(); }
+  });
+  $("zonaBorrar").addEventListener("click", function (e) {
+    var id = e.target.id;
+    if (id === "borrarTodo") {
+      $("zonaBorrar").innerHTML = '<span>¿Seguro? No se puede deshacer.</span><button class="btn" type="button" id="siBorrar">Sí, borrar todo</button><button class="btn ghost" type="button" id="noBorrar" style="background:none;color:var(--ink)">Cancelar</button>';
+      return;
+    }
+    if (id === "siBorrar") { res = []; esDemo = false; guardar(); pintarTodo(); toast("Se borró todo", null); }
+    if (id === "siBorrar" || id === "noBorrar") $("zonaBorrar").innerHTML = '<button class="btn" type="button" id="borrarTodo">Borrar todo</button>';
+  });
+
+  // ---------- Arranque ----------
+  if (!cargar()) sembrarDemo();
+  $("fFecha").value = diaSel;
+  pintarPax(); pintarHoras(); pintarTodo();
+  setInterval(function () { pintarStats(); if (!$("v-dia").hidden) pintarDia(); }, 30000);
+  // Pedirle al navegador que no borre los datos si se queda sin espacio, y funcionar sin internet cuando está publicada.
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+  try { if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost") && document.querySelector('link[rel="manifest"]')) navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
+})();
+</script>
+
+</body>
+</html>
