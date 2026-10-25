@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fbf4e6">
+<title>Sobremesa</title>
+<style>
+  /* Pensado para que lo lea alguien de 95: letra grande, mucho contraste, botones enormes. */
+  :root {
+    --fondo: #fbf4e6; --tarjeta: #ffffff; --borde: #d9cbb0; --texto: #1d1a15; --suave: #5e5546;
+    --acento: #b8461f; --acento-texto: #ffffff; --verde: #2f7a3a; --secreto: #24324a;
+  }
+  * { box-sizing: border-box }
+  html { font-size: 22px }
+  html.grande { font-size: 28px }
+  html, body { margin: 0; background: var(--fondo); color: var(--texto); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.35; -webkit-tap-highlight-color: transparent }
+  body { min-height: 100vh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) }
+  button, input { font: inherit; color: inherit }
+  button { cursor: pointer; border: 0; touch-action: manipulation }
+  [hidden] { display: none !important }
+  .pantalla { max-width: 640px; margin: 0 auto; padding: 16px 16px 32px; display: flex; flex-direction: column; gap: 16px; min-height: 100vh }
+  h1 { font-size: 2rem; margin: 8px 0 0; line-height: 1.1 }
+  h2 { font-size: 1.4rem; margin: 0 }
+  p { margin: 0 }
+  .suave { color: var(--suave) }
+  .chico { font-size: .8rem }
+  .boton { display: block; width: 100%; min-height: 3.2rem; padding: .6rem 1rem; border-radius: 18px; background: var(--acento); color: var(--acento-texto); font-weight: 700; font-size: 1.15rem }
+  .boton.claro { background: var(--tarjeta); color: var(--texto); border: 2px solid var(--borde) }
+  .boton:active { transform: scale(.98) }
+  .fila { display: flex; flex-wrap: wrap; gap: 12px }
+  .fila > * { min-width: 9rem }
+  .fila > * { flex: 1 }
+  .tarjeta { background: var(--tarjeta); border: 2px solid var(--borde); border-radius: 22px; padding: 20px }
+  .juego { text-align: left; display: flex; flex-direction: column; gap: 4px; width: 100% }
+  .juego b { font-size: 1.25rem }
+  .juego span { color: var(--suave); font-size: .85rem }
+  .nombre { width: 100%; padding: .55rem .8rem; border: 2px solid var(--borde); border-radius: 14px; background: #fff }
+  .codigo { font-size: 3rem; font-weight: 800; letter-spacing: .12em; text-align: center }
+  .arriba { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .8rem; color: var(--suave) }
+  .arriba button { background: none; padding: 8px 4px; color: var(--suave); text-decoration: underline }
+  .ronda { text-align: center; font-size: 1rem; color: var(--suave); font-weight: 700; letter-spacing: .05em }
+  .ronda b { color: var(--texto); font-size: 1.6rem }
+  .pregunta { font-size: 1.6rem; font-weight: 700; text-align: center; line-height: 1.25; padding: 28px 18px }
+  .instruccion { text-align: center; color: var(--suave); font-size: .95rem }
+  .protagonista { text-align: center; font-size: 1rem }
+  .protagonista b { display: block; font-size: 2.2rem; color: var(--acento) }
+  .secreto { background: var(--secreto); color: #fff; border-radius: 22px; min-height: 9rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; width: 100% }
+  .secreto .palabra { overflow-wrap: anywhere; font-weight: 800; line-height: 1.1 }
+  .secreto .impostor { font-size: 2rem; font-weight: 800; color: #ffcf6e }
+  .relleno { flex: 1 }
+  .error { color: var(--acento); font-weight: 700 }
+</style>
+</head>
+<body>
+
+<!-- Inicio -->
+<section class="pantalla" id="p-inicio" hidden>
+  <h1>Sobremesa</h1>
+  <p>Juegos para charlar después de comer. Cada uno con su celular, sin descargar nada.</p>
+  <div class="relleno"></div>
+  <button class="boton" data-ir="armar">Armar la mesa</button>
+  <p class="suave chico">Lo hace uno solo. Después les manda el link a los demás.</p>
+  <button class="boton claro" data-ir="unirme">Me pasaron un número de mesa</button>
+</section>
+
+<!-- Armar la mesa (o unirse a mano) -->
+<section class="pantalla" id="p-armar" hidden>
+  <h1 id="armar-titulo">¿Quiénes juegan?</h1>
+  <p id="armar-ayuda" class="suave">Un nombre por persona.</p>
+  <div id="campo-codigo" hidden>
+    <p>Número de mesa</p>
+    <input class="nombre codigo" id="codigo" inputmode="numeric" maxlength="4" autocomplete="off">
+    <p class="suave chico">Los nombres, en el mismo orden que en el celular del que armó la mesa.</p>
+  </div>
+  <div id="nombres" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="fila">
+    <button class="boton claro" id="mas">+ Uno más</button>
+    <button class="boton claro" id="menos">− Uno menos</button>
+  </div>
+  <p class="error" id="armar-error" hidden></p>
+  <div class="relleno"></div>
+  <button class="boton" id="armar-listo">Listo</button>
+  <button class="boton claro" data-ir="inicio">Volver</button>
+</section>
+
+<!-- Compartir el link -->
+<section class="pantalla" id="p-compartir" hidden>
+  <h1>Mesa lista</h1>
+  <p>Mandales el link por WhatsApp. Cada uno lo abre y toca su nombre.</p>
+  <button class="boton" id="compartir">Mandar el link</button>
+  <div class="tarjeta">
+    <p class="suave chico" style="text-align:center">Si alguien no puede abrir el link, que toque «Me pasaron un número de mesa» y ponga</p>
+    <p class="codigo" id="compartir-codigo"></p>
+    <p class="suave chico" style="text-align:center" id="compartir-orden"></p>
+  </div>
+  <div class="relleno"></div>
+  <button class="boton claro" data-ir="quien">Sigo yo: elegir mi nombre</button>
+</section>
+
+<!-- Quién soy -->
+<section class="pantalla" id="p-quien" hidden>
+  <h1>¿Quién sos?</h1>
+  <p class="suave">Tocá tu nombre.</p>
+  <div id="quien-lista" style="display:flex;flex-direction:column;gap:12px"></div>
+</section>
+
+<!-- Menú de juegos -->
+<section class="pantalla" id="p-menu" hidden>
+  <div class="arriba"><span id="menu-yo"></span><button id="letra">Letra más grande</button></div>
+  <h1>¿A qué jugamos?</h1>
+  <p class="suave">Elijan todos el mismo.</p>
+  <button class="tarjeta juego" data-juego="quien"><b>¿Quién de nosotros…?</b><span>Sale una pregunta. A la cuenta de tres, todos señalan a alguien.</span></button>
+  <button class="tarjeta juego" data-juego="diria"><b>¿Qué diría…?</b><span>Por turno, los demás adivinan lo que contestaría uno. Después cuenta la verdad.</span></button>
+  <button class="tarjeta juego" data-juego="impostor"><b>El impostor</b><span>Todos tienen la misma palabra menos uno. Hay que descubrirlo.</span></button>
+  <div class="relleno"></div>
+  <div class="fila">
+    <button class="boton claro chico" data-ir="quien">Cambiar mi nombre</button>
+    <button class="boton claro chico" id="otra-mesa">Otra mesa</button>
+  </div>
+</section>
+
+<!-- Un juego -->
+<section class="pantalla" id="p-juego" hidden>
+  <div class="arriba"><button data-ir="menu">← Juegos</button><span id="juego-nombre"></span></div>
+  <p class="ronda">RONDA <b id="ronda"></b></p>
+  <div id="contenido" style="display:flex;flex-direction:column;gap:16px"></div>
+  <div class="relleno"></div>
+  <button class="boton" id="siguiente">Siguiente</button>
+  <button class="boton claro chico" id="anterior">Volver a la ronda anterior</button>
+  <p class="suave chico" style="text-align:center">Fíjense que todos estén en la misma ronda.</p>
+</section>
+
+<script>
+// ---------- Contenido ----------
+const PREGUNTAS_QUIEN = [
+  'se queda dormido primero después de comer?', 'es el más goloso?', 'cuenta mejor las historias?',
+  'tiene más paciencia?', 'llega siempre tarde?', 'habla más por teléfono?', 'es el más cabeza dura?',
+  'cocina mejor?', 'se ríe más fuerte?', 'sería el mejor presidente?', 'se perdería primero en una ciudad nueva?',
+  'es el más ordenado?', 'guarda todo «por si acaso»?', 'ganaría un concurso de baile?', 'es el más friolento?',
+  'tiene mejor memoria?', 'da los mejores consejos?', 'se asusta más con una película de miedo?',
+  'es el más mandón?', 'es el más mimoso?', 'duraría más en una isla desierta?', 'se come el último pedazo de torta?',
+  'pide perdón más rápido?', 'es el más chusma?', 'canta cuando nadie lo escucha?', 'se preocupa más por los demás?',
+  'es gracioso sin querer?', 'es el más coqueto?', 'ganaría una discusión?', 'es el más tranquilo?',
+  'se emociona más fácil?', 'guarda mejor un secreto?', 'haría el mejor asado?', 'se levanta más temprano?',
+  'tiene la letra más linda?', 'es el más ahorrativo?', 'se acuerda de todos los cumpleaños?',
+  'dice «en mi época…» más seguido?', 'sería el mejor maestro?', 'es el más curioso?', 'toma más mate por día?',
+  'se quejaría primero del calor?', 'tiene más amigos?', 'es el más valiente?', 'escribiría el mejor libro?',
+]
+const PREGUNTAS_DIRIA = [
+  '¿Cuál es la comida preferida de {n}?', '¿Qué quería ser {n} de grande, cuando era chico?',
+  '¿Cuál fue el primer trabajo de {n}?', '¿Cuál es la canción que más le gusta a {n}?',
+  '¿Adónde viajaría {n} si pudiera ir a cualquier lado?', '¿Cuál fue la travesura más grande de {n} de chico?',
+  '¿Qué es lo que más hace reír a {n}?', '¿Cuál fue el mejor regalo que recibió {n}?', '¿Qué le da miedo a {n}?',
+  '¿Cuál es el postre que {n} nunca rechaza?', '¿Cuál es el mejor recuerdo de la infancia de {n}?',
+  '¿Qué materia le gustaba más a {n} en la escuela?', '¿Cuál es el lugar preferido de {n} en el mundo?',
+  '¿Qué superpoder elegiría {n}?', '¿Qué cosa no soporta {n}?', '¿Qué cosa de antes extraña {n}?',
+  '¿Cómo es un domingo perfecto para {n}?', '¿Qué consejo le daría {n} a alguien de 20 años?',
+  '¿Cuál es la frase que más repite {n}?', '¿Qué animal sería {n}?', '¿Qué comida no come {n} ni loco?',
+  '¿Cuál es la película o el programa preferido de {n}?', '¿A qué jugaba {n} de chico?',
+  '¿Qué sabe hacer {n} que nadie más de la mesa sabe?', '¿Qué es lo que más orgullo le da a {n}?',
+  '¿Qué se llevaría {n} a una isla desierta?', '¿Qué le pediría {n} a un genio de la lámpara?',
+  '¿Qué cambió más desde que {n} era chico?', '¿Cuál es el olor que más le gusta a {n}?',
+  '¿A qué famoso le gustaría conocer a {n}?', '¿Qué hacía {n} para divertirse a los 15 años?',
+  '¿Cuál es el plato que mejor le sale a {n}?', '¿Cuál es la estación del año preferida de {n}?',
+  '¿Qué es lo primero que hace {n} cuando se levanta?', '¿Cuál fue el viaje más lindo de {n}?',
+  '¿Qué le enseñaron a {n} sus padres que todavía usa?', '¿Qué compraría {n} si se ganara la lotería?',
+  '¿Cuál fue la primera casa de {n}? ¿Cómo era?', '¿Con qué personaje de la historia tomaría un café {n}?',
+  '¿Qué fue lo más difícil que aprendió {n}?',
+]
+const PALABRAS = {
+  'una comida': ['empanadas', 'asado', 'milanesa', 'ñoquis', 'dulce de leche', 'alfajor', 'puchero', 'tortilla de papas', 'flan', 'pastafrola', 'medialunas', 'ravioles', 'locro', 'fainá', 'pizza'],
+  'algo de la casa': ['máquina de coser', 'radio', 'plancha', 'heladera', 'pava', 'mate', 'lavarropas', 'teléfono', 'reloj de pared', 'almohada', 'sillón', 'escoba', 'agujas de tejer'],
+  'un lugar': ['playa', 'plaza', 'iglesia', 'almacén', 'feria', 'cine', 'estación de tren', 'escuela', 'peluquería', 'panadería', 'puerto', 'hospital', 'club'],
+  'un animal': ['gato', 'perro', 'gallina', 'caballo', 'gaviota', 'lobo marino', 'vaca', 'loro'],
+  'una fiesta': ['casamiento', 'cumpleaños', 'Navidad', 'carnaval', 'vacaciones', 'bautismo', 'Año Nuevo'],
+  'un oficio': ['maestra', 'médico', 'colectivero', 'almacenero', 'costurera', 'cartero', 'mecánico', 'peluquero', 'panadero', 'enfermera'],
+}
+const LISTA_PALABRAS = Object.entries(PALABRAS).flatMap(([cat, ps]) => ps.map(p => ({ cat, p })))
+
+const JUEGOS = { quien: '¿Quién de nosotros…?', diria: '¿Qué diría…?', impostor: 'El impostor' }
+
+// ---------- Azar compartido ----------
+// Todos los celulares calculan lo mismo a partir del número de mesa y la ronda:
+// así no hace falta internet entre ellos ni servidor.
+function semilla(texto) {
+  let h = 1779033703 ^ texto.length
+  for (let i = 0; i < texto.length; i++) { h = Math.imul(h ^ texto.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19 }
+  h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909)
+  return (h ^= h >>> 16) >>> 0
+}
+function azar(texto) {
+  let a = semilla(texto)
+  return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 }
+}
+// Mazo mezclado igual en todos; la ronda r saca la carta r (y vuelve a empezar si se acaban).
+function carta(lista, mesa, juego, ronda) {
+  const vuelta = Math.floor((ronda - 1) / lista.length)
+  const r = azar(mesa + '|' + juego + '|' + vuelta)
+  const idx = lista.map((_, i) => i)
+  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
+  return lista[idx[(ronda - 1) % lista.length]]
+}
+function ronda(mesa, juego, n, nombres) {
+  if (juego === 'quien') return { texto: '¿Quién de nosotros ' + carta(PREGUNTAS_QUIEN, mesa, juego, n) }
+  if (juego === 'diria') {
+    const prota = (n - 1) % nombres.length
+    return { prota, texto: carta(PREGUNTAS_DIRIA, mesa, juego, n).replace('{n}', nombres[prota]) }
+  }
+  const r = azar(mesa + '|impostor|' + n)
+  const impostor = Math.floor(r() * nombres.length)
+  let empieza = Math.floor(r() * (nombres.length - 1))
+  if (empieza >= impostor) empieza++
+  return { ...carta(LISTA_PALABRAS, mesa, juego, n), impostor, empieza }
+}
+
+// ---------- Estado ----------
+const CLAVE = 'sobremesa'
+let est = { mesa: '', nombres: [], yo: -1, juego: '', rondas: {}, grande: false }
+function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(est)) } catch (e) {} }
+try { Object.assign(est, JSON.parse(localStorage.getItem(CLAVE) || '{}')) } catch (e) {}
+
+// Link con la mesa: #m=4821&n=Abuela,Mamá,...
+function leerLink() {
+  const p = new URLSearchParams(location.hash.slice(1))
+  const m = p.get('m'), n = p.get('n')
+  if (!m || !n) return false
+  const nombres = n.split(',').map(s => s.trim()).filter(Boolean)
+  if (nombres.length < 3) return false
+  if (m !== est.mesa || nombres.join() !== est.nombres.join()) est = { ...est, mesa: m, nombres, yo: -1, juego: '', rondas: {} }
+  guardar()
+  history.replaceState(null, '', location.pathname)
+  return true
+}
+function link() {
+  return location.origin + location.pathname + '#m=' + est.mesa + '&n=' + est.nombres.map(encodeURIComponent).join(',')
+}
+
+// ---------- Pantallas ----------
+const $ = id => document.getElementById(id)
+function ir(p) {
+  document.querySelectorAll('.pantalla').forEach(s => { s.hidden = s.id !== 'p-' + p })
+  window.scrollTo(0, 0)
+  if (p === 'armar') prepararArmar(false)
+  if (p === 'unirme') { prepararArmar(true); p = 'armar'; $('p-armar').hidden = false }
+  if (p === 'compartir') { $('compartir-codigo').textContent = est.mesa; $('compartir-orden').textContent = 'y los nombres en este orden: ' + est.nombres.join(', ') }
+  if (p === 'quien') pintarQuien()
+  if (p === 'menu') $('menu-yo').textContent = 'Sos ' + est.nombres[est.yo] + ' · mesa ' + est.mesa
+  if (p === 'juego') pintarJuego()
+  despierto()
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-ir]'); if (b) ir(b.dataset.ir) })
+
+let uniendo = false
+function prepararArmar(unirme) {
+  uniendo = unirme
+  $('armar-titulo').textContent = unirme ? 'Entrar a una mesa' : '¿Quiénes juegan?'
+  $('armar-ayuda').hidden = unirme
+  $('campo-codigo').hidden = !unirme
+  $('codigo').value = ''
+  $('armar-error').hidden = true
+  const caja = $('nombres'); caja.innerHTML = ''
+  const previos = est.nombres.length ? est.nombres : ['Abuela', 'Mamá', '', '']
+  previos.forEach(agregarNombre)
+}
+function agregarNombre(valor) {
+  const caja = $('nombres')
+  if (caja.children.length >= 8) return
+  const i = document.createElement('input')
+  i.className = 'nombre'; i.value = valor || ''; i.maxLength = 16; i.autocomplete = 'off'
+  i.placeholder = 'Nombre ' + (caja.children.length + 1)
+  caja.appendChild(i)
+}
+$('mas').onclick = () => agregarNombre('')
+$('menos').onclick = () => { const c = $('nombres'); if (c.children.length > 3) c.lastChild.remove() }
+$('armar-listo').onclick = () => {
+  const nombres = [...$('nombres').children].map(i => i.value.trim().replace(/,/g, ' ')).filter(Boolean)
+  const err = t => { $('armar-error').textContent = t; $('armar-error').hidden = false }
+  if (nombres.length < 3) return err('Hacen falta por lo menos 3 nombres.')
+  if (new Set(nombres.map(n => n.toLowerCase())).size !== nombres.length) return err('Hay dos nombres iguales. Cambiá uno (por ejemplo, «Juan P.»).')
+  let mesa = String(Math.floor(1000 + Math.random() * 9000))
+  if (uniendo) {
+    mesa = $('codigo').value.trim()
+    if (!/^\d{4}$/.test(mesa)) return err('El número de mesa tiene 4 cifras.')
+  }
+  est = { ...est, mesa, nombres, yo: -1, juego: '', rondas: {} }
+  guardar()
+  ir(uniendo ? 'quien' : 'compartir')
+}
+$('compartir').onclick = async () => {
+  const texto = '¡A la sobremesa! Tocá el link y elegí tu nombre: ' + link()
+  if (navigator.share) { try { await navigator.share({ text: texto }); return } catch (e) { if (e.name === 'AbortError') return } }
+  location.href = 'https://wa.me/?text=' + encodeURIComponent(texto)
+}
+
+function pintarQuien() {
+  const l = $('quien-lista'); l.innerHTML = ''
+  est.nombres.forEach((n, i) => {
+    const b = document.createElement('button')
+    b.className = 'boton' + (i === est.yo ? '' : ' claro'); b.textContent = n
+    b.onclick = () => { est.yo = i; guardar(); ir('menu') }
+    l.appendChild(b)
+  })
+}
+
+document.querySelectorAll('[data-juego]').forEach(b => b.onclick = () => {
+  est.juego = b.dataset.juego; est.rondas[est.juego] = est.rondas[est.juego] || 1; guardar(); ir('juego')
+})
+$('otra-mesa').onclick = () => { if (confirm('¿Empezar una mesa nueva? Esta se borra de este celular.')) { est = { ...est, mesa: '', nombres: [], yo: -1, juego: '', rondas: {} }; guardar(); ir('inicio') } }
+$('siguiente').onclick = () => { est.rondas[est.juego]++; guardar(); pintarJuego() }
+$('anterior').onclick = () => { if (est.rondas[est.juego] > 1) { est.rondas[est.juego]--; guardar(); pintarJuego() } }
+
+function el(tag, clase, texto) { const e = document.createElement(tag); if (clase) e.className = clase; if (texto != null) e.textContent = texto; return e }
+
+function pintarJuego() {
+  const n = est.rondas[est.juego], j = est.juego, yo = est.yo, nombres = est.nombres
+  const r = ronda(est.mesa, j, n, nombres)
+  $('juego-nombre').textContent = JUEGOS[j]
+  $('ronda').textContent = n
+  $('anterior').hidden = n === 1
+  const c = $('contenido'); c.innerHTML = ''
+  if (j === 'quien') {
+    const t = el('div', 'tarjeta pregunta', r.texto); c.append(t)
+    c.append(el('p', 'instruccion', 'A la cuenta de tres, todos señalan a alguien. El más señalado cuenta por qué.'))
+  } else if (j === 'diria') {
+    const p = el('p', 'protagonista', yo === r.prota ? 'Te toca a vos,' : 'Le toca a')
+    p.append(el('b', '', nombres[r.prota]))
+    c.append(p, el('div', 'tarjeta pregunta', r.texto))
+    c.append(el('p', 'instruccion', yo === r.prota
+      ? 'Escuchá lo que dicen los demás. Después contá la verdad (y la historia, si hay).'
+      : 'Digan en voz alta qué creen que va a contestar. Después ' + nombres[r.prota] + ' cuenta la verdad.'))
+  } else {
+    let visto = false
+    const s = el('button', 'secreto')
+    const pintar = () => {
+      s.innerHTML = ''
+      if (!visto) { s.append(el('span', 'palabra', 'Tocá para ver tu palabra')); s.append(el('span', 'chico', 'Que no miren los demás')); return }
+      if (yo === r.impostor) { s.append(el('span', 'impostor', '¡Sos el impostor!')); s.append(el('span', '', 'Es ' + r.cat + '. Disimulá.')) }
+      else { const w = el('span', 'palabra', r.p), largo = Math.max(...r.p.split(' ').map(x => x.length)); w.style.fontSize = `min(2.4rem, calc((min(100vw, 640px) - 90px) / ${(largo * 0.62).toFixed(2)}))`; s.append(w); s.append(el('span', 'chico', 'Tocá para tapar')) }
+    }
+    s.onclick = () => { visto = !visto; pintar() }
+    pintar(); c.append(s)
+    c.append(el('p', 'instruccion', 'Empieza ' + nombres[r.empieza] + ' y siguen en ronda: cada uno dice una palabra que tenga que ver, sin decirla. Después, a la cuenta de tres, todos señalan al impostor.'))
+    const rev = el('button', 'boton claro', 'Mostrar quién era')
+    rev.onclick = () => { rev.replaceWith(el('div', 'tarjeta pregunta', 'Era ' + nombres[r.impostor] + '. La palabra: ' + r.p + '.')) }
+    c.append(rev)
+  }
+}
+
+// Letra más grande en este celular
+function aplicarLetra() { document.documentElement.classList.toggle('grande', !!est.grande); $('letra').textContent = est.grande ? 'Letra normal' : 'Letra más grande' }
+$('letra').onclick = () => { est.grande = !est.grande; guardar(); aplicarLetra() }
+aplicarLetra()
+
+// Que la pantalla no se apague en medio de la ronda
+let traba = null
+async function despierto() { try { if (!traba && 'wakeLock' in navigator) { traba = await navigator.wakeLock.request('screen'); traba.onrelease = () => { traba = null } } } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') despierto() })
+
+// Arranque
+leerLink()
+if (!est.mesa) ir('inicio')
+else if (est.yo < 0 || est.yo >= est.nombres.length) ir('quien')
+else if (est.juego) ir('juego')
+else ir('menu')
+</script>
+</body>
+</html>
