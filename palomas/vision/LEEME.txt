@@ -1,4 +1,5 @@
 Reconocedor de pájaros de ¡Fuera palomas!
-- MediaPipe Tasks Vision 0.10.14 (Google, Apache 2.0): vision_bundle.mjs y wasm/
+- trabajador.js: el Web Worker que usa todo esto (de ¡Fuera palomas!)
+- MediaPipe Tasks Vision 0.10.14 (Google, Apache 2.0): mediapipe.js (vision_bundle.cjs) y wasm/
 - efficientdet_lite0.tflite: detector de objetos de MediaPipe (COCO), Apache 2.0
 - inat_aves.tflite / inat_aves.txt: MobileNet v2 de aves de iNaturalist, de google-coral/test_data, Apache 2.0
