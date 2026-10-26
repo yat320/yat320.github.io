@@ -1,0 +1,442 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/FwnWqxYWRHNCTsNFW3JtXR (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Waffle Frenzy</title>
+<style>
+/* Layout: una columna angosta tipo mostrador. De arriba a abajo: caja, reloj, Frenzy, clientes, cocina, toppings, mensajes. */
+:root {
+  --fondo: #F5F0FA; --carta: #FFFFFF; --tinta: #2B2233; --suave: #6B5F77; --linea: #DDD3E8;
+  --menta: #CDEEDF; --menta-borde: #8FCFB3; --manteca: #FFEFC0; --manteca-borde: #E5C877;
+  --cielo: #D8E7FA; --cielo-borde: #9DBDE6; --plancha: #5B5466; --plancha-hueco: #3F3948;
+  --acento: #C2185B; --acento-sombra: #8E0E41; --sobre-acento: #FFFFFF;
+  --bien: #17734A; --bien-fondo: #D5F2E1; --mal: #B8321F; --plato: #FFFFFF;
+  --letra: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fondo: #1C1822; --carta: #29232F; --tinta: #F3ECF7; --suave: #AEA2BA; --linea: #443B4F;
+  --menta: #21433A; --menta-borde: #3C7A66; --manteca: #463C1E; --manteca-borde: #8A7636;
+  --cielo: #22364B; --cielo-borde: #40658C; --plancha: #7A7186; --plancha-hueco: #4C4556;
+  --acento: #F0669A; --acento-sombra: #A93766; --sobre-acento: #2A0D19;
+  --bien: #72D9A6; --bien-fondo: #1D4333; --mal: #FF8E7A; --plato: #E9E2EE; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --fondo: #1C1822; --carta: #29232F; --tinta: #F3ECF7; --suave: #AEA2BA; --linea: #443B4F;
+  --menta: #21433A; --menta-borde: #3C7A66; --manteca: #463C1E; --manteca-borde: #8A7636;
+  --cielo: #22364B; --cielo-borde: #40658C; --plancha: #7A7186; --plancha-hueco: #4C4556;
+  --acento: #F0669A; --acento-sombra: #A93766; --sobre-acento: #2A0D19;
+  --bien: #72D9A6; --bien-fondo: #1D4333; --mal: #FF8E7A; --plato: #E9E2EE; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--fondo); color: var(--tinta); font: 500 16px/1.4 var(--letra); padding-inline: 16px; padding-block: 16px 32px; -webkit-user-select: none; user-select: none }
+.marco { max-width: 520px; margin-inline: auto; display: flex; flex-direction: column; gap: 12px }
+section { display: flex; flex-direction: column; gap: 12px }
+svg { display: block; width: 100%; height: auto }
+.num { font-variant-numeric: tabular-nums }
+
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px }
+h1 { font: 800 1.75rem/1 var(--letra); margin: 0 auto 0 0; color: var(--acento); letter-spacing: -.01em }
+.dato { font-size: .875rem; color: var(--suave) }
+.dato b { color: var(--tinta); font-size: 1.0625rem; margin-left: 4px }
+h2 { font: 800 1.125rem var(--letra); margin: 4px 0 0 }
+p, ol { margin: 0 }
+ol { padding-left: 1.3em; display: flex; flex-direction: column; gap: 4px; color: var(--suave) }
+
+button { font: 700 1rem var(--letra); color: var(--tinta); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  border: 2px solid var(--linea); border-bottom-width: 5px; border-radius: 14px; background: var(--carta); padding: 8px; min-height: 56px }
+button:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 3px; margin-bottom: 2px }
+button:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px }
+button:disabled { cursor: not-allowed; opacity: .5 }
+.principal { background: var(--acento); color: var(--sobre-acento); border-color: var(--acento-sombra); font-size: 1.1875rem; min-height: 64px }
+.chato { min-height: 44px; font-size: .875rem; color: var(--suave) }
+
+.hud { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center }
+.hud div { background: var(--carta); border: 2px solid var(--linea); border-radius: 12px; padding: 6px 4px; font-size: .75rem; color: var(--suave) }
+.hud b { display: block; font-size: 1.375rem; line-height: 1.1; color: var(--tinta) }
+.frenzy { position: relative; height: 26px; border-radius: 13px; background: var(--carta); border: 2px solid var(--linea); overflow: hidden }
+.frenzy i { position: absolute; inset: 0 auto 0 0; background: var(--manteca-borde); width: 0 }
+.frenzy span { position: absolute; inset: 0; display: grid; place-items: center; font-size: .8125rem; font-weight: 800 }
+.frenzy.activo { border-color: var(--acento) }
+.frenzy.activo i { background: var(--acento) }
+.frenzy.activo span { color: var(--sobre-acento); mix-blend-mode: normal }
+
+.clientes, .cocina, .toppings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+.cliente { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 178px; padding: 8px 6px; background: var(--cielo); border-color: var(--cielo-borde); font-weight: 500 }
+.cliente .nombre { font-weight: 800; font-size: .9375rem }
+.cliente svg { width: 58px }
+.cliente .pide { font-size: .75rem; line-height: 1.25; flex: 1; text-align: center }
+.cliente.vacio { background: transparent; border-style: dashed; color: var(--suave); justify-content: center; opacity: 1 }
+.cliente.coincide { background: var(--bien-fondo); border-color: var(--bien) }
+.barra { width: 100%; height: 8px; border-radius: 4px; background: var(--carta); overflow: hidden }
+.barra i { display: block; height: 100%; width: 100%; background: var(--bien) }
+.barra.poca i { background: var(--mal) }
+
+.wafflera { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--manteca); border-color: var(--manteca-borde); padding: 8px; font-size: .8125rem }
+.wafflera svg { width: 72px }
+.wafflera.lista { border-color: var(--bien) }
+.wafflera.quemada { border-color: var(--mal); color: var(--mal) }
+@media (prefers-reduced-motion: no-preference) { .wafflera.lista svg { animation: salto .5s ease-in-out infinite alternate } }
+@keyframes salto { to { transform: translateY(-4px) } }
+.mesa { display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+.plato { position: relative; background: var(--plato); border: 2px solid var(--linea); border-radius: 50%; aspect-ratio: 1; width: 100%; max-width: 92px; align-self: center; display: grid; place-items: center; font-size: .6875rem; color: #6B5F77; text-align: center }
+.plato svg { width: 70% }
+.mesa button { min-height: 46px; padding: 4px; font-size: .9375rem }
+.mesa .servir { background: var(--acento); color: var(--sobre-acento); border-color: var(--acento-sombra) }
+
+.topping { display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--menta); border-color: var(--menta-borde); font-size: .8125rem; line-height: 1.15; min-height: 84px }
+.topping svg { width: 40px }
+.topping.puesto { background: var(--acento); color: var(--sobre-acento); border-color: var(--acento-sombra) }
+#msg { min-height: 2.8em; text-align: center; font-weight: 700; background: var(--carta); border-radius: 12px; padding: 8px 10px; display: grid; place-items: center }
+
+.tienda { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; background: var(--carta); border: 2px solid var(--linea); border-radius: 14px }
+.tienda li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 2px solid var(--linea) }
+.tienda li:last-child { border-bottom: 0 }
+.tienda .que { flex: 1; min-width: 0 }
+.tienda small { display: block; color: var(--suave); font-weight: 500 }
+.tienda button { min-height: 48px; min-width: 104px; padding: 4px 10px; background: var(--manteca); border-color: var(--manteca-borde) }
+.tienda .listo { color: var(--bien); font-weight: 800; min-width: 104px; text-align: center }
+.resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center }
+.resumen div { background: var(--carta); border: 2px solid var(--linea); border-radius: 12px; padding: 8px 4px; font-size: .8125rem; color: var(--suave) }
+.resumen b { display: block; font-size: 1.625rem; color: var(--tinta) }
+.record { color: var(--acento); font-weight: 800; text-align: center; font-size: 1.125rem }
+</style>
+
+<div class="marco">
+  <header>
+    <h1>Waffle Frenzy</h1>
+    <span class="dato">Caja<b class="num" id="caja">0</b></span>
+    <span class="dato">Récord<b class="num" id="record">0</b></span>
+  </header>
+
+  <section id="inicio">
+    <ol>
+      <li>Tocá una wafflera para cocinar. Cuando esté lista, tocala para pasar el waffle al plato.</li>
+      <li>Poné los toppings exactos que pide el cliente.</li>
+      <li>Tocá al cliente o "Servir" antes de que se le acabe la paciencia.</li>
+      <li>4 pedidos seguidos bien: 8 segundos de paga doble.</li>
+    </ol>
+    <div id="lugar-tienda-inicio"></div>
+    <button class="principal" id="abrir">Abrir el local</button>
+  </section>
+
+  <section id="juego" hidden>
+    <div class="hud">
+      <div>Tiempo<b class="num" id="tiempo">90</b></div>
+      <div>Monedas<b class="num" id="monedas">0</b></div>
+      <div>Racha<b class="num" id="racha">0</b></div>
+    </div>
+    <div class="frenzy" id="frenzy"><i></i><span id="frenzy-txt"></span></div>
+    <div class="clientes" id="clientes"></div>
+    <div class="cocina">
+      <button class="wafflera" id="w0"></button>
+      <button class="wafflera" id="w1"></button>
+      <div class="mesa">
+        <div class="plato" id="plato"></div>
+        <button class="servir" id="servir">Servir</button>
+        <button id="tirar">Tirar</button>
+      </div>
+    </div>
+    <div class="toppings" id="toppings"></div>
+    <div id="msg" aria-live="polite"></div>
+  </section>
+
+  <section id="fin" hidden>
+    <h2>Cerró el local</h2>
+    <p class="record" id="aviso-record" hidden>¡Nuevo récord!</p>
+    <div class="resumen">
+      <div>Monedas<b class="num" id="fin-monedas">0</b></div>
+      <div>Servidos<b class="num" id="fin-servidos">0</b></div>
+      <div>Se fueron<b class="num" id="fin-idos">0</b></div>
+    </div>
+    <div id="lugar-tienda-fin"></div>
+    <button class="principal" id="otra">Jugar otra vez</button>
+  </section>
+
+  <div id="bloque-tienda">
+    <h2>Mejoras</h2>
+    <ul class="tienda" id="tienda"></ul>
+    <button class="chato" id="reiniciar" style="margin-top:12px;width:100%">Reiniciar progreso</button>
+  </div>
+</div>
+
+<script>
+const TOPS = [
+  { id: "ddl", nombre: "Dulce de leche", precio: 0 }, { id: "crema", nombre: "Crema", precio: 0 },
+  { id: "frutilla", nombre: "Frutilla", precio: 80 }, { id: "chocolate", nombre: "Chocolate", precio: 130 },
+  { id: "banana", nombre: "Banana", precio: 180 }, { id: "arandanos", nombre: "Arándanos", precio: 240 }];
+const NOMBRE = Object.fromEntries(TOPS.map(t => [t.id, t.nombre]));
+const COCCION = [3, 2.4, 1.9], PRECIO_PLANCHA = [100, 200], PRECIO_WAFFLERA = 150;
+const TURNO = 90, QUEMA = 6, FRENZY = 8;
+const NOMBRES = ["Marta", "Rubén", "Sol", "Nico", "Doña Elsa", "Tito", "Caro", "Fede", "Lucho", "Mica", "Juli", "Beto", "Pato", "Gabi"];
+const $ = id => document.getElementById(id);
+
+let G = { caja: 0, record: 0, wafflera2: false, tops: 2, plancha: 0 };   // progreso guardado
+let R = null;                                                            // turno en curso
+let ultimo = 0;
+
+function guardar() { try { localStorage.setItem("waffle-frenzy", JSON.stringify(G)); } catch (e) {} }
+function cargar() {
+  try {
+    const g = JSON.parse(localStorage.getItem("waffle-frenzy"));
+    if (g && typeof g.caja === "number") G = { caja: g.caja | 0, record: g.record | 0, wafflera2: !!g.wafflera2,
+      tops: Math.min(6, Math.max(2, g.tops | 0)), plancha: Math.min(2, Math.max(0, g.plancha | 0)) };
+  } catch (e) {}
+}
+
+/* ---------- Dibujos ---------- */
+function dibujo(tops, modo) {
+  const c = modo === "quemado" ? ["#3B2A22", "#1F1512"] : modo === "crudo" ? ["#F6E7B8", "#E3CD92"] : ["#F2B84B", "#D48F27"];
+  let s = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="8" width="84" height="84" rx="13" fill="${c[0]}" stroke="${c[1]}" stroke-width="4"/>`;
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s += `<rect x="${18 + i * 23}" y="${18 + j * 23}" width="18" height="18" rx="4" fill="${c[1]}" opacity=".6"/>`;
+  const t = new Set(tops || []);
+  const zig = (y, color) => `<polyline points="14,${y} 28,${y + 12} 42,${y - 2} 56,${y + 12} 70,${y - 2} 86,${y + 10}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (t.has("ddl")) s += zig(28, "#B8651B");
+  if (t.has("chocolate")) s += zig(62, "#5B2F1C");
+  if (t.has("crema")) {
+    const copo = [[50, 53, 13], [39, 58, 9], [61, 58, 9], [50, 43, 9]];
+    s += copo.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 2}" fill="#DCCBB3"/>`).join("") + copo.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#FFFDF8"/>`).join("");
+  }
+  if (t.has("banana")) for (const [x, y] of [[72, 74], [25, 60], [58, 24]])
+    s += `<circle cx="${x}" cy="${y}" r="9" fill="#FBE99A" stroke="#D2AE3C" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2.5" fill="#D2AE3C"/>`;
+  if (t.has("frutilla")) for (const [x, y] of [[30, 30], [74, 42], [42, 76]])
+    s += `<g transform="translate(${x},${y})"><path d="M0,-8 C9,-10 10,2 0,10 C-10,2 -9,-10 0,-8Z" fill="#E23B4E"/><rect x="-3.5" y="-11" width="7" height="4" rx="2" fill="#3E9B4F"/></g>`;
+  if (t.has("arandanos")) for (const [x, y] of [[19, 44], [81, 60], [60, 85], [40, 17], [82, 22]])
+    s += `<circle cx="${x}" cy="${y}" r="6" fill="#4257B2"/><circle cx="${x - 2}" cy="${y - 2}" r="2" fill="#9AAAF0"/>`;
+  return s + "</svg>";
+}
+function plancha() {
+  let s = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="8" width="84" height="84" rx="13" fill="var(--plancha)"/>`;
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s += `<rect x="${18 + i * 23}" y="${18 + j * 23}" width="18" height="18" rx="4" fill="var(--plancha-hueco)"/>`;
+  return s + "</svg>";
+}
+
+/* ---------- Tienda ---------- */
+function mejoras() {
+  const lista = [];
+  lista.push({ nombre: "Segunda wafflera", detalle: "Cociná dos a la vez. Llegan más clientes.", precio: PRECIO_WAFFLERA, hecho: G.wafflera2, comprar: () => { G.wafflera2 = true; } });
+  if (G.tops < TOPS.length) { const t = TOPS[G.tops]; lista.push({ nombre: "Topping nuevo: " + t.nombre, detalle: `Tenés ${G.tops} de ${TOPS.length}.`, precio: t.precio, hecho: false, comprar: () => { G.tops += 1; } }); }
+  else lista.push({ nombre: "Toppings", detalle: "Ya tenés los seis.", precio: 0, hecho: true });
+  if (G.plancha < 2) lista.push({ nombre: "Plancha más rápida", detalle: `Cocción de ${fmt(COCCION[G.plancha])} s a ${fmt(COCCION[G.plancha + 1])} s.`, precio: PRECIO_PLANCHA[G.plancha], hecho: false, comprar: () => { G.plancha += 1; } });
+  else lista.push({ nombre: "Plancha más rápida", detalle: `Cocción en ${fmt(COCCION[2])} s.`, precio: 0, hecho: true });
+  return lista;
+}
+const fmt = n => String(n).replace(".", ",");
+function pintarTienda() {
+  $("caja").textContent = G.caja; $("record").textContent = G.record;
+  $("tienda").replaceChildren(...mejoras().map((m, i) => {
+    const li = document.createElement("li");
+    const que = document.createElement("div"); que.className = "que";
+    que.append(m.nombre); const d = document.createElement("small"); d.textContent = m.detalle; que.append(d);
+    li.append(que);
+    if (m.hecho) { const s = document.createElement("span"); s.className = "listo"; s.textContent = "Comprado"; li.append(s); }
+    else {
+      const b = document.createElement("button"); b.id = "comprar-" + i; b.className = "num";
+      b.textContent = m.precio + " monedas"; b.disabled = G.caja < m.precio;
+      b.setAttribute("aria-label", `Comprar ${m.nombre} por ${m.precio} monedas`);
+      b.addEventListener("click", () => { if (G.caja < m.precio) return; G.caja -= m.precio; m.comprar(); guardar(); pintarTienda(); });
+      li.append(b);
+    }
+    return li;
+  }));
+}
+let armado = null;
+$("reiniciar").addEventListener("click", e => {
+  const b = e.currentTarget;
+  if (!armado) {
+    b.textContent = "Tocá otra vez para borrar todo";
+    armado = setTimeout(() => { armado = null; b.textContent = "Reiniciar progreso"; }, 3000);
+    return;
+  }
+  clearTimeout(armado); armado = null; b.textContent = "Reiniciar progreso";
+  G = { caja: 0, record: 0, wafflera2: false, tops: 2, plancha: 0 }; guardar(); pintarTienda();
+});
+
+/* ---------- Turno ---------- */
+function intervalo() {
+  const p = Math.min(1, R.t / TURNO);
+  return G.wafflera2 ? 4.5 + (2.2 - 4.5) * p : 6 + (4 - 6) * p;
+}
+function nuevoCliente() {
+  const max = G.tops >= 5 && R.t > 50 ? 3 : G.tops >= 3 && R.t > 20 ? 2 : 1;
+  const n = 1 + Math.floor(Math.random() * max);
+  const disponibles = TOPS.slice(0, G.tops).map(t => t.id).sort(() => Math.random() - .5);
+  const pedido = TOPS.map(t => t.id).filter(id => disponibles.slice(0, n).includes(id));
+  const usados = R.c.filter(Boolean).map(c => c.nombre);
+  const libres = NOMBRES.filter(x => !usados.includes(x));
+  const pac = 16 + 3 * n;
+  return { id: ++R.serie, nombre: libres[Math.floor(Math.random() * libres.length)], pedido, pac, max: pac };
+}
+const coincide = c => !!(c && R.plato && R.plato.size === c.pedido.length && c.pedido.every(t => R.plato.has(t)));
+function decir(t) { $("msg").textContent = t; }
+
+function empezar() {
+  R = { t: 0, monedas: 0, racha: 0, frenzy: 0, servidos: 0, idos: 0, serie: 0, espera: .6,
+        c: [null, null, null], w: [{ e: "vacia", t: 0 }, { e: "vacia", t: 0 }], plato: null };
+  $("inicio").hidden = true; $("fin").hidden = true; $("bloque-tienda").hidden = true; $("juego").hidden = false;
+  armarJuego(); decir("Abrió el local. Tocá la wafflera para empezar.");
+  ultimo = performance.now(); requestAnimationFrame(paso);
+}
+function terminar() {
+  const r = R; R = null;
+  const hayRecord = r.monedas > G.record;
+  G.caja += r.monedas; if (hayRecord) G.record = r.monedas; guardar();
+  $("fin-monedas").textContent = r.monedas; $("fin-servidos").textContent = r.servidos; $("fin-idos").textContent = r.idos;
+  $("aviso-record").hidden = !hayRecord;
+  $("lugar-tienda-fin").append($("bloque-tienda"));
+  $("juego").hidden = true; $("fin").hidden = false; $("bloque-tienda").hidden = false; pintarTienda();
+}
+
+function paso(ahora) {
+  if (!R) return;
+  const dt = Math.min(.1, Math.max(0, (ahora - ultimo) / 1000)); ultimo = ahora;
+  R.t += dt;
+  if (R.frenzy > 0) R.frenzy = Math.max(0, R.frenzy - dt);
+  R.w.forEach((w, i) => {
+    if (w.e === "cocinando") { w.t += dt; if (w.t >= COCCION[G.plancha]) { w.e = "lista"; w.t = 0; } }
+    else if (w.e === "lista") { w.t += dt; if (w.t >= QUEMA) { w.e = "quemada"; decir("Se quemó un waffle. Tocá la wafflera para tirarlo."); } }
+  });
+  R.c.forEach((c, i) => {
+    if (!c) return;
+    c.pac -= dt;
+    if (c.pac <= 0) irse(i);
+  });
+  R.espera -= dt;
+  if (R.espera <= 0) {
+    const libre = R.c.indexOf(null);
+    if (libre >= 0) { R.c[libre] = nuevoCliente(); R.espera = intervalo(); }
+  }
+  if (R.t >= TURNO) { terminar(); return; }
+  pintar();
+  requestAnimationFrame(paso);
+}
+function irse(i) {
+  const c = R.c[i]; R.c[i] = null; R.idos += 1; R.racha = 0;
+  decir(`${c.nombre} se cansó y se fue.`);
+}
+
+/* ---------- Acciones del jugador ---------- */
+function tocarWafflera(i) {
+  if (!R) return;
+  const w = R.w[i];
+  if (i === 1 && !G.wafflera2) return;
+  if (w.e === "vacia") { w.e = "cocinando"; w.t = 0; }
+  else if (w.e === "cocinando") decir("Todavía le falta.");
+  else if (w.e === "quemada") { w.e = "vacia"; decir("Tiraste el waffle quemado."); }
+  else if (R.plato) decir("El plato está ocupado.");
+  else { w.e = "vacia"; R.plato = new Set(); decir("Waffle al plato. Ponele los toppings."); }
+  pintar();
+}
+function tocarTopping(id) {
+  if (!R) return;
+  if (!R.plato) { decir("Primero pasá un waffle al plato."); return; }
+  if (R.plato.has(id)) R.plato.delete(id); else R.plato.add(id);
+  pintar();
+}
+function entregar(i) {
+  if (!R) return;
+  const c = R.c[i]; if (!c) return;
+  if (!R.plato) { decir("No hay waffle en el plato."); return; }
+  if (coincide(c)) {
+    const propina = Math.round(10 * Math.max(0, c.pac) / c.max);
+    let paga = 10 + 5 * c.pedido.length + propina;
+    const doble = R.frenzy > 0; if (doble) paga *= 2;
+    R.monedas += paga; R.servidos += 1; R.racha += 1; R.c[i] = null; R.plato = null;
+    if (R.racha % 4 === 0) { R.frenzy = FRENZY; decir(`${c.nombre} pagó ${paga} monedas. ¡Frenzy! Paga doble por 8 segundos.`); }
+    else decir(`${c.nombre} pagó ${paga} monedas${doble ? " (doble)" : ""}.`);
+  } else {
+    R.racha = 0; c.pac -= c.max * .25;
+    decir(`${c.nombre} no pidió eso. Se cortó la racha.`);
+    if (c.pac <= 0) irse(i);
+  }
+  pintar();
+}
+function servir() {
+  if (!R) return;
+  if (!R.plato) { decir("No hay waffle en el plato."); return; }
+  let mejor = -1;
+  R.c.forEach((c, i) => { if (coincide(c) && (mejor < 0 || c.pac < R.c[mejor].pac)) mejor = i; });
+  if (mejor < 0) { decir("Ningún cliente pidió eso."); return; }
+  entregar(mejor);
+}
+function tirar() {
+  if (!R) return;
+  if (!R.plato) { decir("El plato ya está vacío."); return; }
+  R.plato = null; decir("Tiraste el waffle del plato."); pintar();
+}
+
+/* ---------- Pantalla del juego ---------- */
+let visto = {};
+function armarJuego() {
+  visto = {};
+  $("clientes").replaceChildren(...[0, 1, 2].map(i => {
+    const b = document.createElement("button"); b.className = "cliente vacio"; b.id = "c" + i;
+    b.addEventListener("click", () => entregar(i)); return b;
+  }));
+  $("toppings").replaceChildren(...TOPS.map((t, i) => {
+    const b = document.createElement("button"); b.className = "topping"; b.id = "t-" + t.id;
+    b.innerHTML = dibujo([t.id]) ; const s = document.createElement("span");
+    s.textContent = i < G.tops ? t.nombre : `${t.nombre} · ${t.precio}`; b.append(s);
+    b.disabled = i >= G.tops; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => tocarTopping(t.id)); return b;
+  }));
+  pintar();
+}
+function pintar() {
+  if (!R) return;
+  $("tiempo").textContent = Math.ceil(TURNO - R.t); $("monedas").textContent = R.monedas; $("racha").textContent = R.racha;
+  const f = $("frenzy"), activo = R.frenzy > 0;
+  f.classList.toggle("activo", activo);
+  f.firstElementChild.style.width = (activo ? R.frenzy / FRENZY : (R.racha % 4) / 4) * 100 + "%";
+  $("frenzy-txt").textContent = activo ? `FRENZY · paga doble · ${Math.ceil(R.frenzy)} s` : `Frenzy: ${R.racha % 4} de 4`;
+
+  R.c.forEach((c, i) => {
+    const b = $("c" + i), clave = c ? c.id : 0;
+    if (visto["c" + i] !== clave) {
+      visto["c" + i] = clave;
+      if (!c) { b.className = "cliente vacio"; b.textContent = "Lugar libre"; b.disabled = true; }
+      else {
+        b.className = "cliente"; b.disabled = false;
+        b.innerHTML = dibujo(c.pedido) + '<div class="barra"><i></i></div>';
+        const n = document.createElement("span"); n.className = "nombre"; n.textContent = c.nombre; b.prepend(n);
+        const p = document.createElement("span"); p.className = "pide"; p.textContent = c.pedido.map(t => NOMBRE[t]).join(" + ");
+        b.insertBefore(p, b.lastElementChild);
+      }
+    }
+    if (c) {
+      b.classList.toggle("coincide", coincide(c));
+      const barra = b.lastElementChild; barra.firstElementChild.style.width = Math.max(0, c.pac / c.max) * 100 + "%";
+      barra.classList.toggle("poca", c.pac / c.max < .3);
+    }
+  });
+
+  R.w.forEach((w, i) => {
+    const b = $("w" + i), bloqueada = i === 1 && !G.wafflera2, clave = bloqueada ? "bloq" : w.e;
+    if (visto["w" + i] !== clave) {
+      visto["w" + i] = clave; b.disabled = bloqueada; b.className = "wafflera " + (bloqueada ? "" : w.e);
+      const texto = { bloq: `Bloqueada · ${PRECIO_WAFFLERA}`, vacia: "Tocá para cocinar", cocinando: "Cocinando", lista: "¡Lista! Tocá", quemada: "Quemada. Tocá" }[clave];
+      b.innerHTML = (clave === "bloq" || clave === "vacia" ? plancha() : dibujo([], clave === "cocinando" ? "crudo" : clave === "quemada" ? "quemado" : "")) +
+        `<span>${texto}</span>` + (clave === "cocinando" || clave === "lista" ? '<div class="barra"><i></i></div>' : "");
+    }
+    if (w.e === "cocinando") b.lastElementChild.firstElementChild.style.width = Math.min(1, w.t / COCCION[G.plancha]) * 100 + "%";
+    if (w.e === "lista") { const barra = b.lastElementChild; barra.firstElementChild.style.width = Math.max(0, 1 - w.t / QUEMA) * 100 + "%"; barra.classList.toggle("poca", w.t / QUEMA > .6); }
+  });
+
+  const clavePlato = R.plato ? "p:" + TOPS.map(t => R.plato.has(t.id) ? 1 : 0).join("") : "vacio";
+  if (visto.plato !== clavePlato) {
+    visto.plato = clavePlato;
+    if (R.plato) $("plato").innerHTML = dibujo([...R.plato]); else $("plato").textContent = "Plato vacío";
+    for (const t of TOPS) { const on = !!(R.plato && R.plato.has(t.id)); const b = $("t-" + t.id); b.classList.toggle("puesto", on); b.setAttribute("aria-pressed", String(on)); }
+  }
+}
+
+$("w0").addEventListener("click", () => tocarWafflera(0));
+$("w1").addEventListener("click", () => tocarWafflera(1));
+$("servir").addEventListener("click", servir);
+$("tirar").addEventListener("click", tirar);
+$("abrir").addEventListener("click", empezar);
+$("otra").addEventListener("click", empezar);
+
+cargar();
+$("lugar-tienda-inicio").append($("bloque-tienda"));
+pintarTienda();
+</script>
+
+</body></html>

@@ -1,0 +1,324 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/7VE6QQpe9pxFUnqU3VC444 (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Guardafaro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,600&family=Chivo:wght@400;600&family=Chivo+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: full-bleed night sea canvas, thin instrument strip on top, one centered logbook card for start/end. */
+:root{
+  --night:#0b1322; --sea:#11203a; --ink:#ece6d6; --muted:#93a0b8;
+  --lamp:#ffd27a; --port:#e2574c; --starboard:#4cc38a; --line:rgba(236,230,214,.16);
+  --display:"Bodoni Moda", "Didot", Georgia, serif;
+  --body:"Chivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"Chivo Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--night);color:var(--ink);font-family:var(--body);overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+.app{position:relative;height:100%;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.hud{position:absolute;top:0;left:0;right:0;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;
+  padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:linear-gradient(var(--night),rgba(11,19,34,0));pointer-events:none}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.stat b{font-family:var(--mono);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.lives{display:flex;gap:6px;padding-top:4px}
+.lives i{width:12px;height:12px;border-radius:50%;background:var(--lamp);box-shadow:0 0 8px var(--lamp)}
+.lives i.off{background:transparent;box-shadow:none;border:1.5px solid var(--muted)}
+.hud .spacer{flex:1}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:rgba(11,19,34,.35)}
+.card{max-width:25rem;width:100%;background:rgba(11,19,34,.9);border:1px solid var(--line);border-radius:4px;padding:28px 26px 24px;display:flex;flex-direction:column;gap:14px;backdrop-filter:blur(3px)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--lamp)}
+h1,h2{font-family:var(--display);font-style:italic;font-weight:600;margin:0;line-height:1;text-wrap:balance}
+h1{font-size:clamp(44px,12vw,64px)}
+h2{font-size:clamp(32px,9vw,44px)}
+.card p{margin:0;line-height:1.55;color:var(--ink);font-size:15px}
+.card p.small{font-size:13px;color:var(--muted)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:50%}
+button{font:600 15px var(--body);color:var(--night);background:var(--lamp);border:0;border-radius:3px;padding:12px 18px;cursor:pointer;align-self:flex-start}
+button:hover{filter:brightness(1.08)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--lamp)}
+</style>
+
+<div class="app">
+  <canvas id="sea" aria-label="Mar de noche con un faro, rocas y barcos"></canvas>
+  <div class="hud" aria-live="polite">
+    <div class="stat"><span>A puerto</span><b id="hScore">0</b></div>
+    <div class="stat"><span>Naufragios</span><div class="lives" id="hLives"><i></i><i></i><i></i></div></div>
+    <div class="stat"><span>Viento</span><b id="hWind">F4</b></div>
+    <div class="stat"><span>Hora</span><b id="hTime">21:00</b></div>
+    <div class="spacer"></div>
+    <div class="stat"><span>Récord</span><b id="hBest">0</b></div>
+  </div>
+
+  <div class="overlay" id="intro">
+    <div class="card">
+      <div class="eyebrow">Noche de temporal</div>
+      <h1>Guardafaro</h1>
+      <p>Los barcos vuelven a la costa y no ven las rocas. Apuntá el haz del faro a cada uno hasta que su farol se ponga verde: ahí ya saben dónde queda la boca del puerto.</p>
+      <p class="small">Mové el mouse o arrastrá el dedo para girar el haz. Con el teclado, flechas izquierda y derecha. El viento sube con las horas. Con tres naufragios se termina la noche.</p>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--lamp)"></i>Sin rumbo</span>
+        <span><i class="dot" style="background:var(--starboard)"></i>Guiado</span>
+        <span><i class="dot" style="background:var(--port)"></i>Boya de babor</span>
+      </div>
+      <button id="start">Encender el faro</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="end" hidden>
+    <div class="card">
+      <div class="eyebrow" id="endEyebrow">Bitácora</div>
+      <h2>Tres naufragios</h2>
+      <p id="endText"></p>
+      <button id="again">Otra noche</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const cv=document.getElementById('sea'),ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LIT_NEED=0.45,BEAM_HALF=0.11,TURN=1.7,BEAM_SPEED=3.4;
+let W=0,H=0,geo={},rocks=[],waves=[],rain=[];
+let state='menu',boats=[],parts=[],floats=[],score=0,lives=3,t=0,spawnT=1,clock=0;
+let beamA=-2.3,aimA=-2.3,keyDir=0,shake=0,best=0;
+try{best=+localStorage.getItem('guardafaro-best')||0}catch(e){}
+$('hBest').textContent=best;
+
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}
+
+function resize(){
+  const dpr=Math.min(2,window.devicePixelRatio||1),r=cv.getBoundingClientRect();
+  W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  geo.unit=Math.max(.75,Math.min(1.4,Math.min(W,H)/620));
+  geo.rockY=H*.68;geo.rockH=Math.max(18,H*.045);
+  geo.cx=W*.38;geo.cw=Math.max(60,Math.min(110,W*.12));
+  geo.portY=H*.84;
+  geo.lx=W*.84;geo.ly=geo.rockY+H*.07;
+  const R=rng(7);rocks=[];
+  for(let x=-6;x<W+14;x+=11*geo.unit){
+    if(Math.abs(x-geo.cx)<geo.cw/2+6)continue;
+    rocks.push({x:x+R()*6,y:geo.rockY+(R()-.5)*geo.rockH*.7,r:geo.rockH*(.32+R()*.3),f:R()*6});
+  }
+  const Rw=rng(3);waves=[];
+  for(let i=0;i<70;i++)waves.push({x:Rw()*W,y:Rw()*geo.rockY,l:8+Rw()*22,s:.4+Rw()});
+  const Rr=rng(11);rain=[];
+  for(let i=0;i<90;i++)rain.push({x:Rr()*W,y:Rr()*H,s:.6+Rr()*.8});
+}
+
+function beaufort(){return Math.min(10,4+Math.floor(t/22))}
+function spawn(){
+  const bf=state==='play'?beaufort():4;
+  let x,tries=0;
+  do{x=24+Math.random()*(W-48);tries++}while(Math.abs(x-geo.cx)<geo.cw*.9&&tries<8);
+  boats.push({x,y:-16,a:Math.PI/2+(Math.random()-.5)*.5,sp:(14+bf*3.6)*geo.unit,lit:0,guided:false,ph:Math.random()*6,inBeam:false});
+}
+
+function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d}
+function beamLen(){return Math.hypot(W,H)*.9}
+function inBeam(b){
+  const dx=b.x-geo.lx,dy=b.y-geo.ly,d=Math.hypot(dx,dy);
+  if(d>beamLen())return false;
+  return Math.abs(angDiff(Math.atan2(dy,dx),beamA))<BEAM_HALF+10/Math.max(d,1);
+}
+
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=20+Math.random()*70;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-20,life:1,col})}}
+function float(x,y,txt,col){floats.push({x,y,txt,col,life:1})}
+
+function update(dt){
+  t+=state==='play'?dt:0;clock+=dt;
+  // auto beam in menu / end screens
+  if(state!=='play'){
+    const target=boats.find(b=>!b.guided&&b.y>10);
+    aimA=target?Math.atan2(target.y-geo.ly,target.x-geo.lx):-2.2+Math.sin(clock*.5)*.6;
+  }else if(keyDir){aimA=beamA+keyDir*1.2}
+  const d=angDiff(aimA,beamA),mx=BEAM_SPEED*dt;
+  beamA+=Math.max(-mx,Math.min(mx,d));
+
+  spawnT-=dt;
+  if(spawnT<=0){spawn();spawnT=state==='play'?Math.max(.95,3-t*.022)*(.75+Math.random()*.5):2.6}
+
+  for(const b of boats){
+    b.ph+=dt*3;
+    b.inBeam=inBeam(b);
+    if(!b.guided){
+      if(b.inBeam){b.lit+=dt;if(b.lit>=LIT_NEED){b.guided=true;float(b.x,b.y-18,'rumbo','#4cc38a')}}
+      else b.lit=Math.max(0,b.lit-dt*.6);
+      // storm drift
+      b.a+=Math.sin(clock*.7+b.ph)*.05*dt;
+    }else{
+      const past=b.y>geo.rockY-geo.rockH*.2;
+      const tx=geo.cx,ty=past?geo.portY+40:geo.rockY;
+      const want=Math.atan2(ty-b.y,tx-b.x),dd=angDiff(want,b.a),m=TURN*dt;
+      b.a+=Math.max(-m,Math.min(m,dd));
+    }
+    b.x+=Math.cos(b.a)*b.sp*dt;b.y+=Math.sin(b.a)*b.sp*dt;
+    if(b.x<12){b.x=12;b.a=Math.PI-b.a}
+    if(b.x>W-12){b.x=W-12;b.a=Math.PI-b.a}
+    const half=6*geo.unit;
+    if(b.y+half>geo.rockY-geo.rockH*.45&&b.y-half<geo.rockY+geo.rockH*.45&&Math.abs(b.x-geo.cx)>geo.cw/2-half){
+      b.dead=true;burst(b.x,b.y,'rgba(236,230,214,',22);
+      if(state==='play'){lives--;shake=.35;float(b.x,b.y-20,'naufragio','#e2574c');hud();if(lives<=0)gameOver()}
+    }else if(b.y>=geo.portY){
+      b.dead=true;burst(b.x,b.y,'rgba(76,195,138,',10);
+      if(state==='play'){score++;float(b.x,b.y-18,'+1','#ffd27a');hud()}
+    }
+  }
+  boats=boats.filter(b=>!b.dead&&b.y<H+40);
+  for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=60*dt;p.life-=dt*1.4}
+  parts=parts.filter(p=>p.life>0);
+  for(const f of floats){f.y-=22*dt;f.life-=dt*.9}
+  floats=floats.filter(f=>f.life>0);
+  shake=Math.max(0,shake-dt);
+}
+
+function draw(){
+  const u=geo.unit;
+  ctx.save();
+  if(shake>0&&!reduce)ctx.translate((Math.random()-.5)*10*shake,(Math.random()-.5)*10*shake);
+  // sea
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#081020');g.addColorStop(.7,'#11203a');g.addColorStop(1,'#152847');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  // swell marks
+  ctx.strokeStyle='rgba(147,160,184,.13)';ctx.lineWidth=1.2;ctx.beginPath();
+  const bf=state==='play'?beaufort():4;
+  for(const w of waves){
+    const x=((w.x+(reduce?0:clock*w.s*(6+bf*2)))%(W+40))-20,y=w.y+Math.sin(clock*1.3+w.x)*2;
+    ctx.moveTo(x,y);ctx.quadraticCurveTo(x+w.l/2,y-3,x+w.l,y);
+  }
+  ctx.stroke();
+  // harbor water + land
+  ctx.fillStyle='#132a4a';ctx.fillRect(0,geo.rockY,W,H-geo.rockY);
+  ctx.fillStyle='#1b1e24';
+  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,geo.portY+14*u);
+  ctx.lineTo(geo.cx-geo.cw*1.2,geo.portY+12*u);ctx.lineTo(geo.cx+geo.cw*1.2,geo.portY+12*u);
+  ctx.lineTo(W*.64,geo.portY+8*u);ctx.lineTo(W*.68,geo.rockY+geo.rockH*.5);
+  ctx.lineTo(W*.78,geo.rockY+geo.rockH*.2);ctx.lineTo(W,geo.rockY+geo.rockH*.3);ctx.lineTo(W,H);ctx.fill();
+  // piers
+  ctx.fillStyle='#5a4a3a';
+  for(let i=-1;i<=1;i++)ctx.fillRect(geo.cx+i*geo.cw*.5-2*u,geo.portY-4*u,4*u,18*u);
+  ctx.fillRect(geo.cx-geo.cw*.8,geo.portY+10*u,geo.cw*1.6,4*u);
+  // town lights
+  for(let i=0;i<9;i++){const x=W*.05+i*W*.06;if(Math.abs(x-geo.cx)<geo.cw*1.3)continue;
+    ctx.fillStyle=`rgba(255,210,122,${.35+.25*Math.sin(clock*.8+i*1.7)})`;ctx.fillRect(x,geo.portY+24*u+(i%3)*7*u,3*u,3*u)}
+  // rocks
+  for(const r of rocks){
+    ctx.fillStyle='#262b33';ctx.beginPath();ctx.ellipse(r.x,r.y,r.r*1.15,r.r*.8,0,0,6.28);ctx.fill();
+    ctx.fillStyle='#3b414b';ctx.beginPath();ctx.ellipse(r.x-r.r*.2,r.y-r.r*.3,r.r*.6,r.r*.35,0,0,6.28);ctx.fill();
+    const fo=.18+.14*Math.sin(clock*2+r.f);
+    ctx.strokeStyle=`rgba(236,230,214,${fo})`;ctx.lineWidth=1.4;ctx.beginPath();ctx.ellipse(r.x,r.y+r.r*.2,r.r*1.4,r.r*.95,0,.2,2.9);ctx.stroke();
+  }
+  // channel buoys (IALA B: red to starboard when entering)
+  const blink=Math.sin(clock*3)>0;
+  for(const [x,col] of [[geo.cx-geo.cw/2-2,'#e2574c'],[geo.cx+geo.cw/2+2,'#4cc38a']]){
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,geo.rockY-geo.rockH*.55,4.5*u,0,6.28);ctx.fill();
+    if(blink){ctx.fillStyle=col.replace(')',',.25)').replace('#','#');ctx.globalAlpha=.3;ctx.beginPath();ctx.arc(x,geo.rockY-geo.rockH*.55,12*u,0,6.28);ctx.fill();ctx.globalAlpha=1}
+  }
+  // beam
+  const L=beamLen();
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const bg=ctx.createRadialGradient(geo.lx,geo.ly,0,geo.lx,geo.ly,L);
+  bg.addColorStop(0,'rgba(255,214,130,.55)');bg.addColorStop(.5,'rgba(255,214,130,.16)');bg.addColorStop(1,'rgba(255,214,130,0)');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.moveTo(geo.lx,geo.ly);ctx.arc(geo.lx,geo.ly,L,beamA-BEAM_HALF,beamA+BEAM_HALF);ctx.closePath();ctx.fill();
+  ctx.restore();
+  // boats
+  for(const b of boats){
+    ctx.save();ctx.translate(b.x,b.y+Math.sin(b.ph)*1.2);ctx.rotate(b.a);ctx.scale(u,u);
+    ctx.fillStyle=b.inBeam?'#e6dfcc':'#3c4a66';
+    ctx.beginPath();ctx.moveTo(11,0);ctx.quadraticCurveTo(3,-6,-8,-5);ctx.lineTo(-8,5);ctx.quadraticCurveTo(3,6,11,0);ctx.fill();
+    ctx.fillStyle=b.inBeam?'#8b8070':'#28334a';ctx.fillRect(-5,-3,6,6);
+    ctx.restore();
+    const lc=b.guided?'#4cc38a':'#ffd27a';
+    ctx.fillStyle=lc;ctx.globalAlpha=.25;ctx.beginPath();ctx.arc(b.x,b.y,9*u,0,6.28);ctx.fill();
+    ctx.globalAlpha=1;ctx.beginPath();ctx.arc(b.x,b.y,2.4*u,0,6.28);ctx.fill();
+    if(!b.guided&&b.lit>0){
+      ctx.strokeStyle='#ffd27a';ctx.lineWidth=2.2;ctx.beginPath();
+      ctx.arc(b.x,b.y,15*u,-Math.PI/2,-Math.PI/2+6.283*Math.min(1,b.lit/LIT_NEED));ctx.stroke();
+    }
+  }
+  // lighthouse: Argentine red/white bands
+  const lx=geo.lx,ly=geo.ly,th=46*u,tw=11*u;
+  for(let i=0;i<4;i++){
+    ctx.fillStyle=i%2?'#ece6d6':'#c4473d';
+    const y0=ly-th*(i/4),y1=ly-th*((i+1)/4),w0=tw*(1-i*.08),w1=tw*(1-(i+1)*.08);
+    ctx.beginPath();ctx.moveTo(lx-w0,y0);ctx.lineTo(lx+w0,y0);ctx.lineTo(lx+w1,y1);ctx.lineTo(lx-w1,y1);ctx.fill();
+  }
+  const top=ly-th;
+  ctx.fillStyle='#1b1e24';ctx.fillRect(lx-tw*.8,top-3*u,tw*1.6,3*u);
+  ctx.fillStyle='#ffd27a';ctx.shadowColor='#ffd27a';ctx.shadowBlur=18;ctx.fillRect(lx-tw*.45,top-11*u,tw*.9,8*u);ctx.shadowBlur=0;
+  ctx.fillStyle='#c4473d';ctx.beginPath();ctx.moveTo(lx-tw*.65,top-11*u);ctx.lineTo(lx,top-19*u);ctx.lineTo(lx+tw*.65,top-11*u);ctx.fill();
+  geo.lyLamp=top-7*u;
+  // rain
+  if(!reduce){
+    ctx.strokeStyle='rgba(180,195,220,.16)';ctx.lineWidth=1;ctx.beginPath();
+    const n=Math.round(rain.length*Math.min(1,(bf-2)/8));
+    for(let i=0;i<n;i++){const r=rain[i];const y=(r.y+clock*520*r.s)%(H+20)-10,x=(r.x-clock*90*r.s%W+W)%W;ctx.moveTo(x,y);ctx.lineTo(x-4,y+12)}
+    ctx.stroke();
+  }
+  // particles & floats
+  for(const p of parts){ctx.fillStyle=p.col+p.life.toFixed(2)+')';ctx.fillRect(p.x,p.y,2.5,2.5)}
+  ctx.textAlign='center';ctx.font=`600 ${13*u}px "Chivo Mono", ui-monospace, monospace`;
+  for(const f of floats){ctx.globalAlpha=Math.max(0,f.life);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y)}
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+
+function hud(){
+  $('hScore').textContent=score;
+  [...$('hLives').children].forEach((el,i)=>el.classList.toggle('off',i>=lives));
+  $('hWind').textContent='F'+(state==='play'?beaufort():4);
+  const m=21*60+Math.floor(t*2),hh=Math.floor(m/60)%24,mm=m%60;
+  $('hTime').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+
+function start(){
+  state='play';boats=[];parts=[];floats=[];score=0;lives=3;t=0;spawnT=.8;
+  $('intro').hidden=true;$('end').hidden=true;hud();cv.focus?.();
+}
+function gameOver(){
+  state='over';
+  const isBest=score>best;
+  if(isBest){best=score;try{localStorage.setItem('guardafaro-best',best)}catch(e){}}
+  $('hBest').textContent=best;
+  $('endEyebrow').textContent=isBest&&score>0?'Nuevo récord':'Bitácora';
+  $('endText').innerHTML=`Guiaste <span class="num">${score}</span> ${score===1?'barco':'barcos'} hasta el puerto. Te tocó viento fuerza <span class="num">${beaufort()}</span> a las <span class="num">${$('hTime').textContent}</span>.`;
+  $('end').hidden=false;$('again').focus();
+}
+
+function aimAt(e){
+  if(state!=='play')return;
+  const r=cv.getBoundingClientRect();
+  aimA=Math.atan2(e.clientY-r.top-geo.ly,e.clientX-r.left-geo.lx);
+}
+window.addEventListener('pointermove',aimAt);
+window.addEventListener('pointerdown',aimAt);
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){keyDir=-1;e.preventDefault()}
+  else if(e.key==='ArrowRight'){keyDir=1;e.preventDefault()}
+});
+window.addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){keyDir=0;aimA=beamA}});
+$('start').addEventListener('click',start);
+$('again').addEventListener('click',start);
+window.addEventListener('resize',resize);
+
+resize();hud();
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(W>0){update(dt);if(state==='play'&&Math.floor(t*2)!==Math.floor((t-dt)*2))hud();draw()}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+
+</body></html>

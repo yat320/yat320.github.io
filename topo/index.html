@@ -1,0 +1,288 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/LT837Sjso7LuWJ5x5Cm2Yt (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b1317">
+<title>Topo a bordo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+  /* Cabina de noche: pantallas de aviónica (ámbar = acción, cian = la IA, magenta = la ruta, como en un panel real). Una sola paleta oscura, a propósito. */
+  :root { color-scheme: dark;
+    color-scheme: dark;
+    --fondo: #0b1317; --pantalla: #101c22; --marco: #1f323b; --texto: #d8e5e9; --suave: #7d959f;
+    --ambar: #ffb547; --cian: #6fd6e8; --magenta: #e46fe0; --bien: #5fd38d; --mal: #ff6b5e;
+    --display: "Chakra Petch", "Bahnschrift", "DIN Alternate", system-ui, sans-serif;
+    --cuerpo: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --datos: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.45 var(--cuerpo); -webkit-tap-highlight-color: transparent }
+  body { min-height: 100%; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 24px }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation }
+  button:focus-visible { outline: 2px solid var(--ambar); outline-offset: 2px }
+  button:disabled { cursor: default; opacity: .45 }
+  [hidden] { display: none !important }
+  .envase { max-width: 1180px; margin: 0 auto }
+  .etiqueta { font: 600 11px/1 var(--datos); letter-spacing: .12em; text-transform: uppercase; color: var(--suave) }
+  .num { font-family: var(--datos); font-variant-numeric: tabular-nums }
+
+  /* inicio */
+  .inicio { max-width: 640px; margin: 0 auto; display: grid; gap: 18px; padding-top: 12px }
+  .titulo { font: 700 clamp(40px, 11vw, 64px)/0.95 var(--display); letter-spacing: -.01em; margin: 0; text-wrap: balance }
+  .titulo span { color: var(--ambar) }
+  .historia { margin: 0; color: var(--texto); max-width: 60ch }
+  .historia em { color: var(--cian); font-style: normal }
+  .vuelos { display: grid; gap: 10px }
+  .amenazas { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+  .amenazas .etiqueta { width: 100% }
+  .chipbtn { background: var(--pantalla); border: 1px solid var(--marco); border-radius: 999px; padding: 6px 12px; font: 600 13px var(--cuerpo) }
+  .chipbtn[aria-pressed="true"] { border-color: var(--ambar); color: var(--ambar) }
+  .vuelo { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; text-align: left; background: var(--pantalla); border: 1px solid var(--marco); border-radius: 10px; padding: 14px 16px }
+  .vuelo:hover { border-color: var(--ambar) }
+  .vuelo .cod { font: 600 13px/1.2 var(--datos); color: var(--magenta) }
+  .vuelo b { display: block; font: 700 18px/1.2 var(--display) }
+  .vuelo small { color: var(--suave) }
+  .vuelo .hecho { font: 600 12px var(--datos); color: var(--bien) }
+  .reglas { margin: 0; padding-left: 18px; color: var(--suave); font-size: 15px; display: grid; gap: 4px }
+  .numeros { color: var(--suave); font-size: 13px; text-align: center }
+
+  /* cabecera de vuelo */
+  .cabecera { display: grid; gap: 8px; padding: 10px 14px; background: var(--pantalla); border: 1px solid var(--marco); border-radius: 10px }
+  .fila { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap }
+  .ruta { font: 600 14px var(--datos); color: var(--magenta) }
+  .reloj { font: 700 22px/1 var(--display); color: var(--ambar) }
+  .reloj.poco { color: var(--mal) }
+  .traza { position: relative; height: 14px }
+  .traza::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; border-top: 2px dashed var(--marco) }
+  .traza .hecha { position: absolute; left: 0; top: 6px; border-top: 2px solid var(--magenta); transition: width .6s ease }
+  .traza .avion { position: absolute; top: -3px; transform: translateX(-50%); font-size: 16px; line-height: 1; color: var(--texto); transition: left .6s ease }
+  .transmision { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border-left: 2px solid var(--cian); background: color-mix(in srgb, var(--cian) 7%, transparent); border-radius: 0 8px 8px 0; font-size: 14px; min-height: 40px }
+  .transmision .quien { font: 600 11px/1.9 var(--datos); color: var(--cian); letter-spacing: .1em; flex: none }
+
+  /* pestañas (solo en celu) y las tres pantallas */
+  .pestanas { display: none; gap: 6px; margin-top: 10px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--fondo); padding-block: 6px }
+  .pestanas button { flex: 1; background: var(--pantalla); border: 1px solid var(--marco); border-radius: 8px; padding: 9px 4px; font: 600 13px var(--datos) }
+  .pestanas button[aria-selected="true"] { border-color: var(--ambar); color: var(--ambar) }
+  .pestanas .aviso { color: var(--cian) }
+  .panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.2fr); gap: 12px; margin-top: 12px; align-items: start }
+  .pantalla { background: var(--pantalla); border: 1px solid var(--marco); border-radius: 10px; padding: 14px; display: grid; gap: 12px; min-width: 0 }
+  .pantalla h2 { margin: 0; font: 700 17px/1.2 var(--display); display: flex; justify-content: space-between; align-items: baseline; gap: 8px }
+  .pantalla h2 .etiqueta { font-size: 10px }
+  .ayuda { margin: 0; color: var(--suave); font-size: 14px }
+
+  .rasgo { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--marco) }
+  .rasgo:first-of-type { border-top: 0 }
+  .rasgo .preg { font-size: 14px; color: var(--suave) }
+  .rasgo .val { font: 600 16px var(--datos); color: var(--ambar) }
+  .rasgo .val.no { color: var(--marco) }
+  .accion { background: transparent; border: 1px solid var(--ambar); color: var(--ambar); border-radius: 6px; padding: 7px 10px; font: 600 13px var(--datos); white-space: nowrap }
+  .accion:hover:not(:disabled) { background: color-mix(in srgb, var(--ambar) 14%, transparent) }
+  .accion.ia { border-color: var(--cian); color: var(--cian) }
+  .accion.ia:hover:not(:disabled) { background: color-mix(in srgb, var(--cian) 14%, transparent) }
+  .accion.peligro { border-color: var(--mal); color: var(--mal) }
+  .accion.peligro.seguro { background: var(--mal); color: var(--fondo) }
+
+  .agentes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 10px }
+  .agente { border: 1px solid var(--marco); border-radius: 8px; padding: 10px; display: grid; gap: 8px; min-width: 0 }
+  .agente.descartado { opacity: .42 }
+  .agente.descartado .nombre { text-decoration: line-through }
+  .agente.coincide { border-color: var(--ambar) }
+  .agente .cab { display: flex; justify-content: space-between; gap: 8px; align-items: baseline }
+  .agente .nombre { font-weight: 600 }
+  .agente .rol { color: var(--suave); font-size: 13px }
+  .marca { font: 600 10px var(--datos); letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex: none }
+  .marca.coincide { background: var(--ambar); color: var(--fondo) }
+  .marca.descartado { color: var(--suave) }
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 4px }
+  .chip { font: 400 12px/1.3 var(--datos); padding: 4px 6px; border-radius: 4px; background: var(--fondo); border: 1px solid var(--marco); overflow-wrap: anywhere }
+  .chip i { font-style: normal; color: var(--suave); display: block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase }
+  .chip.si { border-color: var(--bien); color: var(--bien) }
+  .chip.no { border-color: color-mix(in srgb, var(--mal) 60%, transparent); color: var(--mal) }
+  .agente .botones { display: flex; gap: 6px; flex-wrap: wrap }
+  .agente .botones .accion { flex: 1; padding: 6px 8px; font-size: 12px }
+
+  .bitacora { display: grid; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 4px }
+  .msg { font-size: 14px; padding: 8px 10px; border-radius: 6px; background: var(--fondo); border-left: 2px solid var(--cian) }
+  .msg.alerta { border-left-color: var(--mal) }
+  .msg .hora { font: 600 11px var(--datos); color: var(--suave); display: block }
+
+  .nw { white-space: nowrap }
+  .fila.chica { gap: 8px; align-items: baseline }
+  .enlace { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 10px; flex: 1; min-width: 0 }
+  .enlace .etiqueta { color: var(--bien) }
+  .enlace .etiqueta.ocupado { color: var(--cian); animation: titila 1s steps(2) infinite }
+  .enlace .espera { font: 400 13px var(--datos); color: var(--texto); overflow-wrap: anywhere }
+  .barra { display: block; height: 4px; background: var(--marco); border-radius: 2px; overflow: hidden; grid-column: 1 / -1 }
+  .barra i { display: block; height: 100%; background: var(--cian); transition: width .4s linear }
+  @keyframes titila { 50% { opacity: .35 } }
+  .accion.gris { border-color: var(--marco); color: var(--texto) }
+  .accion.gris:hover:not(:disabled) { background: var(--marco) }
+  .accion.ancho { width: 100%; white-space: normal }
+  .pausa { flex: none }
+  .enpausa { margin: 10px 0 0; text-align: center; font: 600 13px var(--datos); color: var(--ambar) }
+  .transmision.alerta { border-left-color: var(--mal); background: color-mix(in srgb, var(--mal) 8%, transparent) }
+  .transmision.alerta .quien { color: var(--mal) }
+  .aviso.rojo { color: var(--mal) }
+  h3.etiqueta { margin: 6px 0 0 }
+  .msg.campo { border-left-color: var(--magenta) }
+
+  .ops { display: grid; gap: 10px }
+  .op { border: 1px solid var(--marco); border-radius: 8px; padding: 12px; display: grid; gap: 10px }
+  .op .cab { display: flex; justify-content: space-between; gap: 8px; align-items: baseline }
+  .op .nombre { font-weight: 600 }
+  .op .rol { color: var(--suave); font-size: 13px }
+  .op.abortada, .op.cumplida { opacity: .6 }
+  .op.caida { border-color: var(--mal) }
+  .pill { font: 600 10px var(--datos); letter-spacing: .1em; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; flex: none }
+  .pill.vivo { color: var(--magenta); border: 1px solid var(--magenta) }
+  .pill.ok { color: var(--bien); border: 1px solid var(--bien) }
+  .pill.gris { color: var(--suave); border: 1px solid var(--marco) }
+  .pill.mal { background: var(--mal); color: var(--fondo) }
+  .etapas { list-style: none; margin: 0; padding: 0 0 0 14px; display: grid; gap: 4px; border-left: 2px solid var(--marco); font-size: 14px; color: var(--suave) }
+  .etapas li { position: relative }
+  .etapas li::before { content: ""; position: absolute; left: -19px; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--marco) }
+  .etapas li.paso { color: var(--texto) }
+  .etapas li.paso::before { background: var(--magenta) }
+  .etapas li.ahora { color: var(--ambar) }
+  .etapas li.ahora::before { background: var(--ambar); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ambar) 30%, transparent) }
+  .etapas li.mal { color: var(--mal) }
+  .etapas li.mal::before { background: var(--mal) }
+  .etapas .num { font-size: 12px }
+  .falta { font-size: 12px; color: var(--ambar) }
+  .riesgo { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: baseline; font-size: 13px; color: var(--suave) }
+  .riesgo b { font-size: 18px }
+  .riesgo.verde b { color: var(--bien) } .riesgo.verde .barra i { background: var(--bien) }
+  .riesgo.ambar b { color: var(--ambar) } .riesgo.ambar .barra i { background: var(--ambar) }
+  .riesgo.rojo b { color: var(--mal) } .riesgo.rojo .barra i { background: var(--mal) }
+  .riesgo.rojo span:first-child { color: var(--texto) }
+
+  .armado { display: grid; gap: 8px; padding: 10px; border: 1px dashed var(--ambar); border-radius: 8px; font-size: 14px }
+  .armado .botones { display: flex; gap: 6px; flex-wrap: wrap }
+  .agente.elegible { text-align: left; background: transparent; color: var(--texto); font: inherit; width: 100%; min-width: 0 }
+  .agente.elegible .cab, .agente.elegible .chips { display: grid }
+  .agente.elegible .cab { display: flex }
+  .agente.elegible.elegido { border-color: var(--ambar); background: color-mix(in srgb, var(--ambar) 8%, transparent) }
+  .agente .tilde { color: var(--ambar); font-weight: 700 }
+  .lista { margin: 0; padding-left: 18px; display: grid; gap: 4px }
+  .cruces { display: grid; grid-template-columns: 1fr 1fr; gap: 6px }
+  .cruces .accion { white-space: normal }
+  .cruzar-tit { margin: 0 }
+
+  /* final */
+  .final { max-width: 640px; margin: 24px auto 0; display: grid; gap: 16px }
+  .final h2 { margin: 0; font: 700 clamp(32px, 9vw, 48px)/1 var(--display) }
+  .final.gano h2 { color: var(--bien) }
+  .final.perdio h2 { color: var(--mal) }
+  .ficha { background: var(--pantalla); border: 1px solid var(--marco); border-radius: 10px; padding: 14px; display: grid; gap: 8px }
+  .botonera { display: flex; gap: 10px; flex-wrap: wrap }
+  .grande { flex: 1; min-width: 140px; padding: 14px; border-radius: 10px; font: 700 18px var(--display); background: var(--ambar); color: var(--fondo); border: 0 }
+  .grande.sec { background: transparent; color: var(--texto); border: 1px solid var(--marco) }
+
+  @media (max-width: 900px) {
+    .pestanas { display: flex }
+    .panel { grid-template-columns: minmax(0, 1fr) }
+    .panel .pantalla:not(.activa) { display: none }
+    .bitacora { max-height: none }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .traza .hecha, .traza .avion { transition: none }
+    .enlace .etiqueta.ocupado { animation: none }
+    .barra i { transition: none }
+  }
+</style>
+
+<div class="envase" id="app"></div>
+<script>(()=>{function X(a){let s=a>>>0;return()=>{s=s+1831565813>>>0;let e=s;return e=Math.imul(e^e>>>15,e|1),e^=e+Math.imul(e^e>>>7,e|61),((e^e>>>14)>>>0)/4294967296}}var S=(a,s)=>Math.floor(a()*s),Ea=(a,s)=>s[S(a,s.length)];function Q(a,s){let e=[...s];for(let n=e.length-1;n>0;n--){let t=S(a,n+1);[e[n],e[t]]=[e[t],e[n]]}return e}var qa=(a,s)=>X(a*2654435761^s)()*2-1,W={nombre:"Turno",pregunta:"\xBFA qu\xE9 hora?",valores:["Ma\xF1ana","Tarde","Noche"],dice:a=>`fue a la ${a.toLowerCase()}`},w={espia:{id:"espia",titulo:"Espionaje extranjero",culpable:"la fuente del enemigo",sospechosos:"contactos de afuera",detener:"Detener",ficha:"Ficha",senuelo:"un dato falso",golpe:"La fuente del enemigo hab\xEDa pasado el dato.",intro:"Un servicio extranjero tiene una fuente cerca nuestro",personas:[["Marta Quiroga","Periodista"],["Pavel Orlov","Agregado cultural"],["Hana Kim","Traductora contratada"],["Rashid Amin","Chofer de embajada"],["Luc\xEDa Ferr\xE1n","Empresaria"],["Jonas Weber","Profesor visitante"],["Elif Demir","Fot\xF3grafa"],["Marco Vitale","Diplom\xE1tico"],["Aiko Mori","Investigadora"],["Samuel Okoye","C\xF3nsul"],["In\xE9s Barrios","Asesora"],["Viktor Hale","Importador"]],rasgos:{lugar:{nombre:"Lugar",pregunta:"\xBFD\xF3nde se junt\xF3?",valores:["Madrid","Estambul","Singapur","Berl\xEDn","Buenos Aires","El Cairo"],dice:a=>`se junt\xF3 con su contacto en ${a}`},contacto:{nombre:"Contacto",pregunta:"\xBFC\xF3mo pas\xF3 el dato?",valores:["Buz\xF3n muerto","Radio","Mensajer\xEDa"],dice:a=>`pas\xF3 el dato por ${a.toLowerCase()}`},pago:{nombre:"Pago",pregunta:"\xBFC\xF3mo le pagan?",valores:["Efectivo","Cripto","Favores"],dice:a=>`le pagan en ${a.toLowerCase()}`},turno:W}},corrupcion:{id:"corrupcion",titulo:"Corrupci\xF3n",culpable:"el contacto comprado",sospechosos:"funcionarios",detener:"Detener",ficha:"Legajo",senuelo:"un expediente trampa",golpe:"Alguien comprado les abri\xF3 la puerta.",intro:"Alguien con cargo cobra por dejar pasar al enemigo",personas:[["Ra\xFAl Ben\xEDtez","Aduana del puerto"],["Graciela Pons","Fiscal\xEDa"],["Hugo Saravia","Comisario"],["Nora Elizalde","Ministerio"],["Ferm\xEDn Ocampo","Concejal"],["Laura Medina","Migraciones"],["Ernesto Gil","Jefe de puerto"],["Silvia Rey","Jueza"],["Pablo Arce","Licitaciones"],["Mirta Sauce","Registro"],["Andr\xE9s Toledo","Gendarmer\xEDa"],["Carla Vidal","Banco central"]],rasgos:{lugar:{nombre:"Cobr\xF3 en",pregunta:"\xBFD\xF3nde cobr\xF3?",valores:["Montevideo","Panam\xE1","Z\xFArich","Miami","Andorra","Asunci\xF3n"],dice:a=>`cobr\xF3 en ${a}`},via:{nombre:"V\xEDa",pregunta:"\xBFC\xF3mo cobr\xF3?",valores:["Efectivo","Cripto","Offshore"],dice:a=>`cobr\xF3 por ${a==="Offshore"?"una sociedad offshore":a.toLowerCase()}`},intermediario:{nombre:"Por medio de",pregunta:"\xBFQui\xE9n le pag\xF3?",valores:["Abogado","Contador","Familiar"],dice:a=>`le pagaron por medio de un ${a.toLowerCase()}`},turno:W}},hacker:{id:"hacker",titulo:"Ataque hacker",culpable:"el grupo hacker",sospechosos:"grupos y cuentas",detener:"Cortar",ficha:"Perfil",senuelo:"una contrase\xF1a trampa",golpe:"Ten\xEDan hackeadas nuestras comunicaciones.",intro:"Alguien entr\xF3 a nuestras comunicaciones",personas:[["NieblaRoja","Grupo"],["Kraken-7","Grupo"],["Ceniza","Cuenta suelta"],["Lobo404","Cuenta suelta"],["Marea Negra","Grupo"],["Polilla","Ex empleado"],["Zafiro","Contratista"],["Eco-Delta","Grupo"],["Ra\xEDz","Estudiante"],["Halc\xF3n","Contratista"],["Vidrio","Ex empleado"],["Sombra","Grupo"]],rasgos:{lugar:{nombre:"Servidor",pregunta:"\xBFDesde d\xF3nde atac\xF3?",valores:["Pa\xEDses Bajos","Brasil","Rumania","Singapur","Rusia","China"],dice:a=>`el ataque sali\xF3 de un servidor en ${a}`},herramienta:{nombre:"Entrada",pregunta:"\xBFPor d\xF3nde entr\xF3?",valores:["Phishing","Ransomware","Clave robada"],dice:a=>`entr\xF3 por ${a==="Clave robada"?"una clave robada":a.toLowerCase()}`},idioma:{nombre:"C\xF3digo",pregunta:"\xBFEn qu\xE9 idioma est\xE1 el c\xF3digo?",valores:["Ruso","Ingl\xE9s","Portugu\xE9s"],dice:a=>`el c\xF3digo est\xE1 comentado en ${a.toLowerCase()}`},turno:W}}},H=Object.keys(w),x=a=>Object.keys(a.amenaza.rasgos),Ma=[{nombre:"Extracci\xF3n en Estambul",equipo:"Equipo Ancla",etapas:["Llegan al puerto","Contacto con la fuente","Extracci\xF3n por el B\xF3sforo"]},{nombre:"Entrega en Berl\xEDn",equipo:"Equipo Tilo",etapas:["Recogen el malet\xEDn","Cambio de auto","Entrega en la estaci\xF3n"]},{nombre:"Escucha en Singapur",equipo:"Equipo Monz\xF3n",etapas:["Entran al hotel","Instalan el micr\xF3fono","Salen por el muelle"]},{nombre:"Escolta por la Ruta 2",equipo:"Equipo M\xE9dano",etapas:["Salen de Buenos Aires","Paso por Dolores","Llegan a Mar del Plata"]},{nombre:"Rescate en El Cairo",equipo:"Equipo Delta",etapas:["Ubican al reh\xE9n","Corte de luz del barrio","Salida al aeropuerto"]},{nombre:"Cruce en Madrid",equipo:"Equipo Retiro",etapas:["Vigilan la plaza","Cambian de identidad","Cruce en Atocha"]}],f={rastrear:20,expediente:20,cruce:30,senuelo:10,respuestaSenuelo:20,error:45},V=[{id:1,ruta:"Mar del Plata \u2192 Madrid",de:"SAZM",a:"LEMD",agentes:6,minutos:260,operaciones:2,golpe:[150,200]},{id:2,ruta:"Madrid \u2192 Estambul",de:"LEMD",a:"LTFM",agentes:8,minutos:250,operaciones:3,golpe:[135,195]},{id:3,ruta:"Estambul \u2192 Singapur",de:"LTFM",a:"WSSS",agentes:10,minutos:250,operaciones:3,golpe:[125,185]}];function xa(a,s,e){let n=Object.keys(e.rasgos),t=a[s];if(a.filter(r=>n.every(l=>r[l]===t[l])).length!==1)return!1;for(let r of n)if(a.filter(l=>l[r]===t[r]).length<2)return!1;return!0}function Aa(a,s,e){let n=V[a-1],t=X(s),r=w[e]||w[H[S(t,H.length)]],l=Object.keys(r.rasgos),i,d;for(let C=0;i=Q(t,r.personas).slice(0,n.agentes).map(([R,I],K)=>{let D={id:K,nombre:R,rol:I};for(let B of l){let za=r.rasgos[B].valores;D[B]=Ea(t,za)}return D}),d=S(t,i.length),!xa(i,d,r);C++)if(C>5e3)throw new Error("no se pudo armar el caso");let[p,E]=n.golpe,u=Q(t,Ma).slice(0,n.operaciones).map((C,q)=>{let R=q===0?p+S(t,E-p+1):60+S(t,n.minutos-80),I=Math.max(5,R-70-S(t,40)),K=Math.round((I+R)/2);return{id:q,...C,etapas:C.etapas.map((D,B)=>({nombre:D,t:[I,K,R][B]})),vendida:q===0,falsaAlarma:q===1,semilla:S(t,1e9),estado:"curso"}}),$=Q(t,u).map((C,q)=>({...C,id:q}));return{nivel:a,semilla:s,vuelo:n,amenaza:r,agentes:i,culpable:d,ops:$}}function ca(a,s=Math.random()*2**32>>>0,e){let n=Aa(a,s,e),t=n.agentes.map(()=>({}));return{caso:n,r:X(s^2654435769),t:0,filtracion:{},sabido:t,limpios:[],inocentes:[],enlace:null,senuelo:null,eventos:[],fin:null,consultas:0}}var A=a=>Math.max(0,a.caso.vuelo.minutos-a.t),ja=a=>a.fin!=="gano";function b(a,s,e="ia"){a.eventos.unshift({t:a.t,texto:s,tipo:e})}function Y(a,s=1){for(let e=0;e<s&&!a.fin;e++){a.t++,a.enlace&&a.t>=a.enlace.fin&&ya(a),a.senuelo&&!a.senuelo.listo&&a.t>=a.senuelo.fin&&La(a);for(let n of a.caso.ops)n.estado==="curso"&&n.etapas.forEach((t,r)=>{if(t.t===a.t){if(r<2)return b(a,`${n.equipo}: ${t.nombre.toLowerCase()}.`,"campo");n.vendida&&ja(a)?(n.estado="caida",b(a,`${n.equipo} cay\xF3 en una emboscada: ${t.nombre.toLowerCase()}. ${a.caso.amenaza.golpe}`,"alerta")):(n.estado="cumplida",b(a,`${n.nombre}: cumplida.`,"campo"))}});a.t>=a.caso.vuelo.minutos&&(a.fin="aterrizo",b(a,"Tren de aterrizaje abajo. Se acab\xF3 el tiempo.","alerta"))}}var F=a=>!a.fin&&!a.enlace;function G(a,s,e,n){return a.enlace={tipo:s,arg:e,desde:a.t,fin:a.t+n},a.consultas++,{ok:!0,minutos:n}}function la(a,s){return a.caso.amenaza.rasgos[s]?!F(a)||a.filtracion[s]?{ok:!1}:G(a,"rastrear",s,f.rastrear):{ok:!1}}function ua(a,s){return!F(a)||x(a.caso).every(e=>a.sabido[s][e])?{ok:!1}:G(a,"expediente",s,f.expediente)}function da(a,s){return a.caso.amenaza.rasgos[s]?!F(a)||a.caso.agentes.every(e=>a.sabido[e.id][s])?{ok:!1}:G(a,"cruzar",s,f.cruce):{ok:!1}}function pa(a,s){if(!F(a)||a.senuelo&&!a.senuelo.listo)return{ok:!1};let e=[...new Set(s)].filter(n=>!a.inocentes.includes(n));return!e.length||e.length===a.caso.agentes.length?{ok:!1}:(a.senuelo={ids:e,fin:null,listo:!1},G(a,"senuelo",e,f.senuelo))}function ya(a){let{tipo:s,arg:e}=a.enlace;a.enlace=null;let n=a.caso.agentes;if(s==="rastrear"){let t=n[a.caso.culpable][e];a.filtracion[e]=t,b(a,`Rastreo terminado: ${a.caso.amenaza.rasgos[e].dice(t)}.`)}else if(s==="expediente"){let t=n[e];for(let r of x(a.caso))a.sabido[e][r]=t[r];b(a,`${a.caso.amenaza.ficha} de ${t.nombre}: ${x(a.caso).map(r=>t[r]).join(" \xB7 ")}.`)}else if(s==="cruzar"){for(let r of n)a.sabido[r.id][e]=r[e];let t=a.filtracion[e];b(a,t?`Cruce por ${a.caso.amenaza.rasgos[e].nombre.toLowerCase()}: ${n.filter(r=>r[e]===t).length} de ${n.length} coinciden con la filtraci\xF3n (${t}).`:`Cruce por ${a.caso.amenaza.rasgos[e].nombre.toLowerCase()} listo. Rastre\xE1 ese rasgo de la filtraci\xF3n para comparar.`)}else s==="senuelo"&&(a.senuelo.fin=a.t+f.respuestaSenuelo,b(a,`Mand\xE9 ${a.caso.amenaza.senuelo} a ${e.length} ${e.length===1?"agente":"agentes"}. Si el enemigo se mueve, lo vemos en ${f.respuestaSenuelo} min.`))}function La(a){let s=a.senuelo;s.listo=!0,s.reacciono=s.ids.includes(a.caso.culpable);let e=a.caso.agentes;if(s.reacciono){for(let n of e)!s.ids.includes(n.id)&&!a.limpios.includes(n.id)&&a.limpios.push(n.id);b(a,`El enemigo mordi\xF3 el se\xF1uelo: ${a.caso.amenaza.culpable} est\xE1 entre ${s.ids.map(n=>e[n].nombre.split(" ")[0]).join(", ")}.`,"alerta")}else{for(let n of s.ids)a.limpios.includes(n)||a.limpios.push(n);b(a,`Nadie mordi\xF3 el se\xF1uelo: ${s.ids.map(n=>e[n].nombre.split(" ")[0]).join(", ")} quedan limpios.`)}}function ma(a,s){if(a.fin||a.inocentes.includes(s))return{ok:!1};if(s===a.caso.culpable){a.fin="gano";for(let e of a.caso.ops)e.estado==="curso"&&(e.estado="cumplida");return{ok:!0,acerto:!0}}return a.inocentes.push(s),b(a,`${a.caso.agentes[s].nombre} es inocente. El interrogatorio nos cost\xF3 ${f.error} min.`,"alerta"),Y(a,f.error),{ok:!0,acerto:!1,minutos:f.error}}function fa(a,s){let e=a.caso.ops[s];return a.fin||e.estado!=="curso"?{ok:!1}:(e.estado="abortada",b(a,`${e.nombre}: abortada. ${e.equipo} vuelve a la base.`,"campo"),{ok:!0,vendida:e.vendida})}function U(a,s){if(s.estado!=="curso")return 0;let e=s.etapas[2].t,n=qa(Math.floor(a.t/6),s.semilla)*7,t;if(s.vendida)t=30+60*Math.min(1,a.t/e)**1.6;else if(s.falsaAlarma){let r=e*.6;t=22+50*Math.max(0,1-Math.abs(a.t-r)/(e*.35))}else t=18+14*(.5+.5*Math.sin(a.t/23+s.semilla));return Math.max(3,Math.min(97,Math.round(t+n)))}function J(a,s){return s.estado==="curso"&&s.etapas.find(e=>e.t>a.t)||null}function aa(a,s){if(a.inocentes.includes(s)||a.limpios.includes(s))return"descartado";let e=0;for(let n of x(a.caso)){let t=a.filtracion[n],r=a.sabido[s][n];if(t&&r){if(t!==r)return"descartado";e++}}return a.senuelo?.listo&&a.senuelo.reacciono&&a.senuelo.ids.includes(s)&&e++,e?"coincide":"nada"}var ba=a=>a.caso.agentes.filter(s=>aa(a,s.id)!=="descartado").map(s=>s.id);function ga(a){let s={cumplida:0,abortada:0,caida:0,curso:0};for(let e of a.caso.ops)s[e.estado]++;return s}var L=document.getElementById("app"),T=new URLSearchParams(location.search),Oa=T.has("tick")?Number(T.get("tick")):1e3,_="MERIDIANA",ka=130,c=a=>String(a).replace(/[&<>"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[s]),O=a=>a>=60?`${Math.floor(a/60)} h ${String(a%60).padStart(2,"0")} min`:`${a} min`,k=a=>{let s=(ka+a)%1440;return`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`},va="topo-a-bordo-v1";function Pa(){try{return{partidas:0,ganadas:0,otra:0,hechos:[],...JSON.parse(localStorage.getItem(va)||"{}")}}catch{return{partidas:0,ganadas:0,otra:0,hechos:[]}}}function na(a){try{localStorage.setItem(va,JSON.stringify(a))}catch{}}var g=Pa(),o=null,Z=null,M=!1,z="vivo",h=null,m=null,sa=0,ta="",ra=null,P=a=>o.caso.amenaza.rasgos[a],y=()=>x(o.caso);function oa(){N(),o=null;let a=V.map(s=>`<button class="vuelo" data-vuelo="${s.id}">
+      <span class="cod">${s.de}<br>${s.a}</span>
+      <span><b>Vuelo ${s.id}</b><small>${c(s.ruta)} \xB7 ${s.agentes} sospechosos \xB7 ${s.operaciones} operaciones \xB7 <span class="nw">${O(s.minutos)}</span></small></span>
+      <span class="hecho">${g.hechos.includes(s.id)?"HECHO":""}</span>
+    </button>`).join("");L.innerHTML=`<section class="inicio">
+    <span class="etiqueta">Agencia \xB7 Panel de a bordo</span>
+    <h1 class="titulo">Topo <span>a bordo</span></h1>
+    <p class="historia">Volv\xEDas de vacaciones cuando alguien empez\xF3 a vender operaciones al enemigo: un servicio extranjero, alguien comprado o un grupo hacker. El centro de control en tierra se cerr\xF3 por las dudas. Te queda el panel del avi\xF3n. La IA de la agencia, <em>${_}</em>, lo ve todo y prev\xE9 lo que va a pasar, pero desde ac\xE1 el enlace es angosto: <strong>atiende una consulta por vez y cada una te cuesta minutos de vuelo</strong>. El reloj corre.</p>
+    <div class="amenazas" role="group" aria-label="Amenaza">
+      <span class="etiqueta">Amenaza</span>
+      ${[[null,"Al azar"],...H.map(s=>[s,w[s].titulo])].map(([s,e])=>`<button class="chipbtn" data-tipo="${s??""}" aria-pressed="${ra===s}">${c(e)}</button>`).join("")}
+    </div>
+    <div class="vuelos">${a}</div>
+    <ul class="reglas">
+      <li><b>En vivo:</b> tus equipos est\xE1n trabajando en el campo. ${_} marca el riesgo de cada operaci\xF3n. Una est\xE1 vendida: si llega a su \xFAltima etapa con el culpable libre, la emboscan. Pod\xE9s abortarla.</li>
+      <li><b>Lo que pas\xF3:</b> rastre\xE1 c\xF3mo fue (d\xF3nde, c\xF3mo, cu\xE1ndo) y cruzalo con tus sospechosos.</li>
+      <li><b>Intervenir:</b> mand\xE1 un se\xF1uelo (un dato falso a unos pocos) y mir\xE1 si el enemigo muerde. Deten\xE9 al culpable y las operaciones quedan a salvo. Si te equivoc\xE1s de persona, perd\xE9s ${f.error} min.</li>
+    </ul>
+    <p class="numeros num">Partidas ${g.partidas} \xB7 Casos resueltos ${g.ganadas} \xB7 \xABOtra\xBB ${g.otra}</p>
+  </section>`}function Ra(){N(),Z=setInterval(()=>{if(!(M||!o||o.fin)){if(Y(o),o.fin)return N(),ia();wa()}},Oa)}function N(){Z&&clearInterval(Z),Z=null}function ea(a){o=ca(a,T.has("semilla")?Number(T.get("semilla")):void 0,ra||T.get("amenaza")||void 0),window.__topo=o,z="vivo",h=null,m=null,M=!1,g.partidas++,na(g);let s=o.caso.amenaza;o.eventos.unshift({t:0,tipo:"ia",texto:`Buenas noches. ${s.titulo}: ${s.intro.toLowerCase()}. Ten\xE9s ${o.caso.agentes.length} sospechosos (${s.sospechosos}). Hay ${o.caso.ops.length} operaciones en curso. Te marco el riesgo de cada una.`}),sa=o.eventos.length,ta="",v(),Ra()}function ha(){return JSON.stringify([o.eventos.length,o.filtracion,o.sabido,o.limpios,o.inocentes,o.caso.ops.map(a=>a.estado),o.enlace&&o.enlace.tipo,o.senuelo&&[o.senuelo.listo,o.senuelo.fin],z,h,m&&[...m],M,o.caso.ops.map(a=>J(o,a)?.nombre)])}function wa(){if(ha()!==ta)return v();let s=o.caso.vuelo,e=o.t/s.minutos,n=r=>L.querySelector(r);n("#hora").textContent=k(o.t);let t=n("#restan");t.textContent=O(A(o)),t.classList.toggle("poco",A(o)<=45),n(".traza .hecha").style.width=`${e*100}%`,n(".traza .avion").style.left=`${Math.min(97,Math.max(3,e*100))}%`,n("#enlace").innerHTML=Sa();for(let r of o.caso.ops){let l=L.querySelector(`[data-op="${r.id}"]`);if(!l||r.estado!=="curso"||!l.querySelector(".riesgo"))continue;let i=U(o,r);l.querySelector(".riesgo b").textContent=`${i} %`,l.querySelector(".riesgo .barra i").style.width=`${i}%`,l.querySelector(".riesgo").className=`riesgo ${Ca(i)}`;let d=J(o,r),p=l.querySelector(".falta");p&&d&&(p.textContent=`en ${O(d.t-o.t)}`)}}var Ca=a=>a>=70?"rojo":a>=45?"ambar":"verde";function Sa(){if(!o.enlace)return o.senuelo&&!o.senuelo.listo&&o.senuelo.fin?`<span class="etiqueta">Enlace libre</span><span class="espera">Se\xF1uelo en el aire \xB7 respuesta en ${o.senuelo.fin-o.t} min</span>`:'<span class="etiqueta">Enlace libre</span><span class="espera">Eleg\xED qu\xE9 preguntar</span>';let a=o.enlace,s=a.fin-a.desde,e=o.t-a.desde,n={rastrear:`Rastreando ${P(a.arg)?.nombre.toLowerCase()}`,cruzar:`Cruzando ${P(a.arg)?.nombre.toLowerCase()}`,expediente:`${o.caso.amenaza.ficha} de ${o.caso.agentes[a.arg]?.nombre}`,senuelo:"Enviando se\xF1uelo"}[a.tipo];return`<span class="etiqueta ocupado">Enlace ocupado</span><span class="espera">${c(n)} \xB7 ${a.fin-o.t} min</span><span class="barra"><i style="width:${e/s*100}%"></i></span>`}function $a(a,s){let e=o.sabido[a.id][s],n=o.filtracion[s];return`<span class="chip ${e&&n?e===n?"si":"no":""}"><i>${P(s).nombre}</i>${e?c(e):"?"}</span>`}function Ta(a){let s=aa(o,a.id),e=y().every(i=>o.sabido[a.id][i]),n=o.inocentes.includes(a.id),t=o.limpios.includes(a.id),r=n?'<span class="marca descartado">inocente</span>':t?'<span class="marca descartado">limpio</span>':s==="descartado"?'<span class="marca descartado">descartado</span>':s==="coincide"?'<span class="marca coincide">coincide</span>':"";if(m){let i=m.has(a.id);return`<button class="agente elegible ${i?"elegido":""} ${s}" data-elegir="${a.id}" aria-pressed="${i}" ${n?"disabled":""}>
+      <span class="cab"><span><span class="nombre">${c(a.nombre)}</span><br><span class="rol">${c(a.rol)}</span></span><span class="tilde">${i?"\u2713":""}</span></span>
+      <span class="chips">${y().map(d=>$a(a,d)).join("")}</span>
+    </button>`}let l=h===`detener:${a.id}`;return`<article class="agente ${s}" data-agente="${a.id}">
+    <div class="cab"><span><span class="nombre">${c(a.nombre)}</span><br><span class="rol">${c(a.rol)}</span></span>${r}</div>
+    <div class="chips">${y().map(i=>$a(a,i)).join("")}</div>
+    <div class="botones">
+      <button class="accion ia" data-expediente="${a.id}" ${e||o.enlace?"disabled":""}>${o.caso.amenaza.ficha} \xB7 ${f.expediente}\u2032</button>
+      <button class="accion peligro ${l?"seguro":""}" data-detener="${a.id}" ${n?"disabled":""}>${l?"\xBFSeguro? Toc\xE1 otra vez":o.caso.amenaza.detener}</button>
+    </div>
+  </article>`}function Na(a){let s=U(o,a),e=J(o,a),n={curso:'<span class="pill vivo">\u25CF en vivo</span>',cumplida:'<span class="pill ok">cumplida</span>',abortada:'<span class="pill gris">abortada</span>',caida:'<span class="pill mal">cay\xF3</span>'}[a.estado],t=a.etapas.map((d,p)=>{let E=d.t<=o.t||a.estado==="cumplida",u=e===d;return`<li class="${a.estado==="caida"&&p===2?"mal":E?"paso":u?"ahora":""}"><span class="num">${k(d.t)}</span> ${c(d.nombre)}${u?` <span class="falta num">en ${O(d.t-o.t)}</span>`:""}</li>`}).join(""),r=a.etapas[2],l=a.estado==="curso"?`<div class="riesgo ${Ca(s)}"><span>Riesgo de emboscada en \xAB${c(r.nombre)}\xBB</span><b class="num">${s} %</b><span class="barra"><i style="width:${s}%"></i></span></div>`:"",i=h===`abortar:${a.id}`;return`<article class="op ${a.estado}" data-op="${a.id}">
+    <div class="cab"><span><span class="nombre">${c(a.nombre)}</span><br><span class="rol">${c(a.equipo)}</span></span>${n}</div>
+    <ol class="etapas">${t}</ol>
+    ${l}
+    ${a.estado==="curso"?`<button class="accion peligro ${i?"seguro":""}" data-abortar="${a.id}">${i?"\xBFAbortar? Toc\xE1 otra vez":"Abortar operaci\xF3n"}</button>`:""}
+  </article>`}function v(){if(o.fin)return ia();ta=ha();let a=o.caso.vuelo,s=o.t/a.minutos,e=o.eventos[0],n=ba(o).length,t=o.caso.ops.some(u=>u.estado==="curso"&&U(o,u)>=70);z==="paso"&&(sa=o.eventos.length);let r=o.eventos.length>sa,l=y().map(u=>{let $=o.filtracion[u];return`<div class="rasgo">
+      <span><span class="preg">${P(u).pregunta}</span><br><span class="val ${$?"":"no"}">${$?c($):"\u2014 \u2014 \u2014"}</span></span>
+      ${$?"":`<button class="accion" data-rastrear="${u}" ${o.enlace?"disabled":""}>Rastrear \xB7 ${f.rastrear}\u2032</button>`}
+    </div>`}).join(""),i=y().map(u=>{let $=o.caso.agentes.every(C=>o.sabido[C.id][u]);return`<button class="accion ia" data-cruzar="${u}" ${$||o.enlace?"disabled":""}>${P(u).nombre} \xB7 ${f.cruce}\u2032</button>`}).join(""),d=o.senuelo&&!o.senuelo.listo,p=m?`<div class="armado"><span>Se\xF1uelo para <b class="num">${m.size}</b> ${m.size===1?"sospechoso":"sospechosos"}: ${c(o.caso.amenaza.senuelo)}. Si el enemigo muerde, ${c(o.caso.amenaza.culpable)} est\xE1 entre ellos.</span>
+        <span class="botones"><button class="accion" data-mandar="1" ${m.size===0||m.size>=o.caso.agentes.length||o.enlace?"disabled":""}>Mandar \xB7 ${f.senuelo}\u2032 + ${f.respuestaSenuelo}\u2032</button><button class="accion gris" data-cancelar="1">Cancelar</button></span></div>`:`<button class="accion ancho" data-armar="1" ${d?"disabled":""}>${d?"Se\xF1uelo en el aire\u2026":`Armar se\xF1uelo (${c(o.caso.amenaza.senuelo)})`}</button>`,E=(u,$)=>`<button role="tab" data-pestana="${u}" aria-selected="${z===u}">${$}</button>`;L.innerHTML=`
+    <header class="cabecera">
+      <div class="fila"><span class="ruta">${a.de} \u2192 ${a.a} \xB7 <span id="hora" class="num">${k(o.t)}</span></span><span class="fila chica"><span class="etiqueta">Aterriza en</span><span class="reloj num ${A(o)<=45?"poco":""}" id="restan">${O(A(o))}</span></span></div>
+      <div class="traza" aria-hidden="true"><span class="hecha" style="width:${s*100}%"></span><span class="avion" style="left:${Math.min(97,Math.max(3,s*100))}%">\u2708</span></div>
+      <div class="fila"><div class="enlace" id="enlace">${Sa()}</div><button class="accion gris pausa" data-pausa="1">${M?"\u25B6 Seguir":"\u2161 Pausa"}</button></div>
+      <div class="transmision ${e.tipo==="alerta"?"alerta":""}"><span class="quien">${e.tipo==="campo"?"CAMPO":_}</span><span>${c(e.texto)}</span></div>
+    </header>
+    <nav class="pestanas" role="tablist">
+      ${E("paso",`Pas\xF3${r?' <span class="aviso">\u25CF</span>':""}`)}${E("sospechosos",`Sospechosos (${n})`)}${E("vivo",`En vivo${t?' <span class="aviso rojo">\u25CF</span>':""}`)}
+    </nav>
+    ${M?'<p class="enpausa">En pausa. El avi\xF3n y las operaciones esperan.</p>':""}
+    <main class="panel">
+      <section class="pantalla ${z==="paso"?"activa":""}">
+        <h2>Lo que pas\xF3 <span class="etiqueta">1 de 3</span></h2>
+        <p class="ayuda">${c(o.caso.amenaza.titulo)}. Cada rasgo que rastre\xE1s descarta a los sospechosos que no coinciden.</p>
+        <div>${l}</div>
+        <h3 class="etiqueta">Registro</h3>
+        <div class="bitacora">${o.eventos.map(u=>`<div class="msg ${u.tipo}"><span class="hora num">${k(u.t)}</span>${c(u.texto)}</div>`).join("")}</div>
+      </section>
+      <section class="pantalla ${z==="sospechosos"?"activa":""}">
+        <h2>Sospechosos <span class="etiqueta">2 de 3 \xB7 quedan ${n}</span></h2>
+        <h3 class="etiqueta cruzar-tit">Cruzar con todos</h3>
+        <div class="cruces">${i}</div>
+        ${p}
+        <div class="agentes">${o.caso.agentes.map(Ta).join("")}</div>
+      </section>
+      <section class="pantalla ${z==="vivo"?"activa":""}">
+        <h2>En vivo <span class="etiqueta">3 de 3 \xB7 ${_} prev\xE9</span></h2>
+        <div class="ops">${o.caso.ops.map(Na).join("")}</div>
+      </section>
+    </main>`}function j(a){if(h=null,a(),o.fin)return N(),ia();v()}L.addEventListener("click",a=>{let s=a.target.closest("button");if(!s||s.disabled)return;let e=s.dataset;if(e.vuelo)return ea(Number(e.vuelo));if(e.tipo!==void 0&&!o)return ra=e.tipo||null,oa();if(e.otra)return g.otra++,na(g),ea(Number(e.otra));if(e.siguiente)return ea(Number(e.siguiente));if(e.volver)return oa();if(!(!o||o.fin)){if(e.pestana)return z=e.pestana,h=null,v();if(e.pausa)return M=!M,v();if(e.rastrear)return j(()=>la(o,e.rastrear));if(e.cruzar)return j(()=>da(o,e.cruzar));if(e.expediente)return j(()=>ua(o,Number(e.expediente)));if(e.armar)return m=new Set,v();if(e.cancelar)return m=null,v();if(e.elegir){let n=Number(e.elegir);return m.has(n)?m.delete(n):m.add(n),v()}if(e.mandar){let n=[...m];return m=null,j(()=>pa(o,n))}if(e.detener){let n=`detener:${e.detener}`;return h!==n?(h=n,v()):j(()=>ma(o,Number(e.detener)))}if(e.abortar){let n=`abortar:${e.abortar}`;return h!==n?(h=n,v()):j(()=>fa(o,Number(e.abortar)))}}});function ia(){N();let a=o.caso.agentes[o.caso.culpable],s=o.caso.amenaza,e=o.caso.vuelo,n=o.fin==="gano";o.contado||(o.contado=!0,n&&(g.ganadas++,g.hechos.includes(e.id)||g.hechos.push(e.id)),na(g));let t=ga(o),r=o.caso.ops.find(p=>p.vendida),l=n?t.caida?"Caso resuelto, con bajas":t.abortada?"Caso resuelto":"Misi\xF3n limpia":`Aterrizaste. Se te escap\xF3 ${s.culpable}.`,i=V[e.id],d=o.caso.ops.map(p=>`<li><b>${c(p.nombre)}</b> \xB7 ${{cumplida:"cumplida",abortada:"abortada",caida:"cay\xF3",curso:"en curso"}[p.estado]}${p.vendida?' <span class="marca coincide">vendida</span>':""}</li>`).join("");L.innerHTML=`<section class="final ${n?"gano":"perdio"}">
+    <span class="etiqueta">${e.de} \u2192 ${e.a} \xB7 ${k(o.t)}</span>
+    <h2>${l}</h2>
+    <p class="historia">${n?`Lo resolviste con <strong class="num">${O(A(o))}</strong> de vuelo de sobra, en ${o.consultas} consultas${o.inocentes.length?` y ${o.inocentes.length} ${o.inocentes.length===1?"inocente interrogado":"inocentes interrogados"}`:""}.`:"Se acab\xF3 el tiempo. Esto era lo que hab\xEDa que encontrar:"}</p>
+    <div class="ficha">
+      <span class="etiqueta">${c(s.titulo)} \xB7 ${c(s.culpable)}</span>
+      <b>${c(a.nombre)} \xB7 ${c(a.rol)}</b>
+      <div class="chips">${y().map(p=>`<span class="chip si"><i>${P(p).nombre}</i>${c(a[p])}</span>`).join("")}</div>
+    </div>
+    <div class="ficha">
+      <span class="etiqueta">Operaciones</span>
+      <ul class="lista">${d}</ul>
+      <span class="ayuda">La vendida era \xAB${c(r.nombre)}\xBB: el golpe estaba previsto para las ${k(r.etapas[2].t)}.</span>
+    </div>
+    <div class="botonera">
+      ${n&&i?`<button class="grande" data-siguiente="${i.id}">Vuelo ${i.id}</button>`:""}
+      <button class="grande ${n&&i?"sec":""}" data-otra="${e.id}">Otra</button>
+      <button class="grande sec" data-volver="1">Volver</button>
+    </div>
+  </section>`}oa();})();
+</script>
+
+</body></html>

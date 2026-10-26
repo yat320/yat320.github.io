@@ -1,0 +1,366 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/24KCHbceJJdj3vbpn5GVC5 (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cueva Cripto</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: pizarra de cotizaciones a la izquierda, mostrador de operaciones a la derecha, libreta abajo */
+:root{
+  --bg:#E8EDF2; --panel:#F6F8FA; --ink:#16213A; --muted:#5B6780; --line:#C5CEDB;
+  --up:#0B7A5B; --down:#B8322A; --accent:#E0A100; --on-accent:#16213A;
+  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1626; --panel:#172038; --ink:#E6EBF5; --muted:#93A0BA; --line:#2A3655;
+  --up:#3FCF9E; --down:#FF7A6B; --accent:#F2B92B; --on-accent:#16213A; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0F1626; --panel:#172038; --ink:#E6EBF5; --muted:#93A0BA; --line:#2A3655;
+  --up:#3FCF9E; --down:#FF7A6B; --accent:#F2B92B; --on-accent:#16213A; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,44px);line-height:1;margin:0;letter-spacing:-.02em}
+h2{font-family:var(--display);font-weight:500;font-size:18px;margin:0;text-wrap:balance}
+.label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--muted)}
+
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+header p{margin:6px 0 0;color:var(--muted);max-width:52ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px 28px;border-top:2px solid var(--ink);border-bottom:1px solid var(--line);padding-block:12px}
+.stat{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .num{font-size:20px;font-weight:600}
+.days{display:flex;gap:3px;margin-top:6px}
+.days i{width:6px;height:10px;background:var(--line)}
+.days i.done{background:var(--ink)} .days i.now{background:var(--accent)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+.stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+.board{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 64px 72px minmax(0,1fr);gap:10px;align-items:center;
+  padding:10px 8px;border:0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%}
+.row.head{cursor:default;border-top:0;padding-block:0 6px}
+.row .r{text-align:right}
+button.row:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+button.row[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 4px 0 0 var(--accent)}
+.tk{font-family:var(--mono);font-weight:600}
+.nm{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+svg.spark{width:100%;height:26px;display:block}
+@media (max-width:480px){.row{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) 58px minmax(0,1fr)} .row .sp{display:none}}
+
+.news{border-left:4px solid var(--accent);padding-left:12px;display:flex;flex-direction:column;gap:4px}
+.news q{font-family:var(--display);font-size:19px;line-height:1.2;quotes:none}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--ink)}
+.seg button{border:0;background:none;color:var(--ink);font:600 14px var(--body);padding:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.field{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.field input{flex:1 1 120px;min-width:0;font:600 18px var(--mono);padding:8px 10px;background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.chip{font:600 13px var(--mono);padding:8px 10px;background:none;color:var(--ink);border:1px solid var(--line);cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn{font:600 15px var(--body);padding:11px 14px;border:0;cursor:pointer;background:var(--ink);color:var(--bg)}
+.btn.next{background:var(--accent);color:var(--on-accent);font-family:var(--display);font-size:17px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+#msg{min-height:1.4em;font-size:13px;margin:0}
+svg.chart{width:100%;height:120px;display:block}
+.axis{display:flex;justify-content:space-between;font-size:12px}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;max-height:220px;overflow:auto}
+.log li{border-top:1px solid var(--line);padding-top:6px}
+.end h2{font-size:30px;font-weight:800}
+.foot{font-size:12px;color:var(--muted);margin:0}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Cueva Cripto</h1>
+      <p>Tenés US$ 10.000 de mentira y 30 días. Comprá, vendé y tratá de terminar con más de lo que arrancaste.</p>
+    </div>
+    <button class="btn next" id="next" type="button">Pasar al día siguiente</button>
+  </header>
+
+  <section class="stats" aria-live="polite">
+    <div class="stat"><span class="label">Día</span><span class="num" id="sDay"></span><div class="days" id="days"></div></div>
+    <div class="stat"><span class="label">Patrimonio</span><span class="num" id="sWorth"></span></div>
+    <div class="stat"><span class="label">Resultado</span><span class="num" id="sRet"></span></div>
+    <div class="stat"><span class="label">Efectivo</span><span class="num" id="sCash"></span></div>
+    <div class="stat"><span class="label">Tu récord</span><span class="num" id="sBest"></span></div>
+  </section>
+
+  <div class="cols">
+    <div class="stack">
+      <section class="panel">
+        <h2>Pizarra</h2>
+        <div class="board" id="board"></div>
+      </section>
+      <section class="panel">
+        <h2>Tu patrimonio día a día</h2>
+        <svg class="chart" id="wChart" viewBox="0 0 300 100" preserveAspectRatio="none"></svg>
+        <div class="axis num muted"><span id="wMin"></span><span>línea punteada: los US$ 10.000 iniciales</span><span id="wMax"></span></div>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="panel" id="newsBox">
+        <span class="label">Se comenta hoy</span>
+        <div class="news"><q id="nText"></q><span class="muted" id="nSrc"></span></div>
+        <p class="foot">Las noticias pegan mañana, si se cumplen. No todas las fuentes aciertan igual.</p>
+      </section>
+
+      <section class="panel" id="aiBox">
+        <h2>Modo IA</h2>
+        <p class="foot">Un bot opera por vos antes de cada cierre de día. Reparte la plata entre las monedas grandes, se mueve solo con noticias de fuentes confiables y anota en la libreta por qué hizo cada cosa.</p>
+        <div class="field">
+          <button class="chip" type="button" id="aiT" aria-pressed="false"></button>
+          <button class="chip" type="button" id="aiRun"></button>
+        </div>
+      </section>
+
+      <section class="panel end" id="end" hidden>
+        <span class="label">Cierre del día 30</span>
+        <h2 id="eTitle"></h2>
+        <div class="kv"><span>Patrimonio final</span><span class="num" id="eWorth"></span></div>
+        <div class="kv"><span>Resultado</span><span class="num" id="eRet"></span></div>
+        <div class="kv"><span>Si comprabas BTN el día 1 y no tocabas nada</span><span class="num" id="eBench"></span></div>
+        <p id="eNote" style="margin:0"></p>
+        <button class="btn" id="again" type="button">Jugar de nuevo</button>
+      </section>
+
+      <section class="panel" id="trade">
+        <div>
+          <h2 id="tName"></h2>
+          <span class="muted" id="tDesc" style="font-size:13px"></span>
+        </div>
+        <svg class="chart" id="cChart" viewBox="0 0 300 100" preserveAspectRatio="none" style="height:80px"></svg>
+        <div class="kv"><span>Tenés</span><span class="num" id="tHold"></span></div>
+        <div class="kv"><span>Precio promedio de compra</span><span class="num" id="tAvg"></span></div>
+        <div class="kv"><span>Ganancia o pérdida</span><span class="num" id="tPnl"></span></div>
+        <div class="seg">
+          <button type="button" id="mBuy">Comprar</button>
+          <button type="button" id="mSell">Vender</button>
+        </div>
+        <div class="field">
+          <label class="label" for="amt">Monto en US$</label>
+          <input id="amt" type="number" min="0" step="any" inputmode="decimal" placeholder="0">
+        </div>
+        <div class="field">
+          <button class="chip" type="button" data-f="0.25">25%</button>
+          <button class="chip" type="button" data-f="0.5">50%</button>
+          <button class="chip" type="button" data-f="1">Todo</button>
+          <span class="muted" style="font-size:12px" id="tMax"></span>
+        </div>
+        <button class="btn" id="go" type="button"></button>
+        <p id="msg" role="status"></p>
+      </section>
+
+      <section class="panel">
+        <h2>Libreta</h2>
+        <ul class="log" id="log"></ul>
+      </section>
+    </div>
+  </div>
+  <p class="foot">Es un juego: las monedas son inventadas y los precios salen de un generador al azar. No es asesoramiento financiero. Comisión por operación: 0,5%.</p>
+</div>
+
+<script>
+const DAYS=30, START=10000, FEE=0.005;
+const COINS=[
+ {t:'BTN',n:'Bitón',p:40000,d:.004,v:.035,desc:'La más grande del mercado. Se mueve poco.'},
+ {t:'ETR',n:'Etéreo',p:2500,d:.004,v:.05,desc:'La segunda. Riesgo medio.'},
+ {t:'MATE',n:'MateCoin',p:12,d:.005,v:.09,desc:'Altcoin. Sube y baja fuerte.'},
+ {t:'CHORI',n:'ChoriToken',p:.08,d:.004,v:.16,desc:'Memecoin. Pura especulación.'},
+ {t:'HUMO',n:'HumoFi',p:1.5,d:.03,v:.2,rug:.045,desc:'Promete 1000% anual. Nadie sabe quién está detrás.'}
+];
+const SRC=[['Comunicado oficial',.9],['Diario financiero',.75],['Influencer de redes',.5],['Grupo de Telegram',.3]];
+const UP=['Un exchange grande listaría {T} esta semana','{N} cerraría un acuerdo con una cadena de supermercados','Una ballena está acumulando {T}','La actualización de la red de {N} sale antes de lo previsto'];
+const DN=['Hackeo en un puente de {N}: faltan fondos','Un regulador pondría la lupa sobre {N}','El fundador de {N} vendió parte de sus tokens','Falla en la red de {N}: transacciones demoradas'];
+const MUP=['Un fondo grande anuncia que empieza a comprar cripto','Bajan las tasas: vuelve el apetito por riesgo'];
+const MDN=['Suben las tasas: el mercado sale de activos de riesgo','Quiebra un exchange mediano y cunde el pánico'];
+
+let S;
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const gauss=()=>Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random());
+const price=i=>S.hist[i][S.hist[i].length-1];
+const worth=()=>S.cash+COINS.reduce((a,c,i)=>a+S.qty[i]*price(i),0);
+const usd=n=>'US$ '+n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:Math.abs(n)<1&&n!==0?4:2});
+const pct=x=>(x>=0?'+':'')+(x*100).toLocaleString('es-AR',{maximumFractionDigits:1})+'%';
+const cls=x=>x>0?'up':x<0?'down':'muted';
+
+function makeNews(){
+  const [src,rel]=pick(SRC), dir=Math.random()<.5?1:-1;
+  if(Math.random()<.2) return {c:-1,dir,rel,src,mag:rnd(.06,.14),text:pick(dir>0?MUP:MDN)};
+  const pool=COINS.map((_,i)=>i).filter(i=>!(COINS[i].rug&&S.rugged));
+  const c=pick(pool);
+  return {c,dir,rel,src,mag:rnd(.12,.32),text:pick(dir>0?UP:DN).replace('{T}',COINS[c].t).replace('{N}',COINS[c].n)};
+}
+function newGame(){
+  S={day:1,cash:START,qty:COINS.map(()=>0),cost:COINS.map(()=>0),hist:COINS.map(c=>[c.p]),worth:[START],log:[],sel:0,mode:'buy',over:false,rugged:false};
+  S.news=makeNews();
+  $('amt').value=''; $('msg').textContent='';
+  render();
+}
+function log(t){S.log.unshift('Día '+Math.min(S.day,DAYS)+' · '+t)}
+
+let AI=false, timer=null;
+function stopRun(){if(timer){clearInterval(timer);timer=null}}
+function aiTurn(){
+  const n=S.news, W=worth(); let t=[.35,.25,.10,0,0], why;
+  const e=n.dir*(n.c===-1?.10:.22)*(n.rel-(1-n.rel)*.3);
+  if(n.c===-1){
+    if(e>.03){t=t.map(x=>x*1.35);why='noticia buena para todo el mercado y fuente confiable: invierte casi todo'}
+    else if(e<-.03){t=t.map(x=>x*.4);why='noticia mala para todo el mercado y fuente confiable: pasa la mayor parte a efectivo'}
+    else why='noticia de mercado de fuente poco confiable: la ignora'
+  }else{
+    const c=COINS[n.c];
+    if(c.rug) why='la noticia es sobre '+c.t+': no entra en una moneda sin nadie detrás'
+    else if(e>.04){t[n.c]+=Math.min(.3,e*2.5);why='noticia buena de fuente confiable: carga más '+c.t}
+    else if(e<-.04){t[n.c]=0;why='noticia mala creíble: sale de '+c.t}
+    else why='rumor de fuente poco confiable sobre '+c.t+': no se mueve'
+  }
+  const ops=[];
+  COINS.forEach((c,i)=>{const p=price(i),cur=S.qty[i]*p,diff=t[i]*W-cur;
+    if(cur>0&&(t[i]===0||diff<-.02*W)){
+      const all=t[i]===0,q=all?S.qty[i]:-diff/p,share=q/S.qty[i];
+      S.cost[i]*=1-share;S.qty[i]-=q;if(all){S.qty[i]=0;S.cost[i]=0}
+      S.cash+=q*p*(1-FEE);ops.push('vendió '+usd(q*p)+' de '+c.t)}});
+  COINS.forEach((c,i)=>{const p=price(i),diff=t[i]*W-S.qty[i]*p;
+    if(diff>.02*W){const a=Math.min(diff,S.cash);if(a>1){
+      S.qty[i]+=a*(1-FEE)/p;S.cost[i]+=a;S.cash=Math.max(0,S.cash-a);ops.push('compró '+usd(a)+' de '+c.t)}}});
+  log('IA · '+why+'. '+(ops.length?ops.join(', ')+'.':'No operó.'));
+}
+function nextDay(){
+  if(S.over) return;
+  if(AI) aiTurn();
+  const n=S.news, hit=Math.random()<n.rel;
+  COINS.forEach((c,i)=>{
+    let f=Math.exp(c.d-c.v*c.v/2+c.v*gauss());
+    if(n.c===i||n.c===-1) f*=1+(hit?n.dir*n.mag:-n.dir*n.mag*.3);
+    if(c.rug&&!S.rugged&&S.day>=6&&Math.random()<c.rug){f=.04;S.rugged=true;S.rugNow=true}
+    S.hist[i].push(Math.max(price(i)*f,1e-6));
+  });
+  log('«'+n.text+'» ('+n.src+'): '+(hit?'se cumplió.':'era humo.'));
+  if(S.rugNow){log('Los creadores de HumoFi desaparecieron con la plata. HUMO se desplomó.');S.rugNow=false}
+  S.day++; S.worth.push(worth());
+  if(S.day>DAYS){S.over=true;finish()} else S.news=makeNews();
+  $('msg').textContent='';
+  render();
+}
+function trade(){
+  const i=S.sel,c=COINS[i],p=price(i),a=parseFloat($('amt').value),m=$('msg');
+  m.className='down';
+  if(!(a>0)){m.textContent='Poné un monto mayor a cero.';return}
+  if(S.mode==='buy'){
+    if(a>S.cash+1e-9){m.textContent='No te alcanza: tenés '+usd(S.cash)+' en efectivo.';return}
+    const q=a*(1-FEE)/p; S.qty[i]+=q; S.cost[i]+=a; S.cash=Math.max(0,S.cash-a);
+    log('Compraste '+usd(a)+' de '+c.t+' a '+usd(p)+'.');
+    m.textContent='Compraste '+usd(a)+' de '+c.t+'.';
+  }else{
+    const max=S.qty[i]*p;
+    if(max<=0){m.textContent='No tenés '+c.t+' para vender.';return}
+    if(a>max+.01){m.textContent='Tenés solo '+usd(max)+' en '+c.t+'.';return}
+    const all=a>=max-.01, q=all?S.qty[i]:a/p, share=q/S.qty[i];
+    S.cost[i]*=1-share; S.qty[i]-=q; if(all){S.qty[i]=0;S.cost[i]=0}
+    S.cash+=q*p*(1-FEE);
+    log('Vendiste '+usd(q*p)+' de '+c.t+' a '+usd(p)+'.');
+    m.textContent='Vendiste '+usd(q*p)+' de '+c.t+'.';
+  }
+  m.className='up'; $('amt').value=''; render();
+}
+function finish(){
+  const w=worth(), r=w/START-1, bench=START/S.hist[0][0]*price(0);
+  let best=null; try{best=parseFloat(localStorage.getItem('cueva-best'))}catch(e){}
+  if(!(best>=w)){try{localStorage.setItem('cueva-best',w)}catch(e){}}
+  $('eTitle').textContent=r<-.5?'Liquidado':r<0?'Perdiste, pero seguís en pie':r<.25?'Saliste hecho, con algo arriba':r<1?'Buen trader':'Ballena';
+  $('eWorth').textContent=usd(w);
+  $('eRet').textContent=pct(r); $('eRet').className='num '+cls(r);
+  $('eBench').textContent=usd(bench);
+  $('eNote').textContent=w>bench?'Le ganaste a la estrategia más simple: comprar y esperar.':'Comprar BTN y no hacer nada rendía más. Pasa muy seguido.';
+}
+function line(svg,arr,base){
+  let lo=Math.min(...arr),hi=Math.max(...arr);
+  if(base!=null){lo=Math.min(lo,base);hi=Math.max(hi,base)}
+  if(hi===lo){hi+=1;lo-=1}
+  const y=v=>(96-(v-lo)/(hi-lo)*92).toFixed(1), n=Math.max(arr.length-1,1);
+  const pts=arr.map((v,k)=>(k/n*300).toFixed(1)+','+y(v)).join(' ');
+  const col=arr[arr.length-1]>=(base!=null?base:arr[0])?'var(--up)':'var(--down)';
+  svg.innerHTML=(base!=null?'<line x1="0" x2="300" y1="'+y(base)+'" y2="'+y(base)+'" stroke="var(--muted)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" fill="none"/>':'')+
+   '<polyline points="'+(arr.length>1?pts:'0,'+y(arr[0])+' 300,'+y(arr[0]))+'" fill="none" stroke="'+col+'" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+  return [lo,hi];
+}
+function render(){
+  const w=worth(), r=w/START-1, d=Math.min(S.day,DAYS);
+  $('sDay').textContent=S.over?'Cierre':d+' de '+DAYS;
+  $('days').innerHTML=Array.from({length:DAYS},(_,k)=>'<i class="'+(S.over||k<d-1?'done':k===d-1?'now':'')+'"></i>').join('');
+  $('sWorth').textContent=usd(w); $('sCash').textContent=usd(S.cash);
+  $('sRet').textContent=pct(r); $('sRet').className='num '+cls(r);
+  let best=null; try{best=parseFloat(localStorage.getItem('cueva-best'))}catch(e){}
+  $('sBest').textContent=best>0?usd(best):'sin partidas';
+
+  $('board').innerHTML='<div class="row head label"><span>Moneda</span><span class="r">Precio</span><span class="r">Hoy</span><span class="sp">30 días</span><span class="r">Tenés</span></div>'+
+   COINS.map((c,i)=>{const h=S.hist[i],p=price(i),ch=h.length>1?p/h[h.length-2]-1:0;
+    return '<button type="button" class="row" data-i="'+i+'" aria-pressed="'+(i===S.sel)+'"><span><span class="tk">'+c.t+'</span><span class="nm">'+c.n+'</span></span>'+
+     '<span class="num r">'+usd(p)+'</span><span class="num r '+cls(ch)+'">'+pct(ch)+'</span>'+
+     '<span class="sp"><svg class="spark" id="sp'+i+'" viewBox="0 0 300 100" preserveAspectRatio="none"></svg></span>'+
+     '<span class="num r '+(S.qty[i]>0?'':'muted')+'">'+(S.qty[i]>0?usd(S.qty[i]*p):'—')+'</span></button>'}).join('');
+  COINS.forEach((c,i)=>line($('sp'+i),S.hist[i]));
+  const [lo,hi]=line($('wChart'),S.worth,START);
+  $('wMin').textContent='mín '+usd(lo); $('wMax').textContent='máx '+usd(hi);
+
+  $('nText').textContent=S.news.text; $('nSrc').textContent='Fuente: '+S.news.src;
+  if(S.over) stopRun();
+  $('aiBox').hidden=S.over; $('aiT').setAttribute('aria-pressed',AI);
+  $('aiT').textContent=AI?'IA activada':'Activar IA';
+  $('aiRun').textContent=timer?'Frenar':'Que juegue sola hasta el día 30';
+  $('newsBox').hidden=S.over; $('trade').hidden=S.over; $('end').hidden=!S.over; $('next').disabled=S.over;
+  $('next').textContent=S.day===DAYS?'Cerrar el día 30 y ver resultado':'Pasar al día siguiente';
+
+  const i=S.sel,c=COINS[i],p=price(i),val=S.qty[i]*p;
+  $('tName').textContent=c.n+' ('+c.t+')'; $('tDesc').textContent=c.desc;
+  line($('cChart'),S.hist[i]);
+  $('tHold').textContent=S.qty[i]>0?usd(val):'nada';
+  $('tAvg').textContent=S.qty[i]>0?usd(S.cost[i]/S.qty[i]):'—';
+  const pnl=val-S.cost[i];
+  $('tPnl').textContent=S.qty[i]>0?usd(pnl)+' ('+pct(pnl/S.cost[i])+')':'—';
+  $('tPnl').className='num '+(S.qty[i]>0?cls(pnl):'muted');
+  $('mBuy').setAttribute('aria-pressed',S.mode==='buy'); $('mSell').setAttribute('aria-pressed',S.mode==='sell');
+  $('go').textContent=(S.mode==='buy'?'Comprar ':'Vender ')+c.t;
+  $('tMax').textContent='Máximo: '+usd(S.mode==='buy'?S.cash:val);
+  $('log').innerHTML=S.log.length?S.log.slice(0,40).map(t=>'<li>'+t+'</li>').join(''):'<li class="muted">Acá se anota cada operación y si las noticias se cumplieron.</li>';
+}
+
+$('board').addEventListener('click',e=>{const b=e.target.closest('button.row');if(b){S.sel=+b.dataset.i;$('msg').textContent='';render()}});
+$('mBuy').onclick=()=>{S.mode='buy';render()};
+$('mSell').onclick=()=>{S.mode='sell';render()};
+document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+  const max=S.mode==='buy'?S.cash:S.qty[S.sel]*price(S.sel);
+  $('amt').value=(Math.floor(max*parseFloat(b.dataset.f)*100)/100)||'';
+});
+$('go').onclick=trade;
+$('amt').addEventListener('keydown',e=>{if(e.key==='Enter')trade()});
+$('next').onclick=nextDay;
+$('again').onclick=()=>{stopRun();newGame()};
+$('aiT').onclick=()=>{AI=!AI;if(!AI)stopRun();render()};
+$('aiRun').onclick=()=>{
+  if(timer){stopRun();render();return}
+  AI=true; timer=setInterval(nextDay,600); render();
+};
+
+function start(data){
+  if(data&&data.S){S=data.S;if(S.over)finish();render()} else newGame();
+  window.claude?.hot?.snapshot?.(()=>({S}));
+}
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
+</script>
+
+</body></html>

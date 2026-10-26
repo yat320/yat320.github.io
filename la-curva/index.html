@@ -1,0 +1,197 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/Pa1b4DRGMZc4TM9cJPRHuw (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>La Curva</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una pantalla. Arriba el gráfico (tareas que la IA hace sola vs año). Abajo modos, palancas y resultados. */
+:root{
+  --ink:#07060b; --panel:#0f0d16; --line:#2a2433; --bone:#efe9dc; --mute:#8a8194; --disk:#ffb35c; --hot:#ff6a3d; --wall:#6aa9ff; --ok:#7fd8a6;
+  --display:"Instrument Serif", Georgia, serif; --mono:"JetBrains Mono", ui-monospace, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;background:var(--ink);overflow:hidden}
+body{color:var(--bone);font-family:var(--mono);font-size:12px}
+.app{height:100%;display:flex;flex-direction:column;max-width:620px;margin:0 auto}
+.top{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 4px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.top h1{margin:0;font:400 28px/1 var(--display)}
+.top h1 i{color:var(--disk)}
+.top p{margin:0;color:var(--mute);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;text-align:right}
+.chart{position:relative;flex:1 1 40%;min-height:200px}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.bottom{flex:0 0 auto;overflow-y:auto;max-height:58%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:11px;border-top:1px solid var(--line);background:var(--panel)}
+.modes{display:flex;gap:6px;flex-wrap:wrap}
+.mode{font:inherit;font-size:11px;color:var(--bone);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 11px;cursor:pointer}
+.mode[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600}
+.mode.done::after{content:" ✓";color:var(--ok)}
+.mode[aria-pressed="true"].done::after{color:#1d6b43}
+.goal{font-size:11.5px;line-height:1.55;color:var(--mute);max-width:62ch}
+.goal b{color:var(--bone);font-weight:600}
+.goal .res{display:block;margin-top:4px;font-weight:600}
+.goal .res.ok{color:var(--ok)}.goal .res.no{color:var(--hot)}
+.lev{display:grid;grid-template-columns:1fr;gap:9px}
+.lv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.lv label{font-size:11px;color:var(--bone)}
+.lv label small{color:var(--mute);font-size:10px;margin-left:4px}
+.lv output{font-size:11.5px;font-weight:600;color:var(--disk);font-variant-numeric:tabular-nums;text-align:right}
+.lv input{grid-column:1/-1;width:100%;accent-color:var(--disk);margin:0}
+.lv.locked label::after{content:" · fijo";color:var(--mute);font-size:10px}
+.lv.locked input{opacity:.35}
+.res4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;border-top:1px solid var(--line);padding-top:10px}
+.r span{display:block;color:var(--mute);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase}
+.r b{display:block;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.r.s b{color:var(--hot)}.r.w b{color:var(--wall)}
+.note{color:var(--mute);font-size:10.5px;line-height:1.5}
+input:focus-visible,.mode:focus-visible{outline:2px solid var(--disk);outline-offset:2px}
+</style>
+
+<div class="app">
+  <div class="top"><h1>La <i>Curva</i></h1><p>Tareas que la IA<br>hace sola</p></div>
+  <div class="chart"><canvas id="c" role="img" aria-label="Gráfico de la duración de tareas que la IA completa sola, por año, de 2024 a 2045, en escala logarítmica"></canvas></div>
+  <div class="bottom">
+    <div class="modes" id="modes"></div>
+    <div class="goal" id="goal"></div>
+    <div class="lev" id="lev"></div>
+    <div class="res4">
+      <div class="r"><span>Tareas en 2030</span><b id="r30">–</b></div>
+      <div class="r w"><span>Choca con el muro</span><b id="rW">–</b></div>
+      <div class="r"><span>IA investigadora</span><b id="rA">–</b></div>
+      <div class="r s"><span>Singularidad</span><b id="rS">–</b></div>
+    </div>
+    <p class="note">Puntos blancos: mediciones reales de METR (GPT-5, GPT-5.1-Codex-Max, Claude Opus 4.6 y la frontera de 2026, donde el test ya se satura). El resto es un modelo de juguete: sirve para entender la forma de la curva, no para predecir fechas.</p>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cv=$('c'),cx=cv.getContext('2d');
+let W,H,DPR=Math.min(devicePixelRatio||1,2);
+function size(){const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0);draw()}
+addEventListener('resize',size);
+
+// ---------- modelo de juguete ----------
+// H: cómputo de hardware (FLOP de entrenamiento), crece "fierro"/año hasta el techo de energía
+// Techo: 2e29 FLOP en 2030 (Epoch AI) y crece al ritmo de energía nueva
+// A: eficiencia de algoritmos; con auto-mejora, su ritmo se acelera cuando la IA ya investiga
+// Horizonte de tareas h ∝ (H·A)^0.91, calibrado a ~2 h en ago-2025 (GPT-5)
+const Y0=2024,Y1=2045,DT=.005,K=.91,E_CAL=2.9e27,T_CAL=2025.6;
+const H0=E_CAL/12.6**(T_CAL-Y0); // así H·A en 2024 cae sobre la calibración
+const MONTH=167;  // horas de trabajo en un mes
+function simulate(p){
+  const ceil0=2e29/p.power**(2030-Y0);
+  let lnH=Math.log(H0),lnA=0,wall=null,auto=null,sing=null;const pts=[];
+  const lnEth=Math.log(E_CAL)+Math.log(MONTH/2)/K;   // cómputo efectivo donde la IA hace tareas de 1 mes
+  for(let t=Y0;t<=Y1+1e-9;t+=DT){
+    const lnE=lnH+lnA,h=2*Math.exp(K*(lnE-Math.log(E_CAL)));
+    pts.push([t,Math.min(h,1e15)]);
+    // hardware
+    const lnCeil=Math.log(ceil0)+Math.log(p.power)*(t-Y0);
+    let gH=Math.log(p.hw);
+    if(lnH>=lnCeil-1e-9){lnH=lnCeil;gH=Math.log(p.power);if(wall===null)wall=t}
+    // algoritmos (+ auto-mejora una vez que la IA investiga)
+    let gA=Math.log(p.alg);
+    if(lnE>lnEth){if(auto===null)auto=t;gA*=Math.exp(.25*p.self*(lnE-lnEth))}
+    const g=K*(gH+gA); // ritmo de crecimiento del horizonte (por año, en log)
+    if(g>0&&Math.log(2)/g<7/365){sing=t;break}
+    lnH=Math.min(lnH+gH*DT,lnCeil+Math.log(p.power)*DT);lnA+=gA*DT;
+  }
+  return{pts,wall,auto,sing}}
+
+// ---------- palancas y modos ----------
+const LEV=[
+ {k:'hw',name:'Fierro',hint:'chips e inversión',min:1,max:6,step:.1,def:4.5,fmt:v=>v.toFixed(1).replace('.',',')+'× / año'},
+ {k:'power',name:'Energía nueva',hint:'centrales y red',min:1,max:2,step:.05,def:1.4,fmt:v=>v.toFixed(2).replace('.',',')+'× / año'},
+ {k:'alg',name:'Eficiencia',hint:'algoritmos',min:1,max:4,step:.1,def:2.8,fmt:v=>v<=1.001?'nada':v.toFixed(1).replace('.',',')+'× / año'},
+ {k:'self',name:'Auto-mejora',hint:'cuánto acelera la IA a la IA',min:0,max:1,step:.05,def:.5,fmt:v=>v===0?'nada':v>=1?'total':Math.round(v*100)+'%'},
+];
+const MODES=[
+ {id:'free',name:'Libre',goal:'Mové las palancas y mirá cómo cambia la forma de la curva. Probá poner la <b>auto-mejora en nada</b>: la curva sube, pero nunca se dispara.',set:{},lock:[]},
+ {id:'c1',name:'1 · El muro',goal:'<b>Energía casi fija</b> (1,1× por año). Hacé que la IA llegue a <b>tareas de 1 mes antes de 2030</b> sin auto-mejora.',
+  set:{power:1.1,self:0,hw:4.5,alg:1},lock:['power','self'],check:r=>{const p=r.pts.find(([t])=>t>=2030);return p&&p[1]>=MONTH},ok:'El fierro solo choca con el muro. Lo que lo esquiva es la eficiencia.'},
+ {id:'c2',name:'2 · Despegue',goal:'Fierro, energía y eficiencia en valores realistas. Encontrá la <b>mínima auto-mejora</b> que produce una <b>singularidad antes de 2040</b>. Con 30% o menos, desafío superado.',
+  set:{hw:4.5,power:1.4,alg:2.8,self:1},lock:['hw','power','alg'],check:r=>r.sing!==null&&r.sing<2040&&cur.self<=.3,ok:'Alcanza con un poco de realimentación: el exponente pasa de 1 y la curva explota.'},
+ {id:'c3',name:'3 · Freno de mano',goal:'Auto-mejora alta y <b>fija</b>. Usá las otras palancas para que <b>no haya singularidad antes de 2045</b>, pero con <b>tareas de al menos 1 día</b> (8 h) en 2030.',
+  set:{self:.8,hw:4.5,power:1.4,alg:2.8},lock:['self'],check:r=>{const p=r.pts.find(([t])=>t>=2030);return r.sing===null&&p&&p[1]>=8},ok:'La única forma es no dejar que la IA llegue a investigar sola: después de ese punto, ningún freno físico alcanza.'},
+];
+let mode=MODES[0],cur={},done={};
+try{done=JSON.parse(localStorage.getItem('curva-done')||'{}')}catch(_){}
+LEV.forEach(l=>cur[l.k]=l.def);
+
+function buildModes(){$('modes').innerHTML='';MODES.forEach(m=>{const b=document.createElement('button');b.type='button';b.className='mode'+(done[m.id]?' done':'');
+  b.textContent=m.name;b.setAttribute('aria-pressed',m===mode);b.onclick=()=>setMode(m);$('modes').appendChild(b)})}
+function buildLev(){$('lev').innerHTML='';LEV.forEach(l=>{const d=document.createElement('div');const locked=mode.lock.includes(l.k);d.className='lv'+(locked?' locked':'');
+  d.innerHTML=`<label for="in-${l.k}">${l.name}<small>${l.hint}</small></label><output id="o-${l.k}">${l.fmt(cur[l.k])}</output>
+   <input id="in-${l.k}" type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${cur[l.k]}" ${locked?'disabled':''}>`;
+  $('lev').appendChild(d);d.querySelector('input').oninput=e=>{cur[l.k]=+e.target.value;$('o-'+l.k).textContent=l.fmt(cur[l.k]);run()}})}
+function setMode(m){mode=m;if(m.id==='free')LEV.forEach(l=>cur[l.k]=l.def);Object.assign(cur,m.set);buildModes();buildLev();run()}
+
+// ---------- formato ----------
+function tarea(h){if(h<1)return Math.round(h*60)+' min';if(h<8)return h.toFixed(1).replace('.',',')+' h';if(h<40)return Math.round(h/8*10)/10+' días';
+  if(h<MONTH)return (h/40).toFixed(1).replace('.',',')+' semanas';if(h<2000)return (h/MONTH).toFixed(1).replace('.',',')+' meses';
+  if(h<2e5)return (h/2000).toFixed(h<2e4?1:0).replace('.',',')+' años';return 'siglos'}
+const yr=t=>{const y=Math.floor(t),m=Math.floor((t-y)*12);return ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][m]+' '+y};
+
+// ---------- correr ----------
+let R=null,anim=0,raf=0;
+function run(){R=simulate(cur);
+  const p30=R.pts.find(([t])=>t>=2030);$('r30').textContent=p30?tarea(p30[1]):'∞';
+  $('rW').textContent=R.wall?yr(R.wall):'nunca';$('rA').textContent=R.auto?yr(R.auto):'no antes de 2045';
+  $('rS').textContent=R.sing?yr(R.sing):'no antes de 2045';
+  let g=mode.goal;
+  if(mode.check){const ok=mode.check(R);if(ok&&!done[mode.id]){done[mode.id]=true;try{localStorage.setItem('curva-done',JSON.stringify(done))}catch(_){}buildModes()}
+    g+=ok?`<span class="res ok">Logrado. ${mode.ok}</span>`:`<span class="res no">Todavía no.</span>`}
+  $('goal').innerHTML=g;
+  anim=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(tick)}
+function tick(){anim=Math.min(1,anim+.045);draw();if(anim<1)raf=requestAnimationFrame(tick)}
+
+// ---------- gráfico ----------
+const REAL=[[2025.6,2.28,'GPT-5'],[2025.88,2.7,'Codex-Max'],[2026.2,12,'Opus 4.6'],[2026.2,18,'frontera']];
+const GRID=[[1/60,'1 min'],[1,'1 h'],[8,'1 día'],[40,'1 sem'],[MONTH,'1 mes'],[2000,'1 año'],[2e5,'1 siglo']];
+function draw(){if(!W||!R)return;
+  const css=getComputedStyle(document.documentElement),C=k=>css.getPropertyValue(k).trim();
+  cx.fillStyle=C('--ink');cx.fillRect(0,0,W,H);
+  const L=Math.min(58,W*.14),Rm=14,T=10,B=26,pw=W-L-Rm,ph=H-T-B;
+  const lo=Math.log10(1/120),hi=Math.log10(1e6);
+  const X=t=>L+(t-Y0)/(Y1-Y0)*pw,Y=h=>T+ph-(Math.log10(Math.max(h,1e-3))-lo)/(hi-lo)*ph;
+  cx.font='10px JetBrains Mono, monospace';cx.textBaseline='middle';
+  // grilla
+  for(const [h,lab] of GRID){const y=Y(h);cx.strokeStyle=C('--line');cx.lineWidth=1;cx.beginPath();cx.moveTo(L,y);cx.lineTo(W-Rm,y);cx.stroke();
+    cx.fillStyle=C('--mute');cx.textAlign='right';cx.fillText(lab,L-6,y)}
+  cx.textAlign='center';cx.textBaseline='top';
+  for(let t=2025;t<=2045;t+=5){const x=X(t);cx.strokeStyle=C('--line');cx.beginPath();cx.moveTo(x,T);cx.lineTo(x,T+ph);cx.stroke();cx.fillStyle=C('--mute');cx.fillText(t,x,T+ph+8)}
+  // hoy
+  const xn=X(2026+9.5/12);cx.setLineDash([2,4]);cx.strokeStyle=C('--mute');cx.beginPath();cx.moveTo(xn,T);cx.lineTo(xn,T+ph);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle=C('--mute');cx.textAlign='left';cx.fillText('hoy',xn+4,T+2);
+  // umbral IA investigadora
+  cx.setLineDash([4,4]);cx.strokeStyle=C('--disk');cx.globalAlpha=.5;cx.beginPath();cx.moveTo(L,Y(MONTH));cx.lineTo(W-Rm,Y(MONTH));cx.stroke();cx.setLineDash([]);cx.globalAlpha=1;
+  cx.fillStyle=C('--disk');cx.textAlign='right';cx.textBaseline='bottom';cx.fillText('IA investigadora',W-Rm-2,Y(MONTH)-3);cx.textBaseline='middle';
+  // curva
+  const n=Math.max(2,Math.floor(R.pts.length*anim));
+  cx.save();cx.beginPath();cx.rect(L,T,pw,ph);cx.clip();
+  // área
+  const grd=cx.createLinearGradient(0,T,0,T+ph);grd.addColorStop(0,'rgba(255,106,61,.28)');grd.addColorStop(1,'rgba(255,179,92,0)');
+  cx.beginPath();cx.moveTo(X(R.pts[0][0]),T+ph);for(let i=0;i<n;i+=3)cx.lineTo(X(R.pts[i][0]),Y(R.pts[i][1]));cx.lineTo(X(R.pts[n-1][0]),Y(R.pts[n-1][1]));cx.lineTo(X(R.pts[n-1][0]),T+ph);cx.closePath();cx.fillStyle=grd;cx.fill();
+  // tramo frenado por el muro en otro color
+  cx.lineWidth=2.4;cx.lineJoin='round';
+  let prevC=null;cx.beginPath();
+  for(let i=0;i<n;i+=2){const [t,h]=R.pts[i];const col=R.sing&&R.auto&&t>=R.auto?C('--hot'):R.wall&&t>=R.wall&&(!R.auto||t<R.auto)?C('--wall'):C('--disk');
+    const x=X(t),y=Y(h);if(col!==prevC){if(prevC){cx.lineTo(x,y);cx.strokeStyle=prevC;cx.stroke()}cx.beginPath();cx.moveTo(x,y);prevC=col}else cx.lineTo(x,y)}
+  if(prevC){cx.strokeStyle=prevC;cx.stroke()}
+  cx.restore();
+  // singularidad
+  if(R.sing&&anim>=1){const x=X(R.sing);cx.strokeStyle=C('--hot');cx.lineWidth=1.5;cx.beginPath();cx.moveTo(x,T);cx.lineTo(x,T+ph);cx.stroke();
+    cx.fillStyle=C('--hot');cx.textAlign=x>W-90?'right':'left';cx.textBaseline='top';cx.fillText('singularidad',x+(x>W-90?-5:5),T+14)}
+  if(R.wall&&anim>=1&&R.wall<Y1){const pw2=R.pts.find(([t])=>t>=R.wall);if(pw2){cx.fillStyle=C('--wall');cx.beginPath();cx.arc(X(pw2[0]),Y(pw2[1]),4,0,6.283);cx.fill();
+    cx.textAlign='left';cx.textBaseline='bottom';cx.fillText('muro',X(pw2[0])+6,Y(pw2[1])+14)}}
+  // datos reales
+  cx.textBaseline='middle';
+  for(const [t,h,lab] of REAL){const x=X(t),y=Y(h);cx.fillStyle=C('--bone');cx.beginPath();cx.arc(x,y,lab==='frontera'?2.5:3.2,0,6.283);cx.fill()}
+  cx.fillStyle=C('--bone');cx.textAlign='right';cx.fillText('METR',X(2025.6)-6,Y(2.28))
+}
+
+buildModes();buildLev();
+requestAnimationFrame(()=>{size();run()});
+</script>
+
+</body></html>

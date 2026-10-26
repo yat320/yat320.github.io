@@ -1,0 +1,347 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/1QzQqarhj22axUHKtkxfGC (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Planilandia Abierta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una pantalla. Arriba el objeto (canvas, se arrastra para girar). Abajo nivel, planos de giro y corte. */
+:root{
+  --ink:#0b0d1a; --panel:#13162a; --line:#262a45; --bone:#e9e6f2; --mute:#8b88a3; --ok:#4dd4ac;
+  --display:"Syne", system-ui, sans-serif; --mono:"JetBrains Mono", ui-monospace, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;background:var(--ink);overflow:hidden}
+body{color:var(--bone);font-family:var(--mono);font-size:12px;user-select:none;-webkit-user-select:none}
+.app{height:100%;display:flex;flex-direction:column;max-width:620px;margin:0 auto}
+.stage{position:relative;flex:1 1 50%;min-height:220px}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.hdr{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));top:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
+.hdr h1{margin:0;font:800 20px/1 var(--display);letter-spacing:-.01em}
+.hdr p{margin:4px 0 0;color:var(--mute);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+.match{text-align:right;font-size:10.5px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase;min-width:90px}
+.match .b{margin-top:5px;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.match .b i{display:block;height:100%;width:0;background:var(--ok);transition:width .15s}
+.counts{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:8px;color:var(--mute);font-size:10.5px;font-variant-numeric:tabular-nums;pointer-events:none}
+.bottom{flex:0 0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);background:var(--panel)}
+.lvl h2{margin:0;font:600 15px/1.2 var(--display)}
+.lvl p{margin:4px 0 0;color:var(--mute);line-height:1.55;font-size:11.5px;max-width:62ch}
+.lbl{color:var(--mute);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:11.5px;font-weight:600;color:var(--bone);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 10px;cursor:pointer;display:inline-flex;gap:1px}
+.chip[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone)}
+.chip:focus-visible,.btn:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--bone);background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 11px;cursor:pointer}
+.btn.pri{background:var(--ok);color:var(--ink);border-color:var(--ok);font-weight:600}
+.btn[hidden]{display:none}
+.slice{display:flex;align-items:center;gap:10px}
+.slice input{flex:1;accent-color:var(--ok);min-width:0}
+.slice span{font-variant-numeric:tabular-nums;color:var(--mute);width:5ch;text-align:right}
+select{font:inherit;font-size:11.5px;color:var(--bone);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 8px}
+.cap{position:absolute;left:50%;top:58px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:11.5px;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.cap b{color:var(--ok);font-weight:600}
+.gui{display:flex;flex-direction:column;gap:10px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px}
+.opt{font:inherit;font-size:12px;font-weight:600;color:var(--bone);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px 8px;cursor:pointer}
+.opt:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.opt.right{border-color:var(--ok);color:var(--ok)}
+.opt.wrong{border-color:#ff6b6b;color:#ff6b6b}
+.opt:disabled{cursor:default}
+.sweep{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:30px;height:2px;background:var(--line);border-radius:2px;pointer-events:none}
+.sweep i{position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;background:#b48cff;transform:translateX(-50%)}
+.win{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .6s}
+.win.on{opacity:1}
+.win b{display:block;font:800 30px/1 var(--display);color:var(--ok)}
+.win span{color:var(--bone);font-size:11px}
+</style>
+
+<div class="app">
+  <div class="stage">
+    <canvas id="c" aria-label="Objeto: arrastrá para girarlo"></canvas>
+    <div class="hdr">
+      <div><h1>Planilandia Abierta</h1><p id="sub">Nivel 1 de 8</p></div>
+      <div class="match" id="matchBox">Coincidencia <b id="pct">0%</b><div class="b"><i id="bar"></i></div></div>
+    </div>
+    <div class="win" id="win"><b>¡Coincide!</b><span>La viste desde otra dimensión.</span></div>
+    <div class="counts" id="counts"></div>
+    <div class="cap" id="cap" hidden></div>
+    <div class="sweep" id="sweep" hidden><i id="sweepDot"></i></div>
+  </div>
+  <div class="bottom">
+    <div class="lvl"><h2 id="lt"></h2><p id="lp"></p></div>
+    <div id="freeOpts" class="row" hidden>
+      <select id="selN" aria-label="Dimensiones"></select>
+      <select id="selS" aria-label="Forma"><option value="cube">Hipercubo</option><option value="simplex">Símplex</option><option value="cross">Ortoplex</option></select>
+      <select id="selM" aria-label="Vista"><option value="shadow">Sombra</option><option value="slice">Corte</option></select>
+      <button class="btn" id="spin" type="button">Giro auto: no</button>
+    </div>
+    <div id="guessUI" class="gui" hidden>
+      <div class="opts" id="opts"></div>
+      <div class="row">
+        <button class="btn" id="gPause" type="button">Pausa</button>
+        <button class="btn" id="gOri" type="button">Orientación: alineada</button>
+        <button class="btn pri" id="gNext" type="button" hidden>Otro visitante</button>
+        <button class="btn" id="gBack" type="button">Volver a niveles</button>
+      </div>
+    </div>
+    <div id="puzzleUI" style="display:contents">
+    <div>
+      <div class="lbl">Plano de giro · arrastrá sobre el objeto</div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="slice" id="sliceRow" hidden>
+      <span class="lbl" style="margin:0;width:auto">Corte</span>
+      <input type="range" id="cut" min="-200" max="200" value="0" aria-label="Posición del corte">
+      <span id="cutV">0,00</span>
+    </div>
+    <div class="row">
+      <button class="btn" id="reset" type="button">Reiniciar giro</button>
+      <button class="btn" id="demoBtn" type="button">Ver solución</button>
+      <button class="btn" id="prev" type="button">Anterior</button>
+      <button class="btn pri" id="next" type="button" hidden>Siguiente</button>
+      <button class="btn" id="free" type="button">Modo libre</button>
+      <button class="btn" id="guess" type="button">Visitante 4D</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cv=$('c'),cx=cv.getContext('2d');
+let W,H,DPR=Math.min(devicePixelRatio||1,2);
+function size(){const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',size);
+const AX='XYZWVUT';
+const COL=['#ff6b6b','#ffd166','#4dd4ac','#b48cff','#5ab0ff','#ff8fd0','#c9e265'];
+const deg=Math.PI/180;
+
+// ---------- formas ----------
+function cube(n){const V=[],E=[],F=[];
+  for(let m=0;m<1<<n;m++)V.push([...Array(n)].map((_,k)=>m>>k&1?1:-1));
+  for(let m=0;m<1<<n;m++)for(let k=0;k<n;k++)if(!(m>>k&1))E.push([m,m|1<<k,k]);
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)for(let m=0;m<1<<n;m++)if(!(m>>i&1)&&!(m>>j&1))F.push([m,m|1<<i,m|1<<i|1<<j,m|1<<j]);
+  return{V,E,F}}
+function cross(n){const V=[],E=[],F=[];const s=1.45;
+  for(let k=0;k<n;k++)for(const g of[1,-1]){const v=Array(n).fill(0);v[k]=g*s;V.push(v)}
+  for(let a=0;a<V.length;a++)for(let b=a+1;b<V.length;b++)if(a>>1!==b>>1)E.push([a,b,a>>1]);
+  for(let a=0;a<V.length;a++)for(let b=a+1;b<V.length;b++)for(let c=b+1;c<V.length;c++)if(new Set([a>>1,b>>1,c>>1]).size===3)F.push([a,b,c]);
+  return{V,E,F}}
+function simplex(n){let V=[];for(let i=0;i<n;i++){const v=Array(n).fill(0);v[i]=1;V.push(v)}
+  V.push(Array(n).fill((1-Math.sqrt(n+1))/n));
+  const c=Array(n).fill(0);V.forEach(v=>v.forEach((x,k)=>c[k]+=x/(n+1)));
+  V=V.map(v=>v.map((x,k)=>x-c[k]));const r=Math.hypot(...V[0]);V=V.map(v=>v.map(x=>x/r*1.5));
+  const E=[],F=[];for(let a=0;a<=n;a++)for(let b=a+1;b<=n;b++){E.push([a,b,a%n]);for(let c=b+1;c<=n;c++)F.push([a,b,c])}
+  return{V,E,F}}
+const SHAPES={cube,cross,simplex};
+const NAMES={cube:['','Segmento','Cuadrado','Cubo','Teseracto','Penteracto','Hexeracto','Hepteracto'],
+  simplex:['','Segmento','Triángulo','Tetraedro','5-celda','5-símplex','6-símplex','7-símplex'],
+  cross:['','Segmento','Cuadrado','Octaedro','16-celda','5-ortoplex','6-ortoplex','7-ortoplex']};
+
+// ---------- álgebra ----------
+const eye=n=>[...Array(n)].map((_,i)=>[...Array(n)].map((_,j)=>+(i===j)));
+function rot(R,i,j,t){const c=Math.cos(t),s=Math.sin(t);for(let k=0;k<R.length;k++){const a=R[i][k],b=R[j][k];R[i][k]=c*a-s*b;R[j][k]=s*a+c*b}}
+const apply=(R,v)=>R.map(r=>r.reduce((s,x,k)=>s+x*v[k],0));
+function proj(p){p=p.slice();while(p.length>3){const w=p.pop(),f=3.6/(3.6-w);p=p.map(x=>x*f)}
+  if(p.length===3){const f=5/(5-p[2]);return[p[0]*f,p[1]*f,p[2]]}return[p[0],p[1]||0,0]}
+
+// ---------- niveles ----------
+const LEVELS=[
+ {t:'Sombras',p:'Un ser plano nunca ve un cubo: ve su sombra. Girá el cubo en el plano XZ hasta que su sombra coincida con la silueta gris.',
+  n:3,s:'cube',m:'shadow',planes:[[0,2]],target:[[0,2,38]]},
+ {t:'Dos giros',p:'En 3D podés girar en tres planos: XY, XZ e YZ. Cada arista tiene el color del eje al que es paralela.',
+  n:3,s:'cube',m:'shadow',planes:[[0,2],[1,2]],target:[[0,2,30],[1,2,28]]},
+ {t:'La cuarta dirección',p:'W (violeta) es perpendicular a X, Y y Z a la vez. Lo que parece un cubo dentro de otro es un teseracto. Girá en XW y mirá cómo se da vuelta.',
+  n:4,s:'cube',m:'shadow',planes:[[0,3]],target:[[0,3,45]]},
+ {t:'Teseracto libre',p:'Dos planos que tu cerebro no puede imaginar: XW y ZW. Guiate por la silueta, no por la intuición.',
+  n:4,s:'cube',m:'shadow',planes:[[0,3],[2,3]],target:[[0,3,28],[2,3,52]]},
+ {t:'Cortes',p:'Si un cubo atraviesa Planilandia, los seres planos ven un polígono que cambia. Girá y mové el corte hasta encontrar el hexágono.',
+  n:3,s:'cube',m:'slice',planes:[[0,2],[1,2]],target:[[0,2,45],[1,2,35.26]],cut:0},
+ {t:'Corte del teseracto',p:'Ahora sos vos el ser de una dimensión menos: ves cortes 3D de un objeto 4D. Encontrá esta forma.',
+  n:4,s:'cube',m:'slice',planes:[[0,3],[1,3]],target:[[0,3,45],[1,3,35.26]],cut:.35},
+ {t:'16-celda',p:'El primo del octaedro en 4D. Tiene 8 vértices y 24 aristas. Girá en XW e YZ.',
+  n:4,s:'cross',m:'shadow',planes:[[0,3],[1,2]],target:[[0,3,40],[1,2,30]]},
+ {t:'Quinta dimensión',p:'El penteracto: 32 vértices, 80 aristas. V (azul) es otra dirección más. Girá en XV y ZW.',
+  n:5,s:'cube',m:'shadow',planes:[[0,4],[2,3]],target:[[0,4,40],[2,3,30]]},
+];
+let li=0;try{li=Math.min(LEVELS.length-1,+localStorage.getItem('dim-lvl')||0)}catch(_){}
+
+// ---------- estado ----------
+let S={};
+function setup(cfg,free){
+  const shape=SHAPES[cfg.s](cfg.n);
+  S={n:cfg.n,s:cfg.s,m:cfg.m,shape,R:eye(cfg.n),cut:0,free,planes:cfg.planes,sel:0,won:false,spin:S.spin||false,target:null,tPts:null};
+  if(cfg.target){const T=eye(cfg.n);cfg.target.forEach(([i,j,a])=>rot(T,i,j,a*deg));S.target=T;S.tcut=cfg.cut||0;S.tPts=points(T,S.tcut)}
+  $('cut').value=0;$('cutV').textContent='0,00';
+  $('sliceRow').hidden=cfg.m!=='slice';$('cap').hidden=true;$('demoBtn').hidden=free;$('matchBox').hidden=free;$('next').hidden=true;$('win').classList.remove('on');
+  chips();
+  const V=shape.V.length,E=shape.E.length,Fc=shape.F.length;
+  $('counts').textContent=`${NAMES[cfg.s][cfg.n]} · ${cfg.n}D · ${V} vértices · ${E} aristas · ${Fc} caras`}
+function chips(){const box=$('chips');box.innerHTML='';
+  S.planes.forEach(([i,j],k)=>{const b=document.createElement('button');b.className='chip';b.type='button';
+    b.innerHTML=`<span style="color:${k===S.sel?'inherit':COL[i]}">${AX[i]}</span><span style="color:${k===S.sel?'inherit':COL[j]}">${AX[j]}</span>`;
+    b.setAttribute('aria-pressed',k===S.sel);b.onclick=()=>{S.sel=k;chips()};box.appendChild(b)})}
+function loadLevel(){const L=LEVELS[li];setup(L,false);$('lt').textContent=L.t;$('lp').textContent=L.p;
+  $('sub').textContent=`Nivel ${li+1} de ${LEVELS.length}`;$('freeOpts').hidden=true;$('prev').hidden=li===0;
+  $('free').textContent='Modo libre';try{localStorage.setItem('dim-lvl',li)}catch(_){}}
+function loadFree(){const n=+$('selN').value,s=$('selS').value,m=$('selM').value;const planes=[];
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)planes.push([i,j]);
+  setup({n,s,m,planes},true);$('lt').textContent='Modo libre';
+  $('lp').textContent='Elegí dimensiones, forma y vista. Cada arista tiene el color del eje al que es paralela. Probá el giro automático y el corte.';
+  $('sub').textContent='Exploración';$('freeOpts').hidden=false;$('prev').hidden=true;$('free').textContent='Volver a niveles'}
+for(let n=2;n<=7;n++){const o=document.createElement('option');o.value=n;o.textContent=n+' dimensiones';if(n===4)o.selected=true;$('selN').appendChild(o)}
+['selN','selS','selM'].forEach(id=>$(id).onchange=loadFree);
+
+// ---------- geometría visible ----------
+function sliceSegs(R,c){const {V,F}=S.shape,n=S.n;const Q=V.map(v=>apply(R,v));const segs=[];
+  for(const f of F){const pts=[];for(let k=0;k<f.length;k++){const a=Q[f[k]],b=Q[f[(k+1)%f.length]];
+      const da=a[n-1]-c,db=b[n-1]-c;if((da<0)!==(db<0)){const t=da/(da-db);pts.push(a.slice(0,n-1).map((x,i)=>x+(b[i]-x)*t))}}
+    if(pts.length===2)segs.push(pts)}return segs}
+function points(R,c){if(S.m==='slice'){const out=[];sliceSegs(R,c).forEach(([a,b])=>{const A=proj(a),B=proj(b);out.push(A,B,[(A[0]+B[0])/2,(A[1]+B[1])/2])});return out}
+  return S.shape.V.map(v=>proj(apply(R,v)))}
+function dist(A,B){if(!A.length||!B.length)return A.length===B.length?0:9;
+  let s=0;for(const a of A){let m=1e9;for(const b of B){const d=(a[0]-b[0])**2+(a[1]-b[1])**2;if(d<m)m=d}s+=Math.sqrt(m)}return s/A.length}
+
+// ---------- input ----------
+let drag=null;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'});
+cv.addEventListener('pointermove',e=>{if(drag&&G.on){G.yaw+=(e.clientX-drag.x)*.01;G.pitch=Math.max(-1.2,Math.min(1.2,G.pitch+(e.clientY-drag.y)*.01));drag={x:e.clientX,y:e.clientY};return}
+  if(!drag||S.won||S.demo)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag={x:e.clientX,y:e.clientY};
+  const [i,j]=S.planes[S.sel];rot(S.R,i,j,(dx-dy)*.008)});
+['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,()=>{drag=null;cv.style.cursor='grab'}));
+$('cut').oninput=e=>{S.cut=e.target.value/100;$('cutV').textContent=S.cut.toFixed(2).replace('.',',')};
+$('reset').onclick=()=>{S.R=eye(S.n);S.won=false;S.demo=null;$('cap').hidden=true;$('win').classList.remove('on');$('next').hidden=true};
+
+// ---------- demostración ----------
+const fmtA=a=>Math.round(a)+'°';
+$('demoBtn').onclick=()=>{const L=LEVELS[li];if(S.free||!L)return;
+  S.R=eye(S.n);S.cut=0;$('cut').value=0;$('cutV').textContent='0,00';S.won=false;$('win').classList.remove('on');$('next').hidden=true;
+  const steps=L.target.map(([i,j,a])=>({type:'rot',i,j,a:a*deg,done:0}));
+  if(L.m==='slice')steps.push({type:'cut',to:L.cut||0});
+  S.demo={steps,k:0,pause:50}};
+function demoStep(){const D=S.demo,st=D.steps[D.k];
+  if(D.pause>0){D.pause--;caption();return}
+  if(!st){S.demo=null;return}
+  if(st.type==='rot'){const k=S.planes.findIndex(([i,j])=>i===st.i&&j===st.j);if(k>=0&&S.sel!==k){S.sel=k;chips()}
+    const left=st.a-st.done,d=Math.sign(left)*Math.min(Math.abs(left),.9*deg);rot(S.R,st.i,st.j,d);st.done+=d;
+    if(Math.abs(st.a-st.done)<1e-9){D.k++;D.pause=45}}
+  else{const left=st.to-S.cut,d=Math.sign(left)*Math.min(Math.abs(left),.008);S.cut+=d;
+    $('cut').value=Math.round(S.cut*100);$('cutV').textContent=S.cut.toFixed(2).replace('.',',');
+    if(Math.abs(st.to-S.cut)<1e-9){D.k++;D.pause=45}}
+  caption()}
+function caption(){const D=S.demo,st=D.steps[Math.min(D.k,D.steps.length-1)],n=D.steps.length;const c=$('cap');c.hidden=false;
+  if(D.k>=n){c.innerHTML='<b>Listo.</b> Probalo vos: Reiniciar giro';return}
+  const pre=`Paso ${D.k+1}/${n} · `;
+  if(st.type==='rot')c.innerHTML=pre+`Girar en <b>${AX[st.i]}${AX[st.j]}</b> ${fmtA(Math.abs(st.done)/deg)} de ${fmtA(st.a/deg)}`;
+  else c.innerHTML=pre+`Mover el <b>corte</b> a ${st.to.toFixed(2).replace('.',',')}`}
+$('prev').onclick=()=>{li=Math.max(0,li-1);loadLevel()};
+$('free').onclick=()=>{S.free?loadLevel():loadFree()};
+$('spin').onclick=()=>{S.spin=!S.spin;$('spin').textContent='Giro auto: '+(S.spin?'sí':'no')};
+
+// ---------- dibujo ----------
+function draw(t){
+  cx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--ink');cx.fillRect(0,0,W,H);
+  const sc=Math.min(W,H)*(S.n>4?.15:.2),ox=W/2,oy=H*.54;
+  const P=p=>[ox+p[0]*sc,oy-p[1]*sc];
+  // silueta objetivo
+  if(S.target){cx.lineWidth=5;cx.strokeStyle='rgba(233,230,242,.13)';cx.lineCap='round';
+    if(S.m==='slice')sliceSegs(S.target,S.tcut).forEach(([a,b])=>line(P(proj(a)),P(proj(b))));
+    else{const Q=S.shape.V.map(v=>P(proj(apply(S.target,v))));S.shape.E.forEach(([a,b])=>line(Q[a],Q[b]))}}
+  cx.lineCap='round';
+  if(S.m==='slice'){
+    // fantasma del objeto entero, muy tenue
+    const Q=S.shape.V.map(v=>{const q=apply(S.R,v);return P(proj(q))});
+    cx.lineWidth=1;cx.strokeStyle='rgba(139,136,163,.12)';S.shape.E.forEach(([a,b])=>line(Q[a],Q[b]));
+    cx.lineWidth=2;cx.strokeStyle='#4dd4ac';sliceSegs(S.R,S.cut).forEach(([a,b])=>line(P(proj(a)),P(proj(b))))}
+  else{const Q=S.shape.V.map(v=>{const q=apply(S.R,v);const p=proj(q);return{s:P(p),w:q[S.n-1]}});
+    const es=S.shape.E.map(e=>({e,w:(Q[e[0]].w+Q[e[1]].w)/2})).sort((a,b)=>a.w-b.w);
+    for(const {e:[a,b,k],w} of es){cx.globalAlpha=Math.max(.25,Math.min(1,.62+w*.22));cx.strokeStyle=COL[k%7];cx.lineWidth=1.3+Math.max(0,w)*.6;line(Q[a].s,Q[b].s)}
+    cx.globalAlpha=1;cx.fillStyle='#e9e6f2';for(const q of Q){cx.beginPath();cx.arc(q.s[0],q.s[1],1.6,0,6.283);cx.fill()}}
+  // ejes
+  cx.font='600 11px JetBrains Mono, monospace';cx.textAlign='right';
+  for(let k=0;k<S.n;k++){cx.fillStyle=COL[k];cx.fillText(AX[k],W-14-(S.n-1-k)*13,H-12)}
+  cx.textAlign='left';
+}
+function line(a,b){cx.beginPath();cx.moveTo(a[0],a[1]);cx.lineTo(b[0],b[1]);cx.stroke()}
+
+// ---------- visitante 4D ----------
+function cell24(){const V=[];for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)for(const a of[1,-1])for(const b of[1,-1]){const v=[0,0,0,0];v[i]=a;v[j]=b;V.push(v)}
+  const adj=(p,q)=>Math.abs(p.reduce((s,x,k)=>s+(x-q[k])**2,0)-2)<1e-6;const E=[],F=[];
+  for(let a=0;a<24;a++)for(let b=a+1;b<24;b++)if(adj(V[a],V[b])){E.push([a,b,0]);for(let c=b+1;c<24;c++)if(adj(V[a],V[c])&&adj(V[b],V[c]))F.push([a,b,c])}
+  return{V:V.map(v=>v.map(x=>x*1.15)),E,F}}
+const VISITORS=[
+ {id:'tes',name:'Teseracto',make:()=>cube(4),info:'Alineado aparece un cubo de golpe, se queda igual todo el paso y desaparece de golpe. Girado, nace como un punto que crece.'},
+ {id:'c16',name:'16-celda',make:()=>cross(4),info:'Alineada nace como un punto, crece como un octaedro hasta el centro y se achica otra vez.'},
+ {id:'c5',name:'5-celda',make:()=>simplex(4),info:'El símplex 4D: nace como un punto, crece como un tetraedro y se recorta hasta desaparecer. No es simétrico de ida y vuelta.'},
+ {id:'c24',name:'24-celda',make:cell24,info:'Solo existe en 4D: no tiene pariente en 3D. Sus cortes pasan por octaedros y cuboctaedros.'},
+ {id:'sph',name:'Hiperesfera',make:null,info:'Siempre ves una esfera: aparece como un punto, se infla hasta el centro y se desinfla. Igual desde cualquier ángulo.'},
+];
+const G={on:false,yaw:0,pitch:.35,c:0,dir:1,pause:false,aligned:true,streak:0,answered:false};
+function rndRot(){const R=eye(4);for(let k=0;k<8;k++){const i=Math.floor(Math.random()*4);let j=Math.floor(Math.random()*3);if(j>=i)j++;rot(R,Math.min(i,j),Math.max(i,j),Math.random()*6.28)}return R}
+function newVisitor(){const v=VISITORS[Math.floor(Math.random()*VISITORS.length)];G.v=v;G.shape=v.make?v.make():null;
+  G.R=G.aligned?eye(4):rndRot();G.answered=false;G.reveal=0;
+  G.ext=G.shape?Math.max(...G.shape.V.map(p=>Math.abs(apply(G.R,p)[3]))):1.5;G.c=-G.ext-.05;G.dir=1;
+  $('gNext').hidden=true;$('lt').textContent='Visitante 4D'+(G.streak?` · racha ${G.streak}`:'');
+  $('lp').textContent='Sos un ser 3D. Algo de cuatro dimensiones está atravesando tu espacio y solo ves cómo lo corta. Arrastrá para mirarlo. ¿Qué es?';
+  const box=$('opts');box.innerHTML='';VISITORS.forEach(o=>{const b=document.createElement('button');b.className='opt';b.type='button';b.textContent=o.name;b.onclick=()=>answer(o,b);box.appendChild(b)})}
+function answer(o,b){if(G.answered)return;G.answered=true;const ok=o===G.v;
+  G.streak=ok?G.streak+1:0;
+  [...$('opts').children].forEach((x,k)=>{x.disabled=true;if(VISITORS[k]===G.v)x.classList.add('right')});if(!ok)b.classList.add('wrong');
+  $('lt').textContent=(ok?'¡Bien! ':'No. ')+'Era '+(G.v.id==='tes'?'un teseracto':G.v.id==='sph'?'una hiperesfera':'una '+G.v.name)+(G.streak?` · racha ${G.streak}`:'');
+  $('lp').textContent=G.v.info+' Ahora ves su sombra completa en violeta.';$('gNext').hidden=false}
+function enterGuess(){G.on=true;['puzzleUI','freeOpts','matchBox','cap','counts'].forEach(id=>$(id).hidden=true);$('win').classList.remove('on');
+  $('guessUI').hidden=false;$('sweep').hidden=false;$('sub').textContent='Adiviná el objeto';newVisitor()}
+function exitGuess(){G.on=false;$('guessUI').hidden=true;$('sweep').hidden=true;$('puzzleUI').hidden=false;$('counts').hidden=false;loadLevel()}
+$('guess').onclick=enterGuess;$('gBack').onclick=exitGuess;$('gNext').onclick=newVisitor;
+$('gPause').onclick=()=>{G.pause=!G.pause;$('gPause').textContent=G.pause?'Seguir':'Pausa'};
+$('gOri').onclick=()=>{G.aligned=!G.aligned;$('gOri').textContent='Orientación: '+(G.aligned?'alineada':'girada');newVisitor()};
+
+function view3(p){const cy=Math.cos(G.yaw),sy=Math.sin(G.yaw),cp=Math.cos(G.pitch),sp=Math.sin(G.pitch);
+  let x=p[0]*cy+p[2]*sy,z=-p[0]*sy+p[2]*cy,y=p[1];const y2=y*cp-z*sp,z2=y*sp+z*cp;const f=5/(5-z2);return[x*f,y2*f,z2]}
+function guessFrame(){
+  if(!G.pause){G.c+=G.dir*.006;if(G.c>G.ext+.05){G.dir=-1}if(G.c<-G.ext-.05){G.dir=1}}
+  if(!drag)G.yaw+=.004;
+  $('sweepDot').style.left=((G.c+G.ext+.05)/(2*G.ext+.1)*100)+'%';
+  cx.fillStyle='#0b0d1a';cx.fillRect(0,0,W,H);
+  const sc=Math.min(W,H)*.22,ox=W/2,oy=H*.54,P=p=>{const q=view3(p);return[ox+q[0]*sc,oy-q[1]*sc,q[2]]};
+  cx.lineCap='round';
+  // sombra completa tras responder
+  if(G.answered){G.reveal=Math.min(1,G.reveal+.02);cx.globalAlpha=.35*G.reveal;cx.strokeStyle='#b48cff';cx.lineWidth=1;
+    if(G.shape){const Q=G.shape.V.map(v=>P(proj(apply(G.R,v))));G.shape.E.forEach(([a,b])=>line(Q[a],Q[b]))}
+    else{for(let k=0;k<3;k++)ring(1.5*1.4,k,0,P)}
+    cx.globalAlpha=1}
+  // corte
+  cx.strokeStyle='#4dd4ac';cx.lineWidth=2;
+  if(G.shape){const n=4,Q=G.shape.V.map(v=>apply(G.R,v));
+    for(const f of G.shape.F){const pts=[];for(let k=0;k<f.length;k++){const a=Q[f[k]],b=Q[f[(k+1)%f.length]],da=a[3]-G.c,db=b[3]-G.c;
+        if((da<0)!==(db<0)){const t=da/(da-db);pts.push([0,1,2].map(i=>a[i]+(b[i]-a[i])*t))}}
+      if(pts.length===2){const A=P(pts[0]),B=P(pts[1]);cx.globalAlpha=Math.max(.35,Math.min(1,.7+(A[2]+B[2])*.15));line(A,B)}}
+    cx.globalAlpha=1}
+  else{const r2=1.5*1.5-G.c*G.c;if(r2>0){const r=Math.sqrt(r2);for(let k=-2;k<=2;k++)ring(r,'lat',k,P);for(let k=0;k<4;k++)ring(r,'lon',k,P)}}
+  cx.fillStyle='#8b88a3';cx.font='10.5px JetBrains Mono, monospace';cx.textAlign='left';
+  cx.fillText('Tu espacio: W = '+G.c.toFixed(2).replace('.',','),Math.max(16,0),H-40);cx.textAlign='right';
+  cx.fillStyle='#b48cff';cx.fillText('W',W-16,H-40);cx.textAlign='left'}
+function ring(r,kind,k,P){cx.beginPath();for(let s=0;s<=48;s++){const a=s/48*6.2832;let p;
+    if(kind==='lat'){const ph=k*.5,y=r*Math.sin(ph),rr=r*Math.cos(ph);p=[rr*Math.cos(a),y,rr*Math.sin(a)]}
+    else if(kind==='lon'){const th=k*Math.PI/4;p=[r*Math.cos(a)*Math.cos(th),r*Math.sin(a),r*Math.cos(a)*Math.sin(th)]}
+    else{const t=[[Math.cos(a)*r,Math.sin(a)*r,0],[Math.cos(a)*r,0,Math.sin(a)*r],[0,Math.cos(a)*r,Math.sin(a)*r]][kind];p=t}
+    const q=P(p);s?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1])}cx.stroke()}
+
+function frame(t){
+  if(G.on){guessFrame();requestAnimationFrame(frame);return}
+  if(S.demo)demoStep();
+  if(S.spin&&S.free&&!drag){S.planes.forEach(([i,j],k)=>rot(S.R,i,j,.003*(1+(k%3)*.4)*(k%2?-1:1)))}
+  if(S.target&&!S.won){const cur=points(S.R,S.cut);
+    const d2=Math.max(dist(S.tPts,cur),dist(cur,S.tPts));
+    const pct=Math.max(0,Math.min(100,Math.round((1-d2/.9)*100)));$('pct').textContent=pct+'%';$('bar').style.width=pct+'%';
+    if(d2<.075){S.won=true;$('pct').textContent='100%';$('bar').style.width='100%';$('win').classList.add('on');
+      if(li<LEVELS.length-1){$('next').hidden=false;$('next').textContent='Siguiente'}
+      else{$('next').hidden=false;$('next').textContent='Modo libre';$('next').onclick=()=>{$('next').onclick=nextDefault;loadFree()}}}}
+  draw(t);requestAnimationFrame(frame)}
+const nextDefault=()=>{li=Math.min(LEVELS.length-1,li+1);loadLevel()};$('next').onclick=nextDefault;
+
+size();loadLevel();requestAnimationFrame(frame);
+</script>
+
+</body></html>

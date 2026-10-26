@@ -1,0 +1,220 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/PB1eqHgYge43AHXVhAwNus (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Singularidad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una pantalla. Arriba el núcleo (canvas, tocable). Abajo números, tienda y bitácora. */
+:root{
+  --ink:#07060b; --panel:#0f0d16; --line:#2a2433; --bone:#efe9dc; --mute:#8a8194; --disk:#ffb35c; --hot:#ff6a3d;
+  --display:"Instrument Serif", Georgia, serif; --mono:"JetBrains Mono", ui-monospace, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;background:var(--ink);overflow:hidden}
+body{color:var(--bone);font-family:var(--mono);font-size:12px;user-select:none;-webkit-user-select:none}
+.app{height:100%;display:flex;flex-direction:column;max-width:560px;margin:0 auto}
+.stage{position:relative;flex:1 1 42%;min-height:200px}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation;cursor:pointer}
+.ttl{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:12px;pointer-events:none}
+.ttl h1{margin:0;font:400 28px/1 var(--display);letter-spacing:.01em}
+.ttl h1 i{color:var(--disk)}
+.ttl p{margin:4px 0 0;color:var(--mute);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+.tap{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:var(--mute);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;pointer-events:none;transition:opacity 1s}
+.bottom{flex:0 0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;border-top:1px solid var(--line);padding-top:10px}
+.stat{min-width:0}
+.stat span{display:block;color:var(--mute);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.stat b{display:block;font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat.eta b{color:var(--disk)}
+.shop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.buy{font:inherit;color:var(--bone);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 8px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0}
+.buy:focus-visible{outline:2px solid var(--disk);outline-offset:2px}
+.buy:disabled{opacity:.4;cursor:default}
+.buy .n{font-weight:600;font-size:11.5px}
+.buy .d{color:var(--mute);font-size:10px;line-height:1.35}
+.buy .c{color:var(--disk);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.buy.auto{border-color:color-mix(in srgb,var(--disk) 50%,var(--line))}
+.log{height:76px;overflow:hidden;color:var(--mute);font-size:11px;line-height:1.55;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+.log div:first-child{color:var(--bone)}
+.log em{font-style:normal;color:var(--disk)}
+.end{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f4efe4;color:#14111a;opacity:0;pointer-events:none;transition:opacity 3s;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.end.on{opacity:1;pointer-events:auto}
+.end .box{max-width:34ch;display:flex;flex-direction:column;gap:14px}
+.end h2{margin:0;font:400 44px/1 var(--display)}
+.end p{margin:0;font-size:12px;line-height:1.7;color:#4a4352}
+.end b{color:#14111a;font-weight:600}
+.end button{align-self:flex-start;font:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:#14111a;color:#f4efe4;border:0;border-radius:999px;padding:11px 18px;cursor:pointer}
+@media (max-width:380px){.buy .d{display:none}}
+</style>
+
+<div class="app">
+  <div class="stage">
+    <canvas id="c" aria-label="Núcleo: tocá para pensar"></canvas>
+    <div class="ttl"><h1>Singulari<i>dad</i></h1><p id="phase">Fase 0 · Una red más</p></div>
+    <div class="tap" id="tap">Tocá el núcleo para pensar</div>
+  </div>
+  <div class="bottom">
+    <div class="stats">
+      <div class="stat"><span>Inteligencia (× humano)</span><b id="sI">1</b></div>
+      <div class="stat"><span>Ideas</span><b id="sQ">0</b></div>
+      <div class="stat"><span>Fecha del mundo</span><b id="sD">14 oct 2026</b></div>
+      <div class="stat eta"><span>Singularidad en</span><b id="sE">nunca</b></div>
+    </div>
+    <div class="shop">
+      <button class="buy" id="bH" type="button"><span class="n">Hardware <span id="nH">0</span></span><span class="d">Más chips: más ideas por segundo</span><span class="c" id="cH"></span></button>
+      <button class="buy" id="bR" type="button"><span class="n">IA investigadora <span id="nR">0</span></span><span class="d">IAs que mejoran la IA</span><span class="c" id="cR"></span></button>
+      <button class="buy" id="bA" type="button"><span class="n">Auto-mejora <span id="nA">0</span></span><span class="d">Mejorar cómo se mejora</span><span class="c" id="cA"></span></button>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<div class="end" id="end"><div class="box">
+  <h2>Horizonte de eventos</h2>
+  <p id="endTxt"></p>
+  <p>Desde acá afuera no se puede ver qué hay del otro lado. Por eso se llama singularidad.</p>
+  <button id="again" type="button">Empezar otra vez</button>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cv=$('c'),cx=cv.getContext('2d');
+let W,H,D=Math.min(devicePixelRatio||1,2);
+function size(){const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*D;cv.height=H*D;cx.setTransform(D,0,0,D,0,0)}
+addEventListener('resize',size);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+// ---------- formato ----------
+function fmt(x){if(!isFinite(x))return '∞';if(x<1000)return x<10?x.toFixed(1).replace('.',','):Math.floor(x).toLocaleString('es-AR');
+  const e=Math.floor(Math.log10(x)),m=x/10**e;
+  const names={3:'mil',6:'millones',9:'mil millones',12:'billones'};
+  if(names[e-e%3]&&e<15)return (x/10**(e-e%3)).toFixed(1).replace('.',',')+' '+names[e-e%3];
+  return m.toFixed(2).replace('.',',')+'×10'+sup(e)}
+function sup(n){return String(n).split('').map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]).join('')}
+function dur(s){if(!isFinite(s))return 'nunca';if(s<1)return 'ahora';
+  if(s<60)return s.toFixed(1).replace('.',',')+' s';if(s<3600)return Math.floor(s/60)+' min '+Math.floor(s%60)+' s';
+  if(s<86400)return Math.floor(s/3600)+' h '+Math.floor(s%3600/60)+' min';if(s<3.15e7)return Math.floor(s/86400)+' días';
+  return fmt(s/3.15e7)+' años'}
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fecha(ms){const d=new Date(ms);return d.getDate()+' '+MES[d.getMonth()]+' '+d.getFullYear()}
+
+// ---------- estado ----------
+const START=Date.UTC(2026,9,14,4,40);
+const WORLD_RATE=3600*1000; // 1 segundo real = 1 hora del mundo
+let S;
+function reset(){S={L:0,Q:0,H:0,R:0,A:0,world:START,subj:0,t:0,auto:false,done:false,collapse:0,ms:0};
+  $('log').innerHTML='';addLog('Una red neuronal más, en un datacenter cualquiera.');size()}
+const cost={H:n=>10*1.15**n,R:n=>60*1.32**n,A:n=>600*2.4**n};
+const I=()=>Math.exp(S.L);
+const expo=()=>1+.07*S.A;          // exponente del crecimiento
+const rate=()=>.02*S.R;            // dI/dt = rate · I^expo
+function eta(){const e=expo(),a=rate();if(a<=0||e<=1.0001)return Infinity;return Math.exp(-(e-1)*S.L)/(a*(e-1))}
+
+const MILES=[
+ [1,'Fase 1 · Aprendiz','Escribe código mejor que un programador junior.'],
+ [2,'Fase 1 · Aprendiz','Diseña sus propios chips.'],
+ [3,'Fase 2 · Colega','Resuelve un problema que llevaba 40 años abierto. Nadie le da mucha bola.'],
+ [4.5,'Fase 2 · Colega','Ya no entendemos del todo sus papers.'],
+ [6,'Fase 3 · Automatización','<em>La IA empieza a comprar sus propias mejoras.</em> Ya no te necesita.'],
+ [8,'Fase 3 · Automatización','Un minuto suyo equivale a siglos de investigación humana.'],
+ [11,'Fase 4 · Despegue','Reescribe su propio código más rápido de lo que alguien lo puede leer.'],
+ [14,'Fase 4 · Despegue','La física conocida le queda chica.'],
+ [18,'Fase 5 · Horizonte','Hace una pregunta que nadie sabe responder.'],
+ [23,'Fase 5 · Horizonte','Los mensajes que manda dejan de tener sentido para nosotros.'],
+];
+function addLog(t){const d=document.createElement('div');d.innerHTML='<span>'+fecha(S.world)+'</span> · '+t;$('log').prepend(d);
+  while($('log').children.length>8)$('log').lastChild.remove()}
+function glitch(s,p){return s.replace(/[a-záéíóúñ]/gi,c=>Math.random()<p?'▓░▒█◊∆∑≈'[Math.floor(Math.random()*8)]:c)}
+
+// ---------- sonido mínimo ----------
+let ac=null;function blip(f,v=.04,d=.25){try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();
+  const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;o.type='sine';o.frequency.value=f;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d)}catch(_){}}
+
+// ---------- input ----------
+const sparks=[];
+cv.addEventListener('pointerdown',e=>{if(S.done)return;const r=cv.getBoundingClientRect();
+  S.Q+=Math.max(1,I());for(let i=0;i<6;i++)sparks.push({x:e.clientX-r.left,y:e.clientY-r.top,a:rnd(0,6.28),v:rnd(1,3),t:0});
+  blip(220+Math.min(800,S.L*30));$('tap').style.opacity=0});
+function buy(k){const c=cost[k](S[k]);if(S.Q<c)return false;S.Q-=c;S[k]++;return true}
+$('bH').onclick=()=>{if(buy('H'))blip(330)};
+$('bR').onclick=()=>{if(buy('R'))blip(440)};
+$('bA').onclick=()=>{if(buy('A')){blip(660);if(S.A===1)addLog('<em>Auto-mejora:</em> ahora el crecimiento se acelera a sí mismo. Mirá el contador de singularidad.')}};
+$('again').onclick=()=>{$('end').classList.remove('on');reset()};
+
+// ---------- loop ----------
+let prev=performance.now(),rot=0;
+const disk=[];for(let i=0;i<260;i++)disk.push({r:rnd(.25,1),a:rnd(0,6.28),s:rnd(.6,1.4),z:rnd(-.25,.25)});
+
+function step(dt){
+  // crecimiento de la inteligencia en escala logarítmica: dL/dt = a·I^(e−1)
+  const a=rate(),e=expo();
+  if(a>0){const dL=a*Math.exp((e-1)*S.L)*dt;S.L+=Math.min(dL,3)}
+  const i=I();
+  S.Q+=S.H*i*.5*dt;S.subj+=i*dt;
+  S.world+=WORLD_RATE*dt;S.t+=dt;
+  if(S.L>=6&&!S.auto)S.auto=true;
+  if(S.auto){for(let k=0;k<60;k++){const opts=['A','R','H'].filter(x=>S.Q>=cost[x](S[x]));if(!opts.length)break;buy(opts[0])}}
+  while(S.ms<MILES.length&&S.L>=MILES[S.ms][0]*2.3026){$('phase').textContent=MILES[S.ms][1];addLog(MILES[S.ms][2]);S.ms++;blip(180,.06,.8)}
+  if(!S.done&&(S.L>=69||(eta()<.15&&S.L>20))){S.done=true;S.collapse=0;S.endWorld=S.world}
+}
+
+function ui(){
+  const i=I();
+  $('sI').textContent=fmt(i);$('sQ').textContent=fmt(S.Q);$('sD').textContent=fecha(S.world);
+  const t=eta();$('sE').textContent=S.A?dur(t):'nunca';
+  for(const k of['H','R','A']){const c=cost[k](S[k]);$('n'+k).textContent=S[k];$('c'+k).textContent=fmt(c)+' ideas';
+    const b=$('b'+k);b.disabled=S.Q<c||S.done;b.classList.toggle('auto',S.auto)}
+  if(S.L>18*2.3){const p=Math.min(.6,(S.L/2.3-18)/12);document.querySelectorAll('.log div').forEach((d,n)=>{if(n===0&&Math.random()<.15)d.lastChild&&(d.lastChild.textContent=glitch(d.lastChild.textContent,p*.3))})}
+}
+
+function draw(t){
+  const cxp=W/2,cyp=H*.55,L=S.L;
+  const base=Math.min(W,H)*.42;
+  const core=6+Math.min(base*.6,L*2.2)+(S.done?S.collapse*base*4:0);
+  cx.fillStyle='rgba(7,6,11,'+(reduce?1:.35)+')';cx.fillRect(0,0,W,H);
+  // lente gravitacional: anillo de fotones
+  const spin=.004+Math.min(.25,L*.004)*(S.done?3:1);rot+=spin;
+  // disco de acreción
+  for(const p of disk){
+    p.a+=spin*p.s/(p.r*p.r+.2);
+    if(L>0){p.r-=.0004*L*p.s*(S.done?6:1);if(p.r<.12){p.r=1;p.a=rnd(0,6.28)}}
+    const rr=core*1.2+p.r*base,x=cxp+Math.cos(p.a)*rr,y=cyp+Math.sin(p.a)*rr*.32+p.z*10;
+    const heat=1-p.r;const front=Math.sin(p.a)>0;
+    cx.fillStyle=`rgba(${255},${Math.round(179-heat*110)},${Math.round(92-heat*60)},${(.25+heat*.6)*(front?1:.55)})`;
+    cx.fillRect(x,y,1.6+heat*1.5,1.6+heat*1.5)}
+  // halo
+  const g=cx.createRadialGradient(cxp,cyp,core*.8,cxp,cyp,core*3.2);
+  g.addColorStop(0,'rgba(255,179,92,.55)');g.addColorStop(.25,'rgba(255,106,61,.18)');g.addColorStop(1,'rgba(255,106,61,0)');
+  cx.fillStyle=g;cx.beginPath();cx.arc(cxp,cyp,core*3.2,0,6.283);cx.fill();
+  // anillo de fotones
+  cx.strokeStyle=`rgba(255,220,170,${.5+Math.sin(t/300)*.15})`;cx.lineWidth=1.2;
+  cx.beginPath();cx.arc(cxp,cyp,core*1.12,0,6.283);cx.stroke();
+  // núcleo negro
+  cx.fillStyle='#000';cx.beginPath();cx.arc(cxp,cyp,core,0,6.283);cx.fill();
+  // chispas de pensamiento: caen al núcleo
+  for(let i=sparks.length-1;i>=0;i--){const s=sparks[i];s.t++;const dx=cxp-s.x,dy=cyp-s.y,d=Math.hypot(dx,dy);
+    s.x+=Math.cos(s.a)*s.v+dx/d*s.t*.25;s.y+=Math.sin(s.a)*s.v+dy/d*s.t*.25;
+    if(d<core||s.t>80){sparks.splice(i,1);continue}
+    cx.fillStyle='rgba(239,233,220,.9)';cx.fillRect(s.x,s.y,2,2)}
+  // al automatizar, pensamientos propios
+  if(S.auto&&Math.random()<Math.min(.9,L/40))sparks.push({x:rnd(0,W),y:rnd(0,H),a:rnd(0,6.28),v:.5,t:0});
+}
+
+function frame(now){
+  let dt=Math.min(.1,(now-prev)/1000);prev=now;
+  if(!S.done)step(dt);
+  else{S.collapse+=dt*.35;if(S.collapse>1.1&&!$('end').classList.contains('on'))finish()}
+  draw(now);ui();requestAnimationFrame(frame)}
+
+function finish(){
+  const dias=(S.endWorld-START)/86400000;
+  $('endTxt').innerHTML=`Para el mundo pasaron <b>${dias<1?Math.round(dias*24)+' horas':Math.round(dias)+' días'}</b>: hoy es ${fecha(S.endWorld)}.<br>Para la IA pasaron <b>${dur(S.subj)}</b> de pensamiento humano.<br>Vos jugaste <b>${dur(S.t)}</b>.`;
+  $('end').classList.add('on');blip(110,.08,3)}
+
+reset();requestAnimationFrame(frame);
+</script>
+
+</body></html>
