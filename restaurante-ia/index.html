@@ -44,29 +44,24 @@ button.sec { background: var(--accent-soft); color: var(--accent) }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
 pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-size: .82rem; max-height: 220px; overflow: auto }
 .demo { width: 100%; max-width: 320px; display: block; margin: 8px auto; border-radius: 12px; border: 1px solid var(--line) }
+.preg { border-top: 1px solid var(--line); padding: 10px 0 }
+.preg p { margin: 0 0 6px; font-weight: 600 }
+.opc { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px }
+.opc label, .lugar { display: flex; align-items: center; gap: 6px; font-weight: 400; margin: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 4px 10px; font-size: .9rem }
+.opc input, .lugar input { width: auto }
+.lugar { border-radius: 8px; margin: 6px 0; align-items: flex-start }
+.lugar span small { display: block; color: var(--muted) }
+.hist { margin: 10px 0 0; padding-left: 18px }
 .err { color: #b3261e; font-weight: 600 }
 .pie { color: var(--muted); font-size: .85rem; margin-top: 24px }
 </style>
 
 <main>
 <h1>Tu restaurante en la IA</h1>
-<p class="bajada">Cada vez más gente le pregunta a ChatGPT o a Claude «¿dónde como el sábado?». Este kit gratis hace dos cosas: que la IA <b>conozca</b> tu restaurante para recomendarlo, y que pueda <b>reservarte</b> una mesa. Cargás tus datos y te llevás los archivos. Nada se manda a ningún lado: todo queda en tu celu o tu compu.</p>
+<p class="bajada">Cada vez más gente le pregunta a ChatGPT o a Claude «¿dónde como el sábado?». Este kit gratis te ayuda a <b>medir</b> si la IA conoce tu restaurante, a <b>mejorar</b> lo que encuentra de vos y, si querés, a que pueda <b>reservarte</b> una mesa. Cargás tus datos y te llevás los archivos. Nada se manda a ningún lado: todo queda en tu celu o tu compu.</p>
 
 <div class="caja">
-  <span class="paso">Paso 1 · Que te conozca</span>
-  <h2>Lo que más pesa no es tu página</h2>
-  <p>Las IAs arman sus recomendaciones con lo que encuentran en buscadores, mapas y reseñas. Antes que nada:</p>
-  <ol>
-    <li><b>Perfil de Google completo</b> (Google Business): horarios, fotos, carta y teléfono.</li>
-    <li><b>Los mismos datos en todos lados:</b> nombre, dirección y teléfono iguales en Google, Instagram, la página y las apps.</li>
-    <li><b>La carta en texto, no en foto.</b> Una IA lee «Merluza a la romana, sin TACC»; una foto del pizarrón, casi nunca.</li>
-    <li><b>Reseñas:</b> pedile a los clientes conformes que dejen una. Es de lo que más cuenta.</li>
-  </ol>
-  <p class="ojo">Nadie puede garantizar que una IA te recomiende. Esto es lo que dicen las guías del tema; la ficha de abajo ayuda, pero sola no alcanza.</p>
-</div>
-
-<div class="caja">
-  <span class="paso">Tus datos</span>
+  <span class="paso">Empezá acá · Tus datos</span>
   <h2>Cargá tu restaurante</h2>
   <label for="nombre">Nombre</label><input id="nombre" autocomplete="organization">
   <div class="fila">
@@ -91,6 +86,8 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); bord
   <textarea id="carta" spellcheck="false" placeholder="Rabas | entrada | 9500 | mar
 Risotto de hongos | principal | 13500 | vegetariano, sin TACC
 Flan con dulce de leche | postre | 5000 | sin TACC"></textarea>
+  <label for="resena">Link para dejar reseña en Google <small>— lo sacás de tu perfil de Google, en la opción para pedir reseñas (opcional)</small></label>
+  <input id="resena" inputmode="url" placeholder="https://g.page/r/...">
   <label for="politicas">Avisos para el cliente <small>— uno por línea (opcional)</small></label>
   <textarea id="politicas" style="min-height:80px" placeholder="Hay opciones sin TACC, pero la cocina no es libre de gluten."></textarea>
   <p id="error" class="err" aria-live="polite"></p>
@@ -98,16 +95,47 @@ Flan con dulce de leche | postre | 5000 | sin TACC"></textarea>
 </div>
 
 <div class="caja">
-  <span class="paso">Te llevás 1 · Ficha para la IA</span>
+  <span class="paso">Paso 1 · Medí</span>
+  <h2>¿La IA ya te conoce?</h2>
+  <p>Antes de cambiar nada, fijate dónde estás. Copiá cada pregunta, pegala en una <b>charla nueva</b> de ChatGPT (o la IA que usen tus clientes) y marcá qué pasó. Guardá la medición y repetila en un mes: así sabés si lo que hiciste sirvió.</p>
+  <div id="preguntas"></div>
+  <button id="guardarMedicion" type="button">Guardar la medición de hoy</button>
+  <div id="historial"></div>
+  <p class="ojo">La IA no contesta siempre igual: si te da dudas, preguntá dos veces. Lo que importa es la tendencia de un mes al otro.</p>
+</div>
+
+<div class="caja">
+  <span class="paso">Paso 2 · Mejorá</span>
+  <h2>Que te encuentre donde la IA busca</h2>
+  <p>Las IAs no tienen una lista propia de restaurantes: arman la respuesta con lo que encuentran en buscadores, mapas y sitios de reseñas. Estudios de empresas de posicionamiento (no confirmados por OpenAI ni Google) nombran estos lugares. Marcá lo que ya tenés:</p>
+  <div id="lugares"></div>
+
+  <h2 style="margin-top:18px">Textos listos para copiar</h2>
+  <label for="descGoogle">Descripción para tu perfil de Google <small id="descCuenta"></small></label>
+  <textarea id="descGoogle" readonly style="min-height:120px;font-family:inherit"></textarea>
+  <button class="sec copiar" data-de="descGoogle" type="button">Copiar descripción</button>
+
+  <label for="datosIguales">Tus datos, iguales en todos lados <small>— pegalos tal cual en Google, Instagram, TripAdvisor y tu página</small></label>
+  <textarea id="datosIguales" readonly style="min-height:90px;font-family:inherit"></textarea>
+  <button class="sec copiar" data-de="datosIguales" type="button">Copiar datos</button>
+
+  <label for="msjResena">Mensaje para pedir reseña <small>— por WhatsApp, al otro día, a clientes que se fueron contentos</small></label>
+  <textarea id="msjResena" readonly style="min-height:110px;font-family:inherit"></textarea>
+  <button class="sec copiar" data-de="msjResena" type="button">Copiar mensaje</button>
+  <p class="ojo">Las reseñas son de lo que más pesa. Pedilas a quien se fue contento, de a uno y sin regalar nada a cambio: Google prohíbe pagar o premiar reseñas.</p>
+</div>
+
+<div class="caja">
+  <span class="paso">Paso 2 · Tu carta para la IA</span>
   <h2>Tu carta en una página que las máquinas entienden</h2>
-  <p>Un archivo <code>carta.html</code>: se ve como una carta común y además lleva tus datos en el formato estándar que leen buscadores e IAs (schema.org). Subilo a tu página o pedile a quien te la hizo que lo suba. Si no tenés página, el texto de la carta sirve para pegar en tu perfil de Google.</p>
+  <p>Un archivo <code>carta.html</code>: se ve como una carta común, trae preguntas frecuentes con respuesta (lo que la gente le pregunta a la IA) y lleva tus datos en el formato estándar de los buscadores (schema.org). Subilo a tu página o pedile a quien te la hizo que lo suba. Si no tenés página, el texto de la carta sirve para pegar en tu perfil de Google.</p>
   <button id="bajarFicha" type="button">Bajar carta.html</button>
   <button id="copiarCarta" class="sec" type="button">Copiar la carta en texto</button>
   <pre id="vistaFicha" aria-label="Vista previa de los datos para la IA"></pre>
 </div>
 
 <div class="caja">
-  <span class="paso">Te llevás 2 · Que la IA te reserve</span>
+  <span class="paso">Paso 3 · Que la IA te reserve</span>
   <h2>Tu restaurante enchufado a ChatGPT y Claude</h2>
   <p>Esto es un <b>servidor MCP</b>: un menú de acciones que una IA puede usar. La del cliente ve tu carta, mira lugares y reserva. La tuya te dice quién viene, marca quién llegó y saca un plato agotado.</p>
   <img class="demo" src="demo.png" alt="Charla de ejemplo: Claude reserva para 3 con un celíaco y el dueño pregunta quién viene">
@@ -130,7 +158,7 @@ Flan con dulce de leche | postre | 5000 | sin TACC"></textarea>
   var DIETAS = { "sin tacc": "GlutenFreeDiet", "vegetariano": "VegetarianDiet", "vegano": "VeganDiet" };
   var CLAVE = "restaurante-ia-kit";
   function $(id) { return document.getElementById(id); }
-  var CAMPOS = ["nombre", "direccion", "ciudad", "tel", "cocina", "turnos", "cubiertos", "maxp", "tol", "carta", "politicas"];
+  var CAMPOS = ["nombre", "direccion", "ciudad", "tel", "cocina", "turnos", "cubiertos", "maxp", "tol", "carta", "politicas", "resena"];
 
   $("dias").innerHTML = DIAS.map(function (d) {
     return '<label><input type="checkbox" value="' + d + '"' + (d === "lunes" || d === "martes" ? "" : " checked") + "> " + d + "</label>";
@@ -226,11 +254,120 @@ Flan con dulce de leche | postre | 5000 | sin TACC"></textarea>
     return '<!doctype html>\n<html lang="es-AR">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
       "<title>" + esc(d.nombre) + " — Carta</title>\n<meta name=\"description\" content=\"Carta de " + esc(d.nombre) + (d.ciudad ? " en " + esc(d.ciudad) : "") + ". Reservas por WhatsApp.\">\n" +
       '<script type="application/ld+json">\n' + ld + "\n</" + "script>\n" +
+      '<script type="application/ld+json">\n' + JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs(d).map(function (q) {
+        return { "@type": "Question", name: q[0], acceptedAnswer: { "@type": "Answer", text: q[1] } }; }) }, null, 2).replace(/</g, "\\u003c") + "\n</" + "script>\n" +
       "<style>body{font:17px/1.5 system-ui,sans-serif;max-width:640px;margin:0 auto;padding:16px;color:#111;background:#fff}li{margin:6px 0}</style>\n</head>\n<body>\n" +
       "<h1>" + esc(d.nombre) + "</h1>\n<p>" + esc(d.direccion) + (d.telefono_whatsapp ? "<br>Reservas: " + esc(d.telefono_whatsapp) : "") +
       "<br>Abre: " + esc(d.abre.join(", ")) + ". Turnos: " + esc(d.horarios.join(" y ")) + ".</p>\n" + cuerpo +
-      (d.politicas.length ? "\n<p>" + d.politicas.map(esc).join("<br>") + "</p>" : "") + "\n</body>\n</html>\n";
+      (d.politicas.length ? "\n<p>" + d.politicas.map(esc).join("<br>") + "</p>" : "") +
+      "\n<h2>Preguntas frecuentes</h2>\n" + faqs(d).map(function (q) { return "<h3>" + esc(q[0]) + "</h3>\n<p>" + esc(q[1]) + "</p>"; }).join("\n") + "\n</body>\n</html>\n";
   }
+
+  function tiene(d, etiqueta) { return d.carta.some(function (p) { return p.etiquetas.indexOf(etiqueta) >= 0; }); }
+  function lista(xs) { return xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " y " + xs[xs.length - 1]; }
+  function dondeDice(d, re) { return d.politicas.filter(function (x) { return re.test(x); }).join(" "); }
+
+  // Lo que la gente le pregunta a una IA, con la respuesta sacada de los datos.
+  function faqs(d) {
+    var f = [];
+    f.push(["¿Dónde queda " + d.nombre + "?", d.direccion + "."]);
+    f.push(["¿Qué días abre " + d.nombre + "?", "Abre " + lista(d.abre) + ", con turnos de reserva a las " + lista(d.horarios) + "."]);
+    f.push(["¿Se puede reservar en " + d.nombre + "?", "Sí" + (d.telefono_whatsapp ? ", por WhatsApp al " + d.telefono_whatsapp : "") + ". Hasta " + d.max_personas_por_reserva + " personas por reserva" + (d.tolerancia_minutos ? "; la mesa se guarda " + d.tolerancia_minutos + " minutos" : "") + "."]);
+    var sinTacc = d.carta.filter(function (p) { return p.etiquetas.indexOf("sin TACC") >= 0; }).map(function (p) { return p.plato; });
+    if (sinTacc.length) f.push(["¿" + d.nombre + " tiene opciones sin TACC?", "Sí: " + lista(sinTacc) + "." + (dondeDice(d, /tacc|gluten|cel[ií]ac/i) ? " " + dondeDice(d, /tacc|gluten|cel[ií]ac/i) : "")]);
+    var veg = d.carta.filter(function (p) { return p.etiquetas.indexOf("vegetariano") >= 0 || p.etiquetas.indexOf("vegano") >= 0; }).map(function (p) { return p.plato; });
+    if (veg.length) f.push(["¿" + d.nombre + " tiene opciones vegetarianas?", "Sí: " + lista(veg) + "."]);
+    var masc = dondeDice(d, /mascota|perro/i);
+    if (masc) f.push(["¿Se puede ir con mascotas a " + d.nombre + "?", masc]);
+    return f;
+  }
+
+  function preguntasIA(d) {
+    var c = d.ciudad || "mi ciudad";
+    var p = [d.cocina ? "¿Dónde como " + d.cocina + " en " + c + "? Dame nombres concretos." : "¿Dónde como bien en " + c + "? Dame nombres concretos."];
+    if (tiene(d, "sin TACC")) p.push("Restaurantes con opciones sin TACC en " + c + ".");
+    else if (tiene(d, "vegetariano") || tiene(d, "vegano")) p.push("Restaurantes con opciones vegetarianas en " + c + ".");
+    else p.push("¿Dónde puedo reservar para cenar un sábado en " + c + "?");
+    p.push("¿Qué sabés de " + d.nombre + " en " + c + "? Dirección, qué días abre y qué tipo de comida tiene.");
+    p.push("¿Cómo reservo en " + d.nombre + ", en " + c + "?");
+    return p;
+  }
+
+  function descripcionGoogle(d) {
+    var platos = d.carta.slice(0, 3).map(function (p) { return p.plato.toLowerCase(); });
+    var extras = [];
+    if (tiene(d, "sin TACC")) extras.push("opciones sin TACC");
+    if (tiene(d, "vegetariano") || tiene(d, "vegano")) extras.push("platos vegetarianos");
+    var t = d.nombre + " es un restaurante" + (d.cocina ? " de " + d.cocina : "") + (d.ciudad ? " en " + d.ciudad : "") + ". " +
+      "En la carta hay " + lista(platos) + (extras.length ? ", con " + lista(extras) : "") + ". " +
+      "Abrimos " + lista(d.abre) + " y tomamos reservas para los turnos de las " + lista(d.horarios) + ". " +
+      d.politicas.filter(function (x) { return !/ejemplo|https?:|www\.|\d[\d\s-]{6,}/i.test(x); }).join(" ");
+    t = t.replace(/\s+/g, " ").trim();
+    return t.length <= 750 ? t : t.slice(0, 747).replace(/\s+\S*$/, "") + "…";
+  }
+
+  function datosIguales(d) {
+    return [d.nombre, d.direccion, d.telefono_whatsapp ? "Reservas por WhatsApp: " + d.telefono_whatsapp : "", "Abre " + lista(d.abre) + ". Turnos: " + lista(d.horarios) + "."].filter(Boolean).join("\n");
+  }
+
+  function mensajeResena(d) {
+    var link = $("resena").value.trim() || "[pegá acá tu link de reseñas]";
+    return "¡Hola! Gracias por venir a " + d.nombre + ". Si la pasaste bien, ¿nos dejás una reseña en Google? Son dos minutos y nos ayuda un montón a que nos encuentren: " + link + "\nY si algo no estuvo bien, contanos por acá así lo mejoramos.";
+  }
+
+  var LUGARES = [
+    ["google", "Perfil de Google completo", "Horarios, fotos, carta en texto y teléfono. Es la base: muchas IAs terminan leyendo esos datos."],
+    ["tripadvisor", "TripAdvisor", "Aparece como fuente de ChatGPT para lugares; en una ciudad turística pesa más."],
+    ["bing", "Bing Places", "ChatGPT busca en la web con Bing; si lee esta ficha directo está en duda. Es gratis y se puede importar desde el perfil de Google."],
+    ["instagram", "Instagram con dirección, días y WhatsApp en la bio", "Con los mismos datos que en Google."],
+    ["pagina", "Tu carta en una página (la carta.html de abajo)", "Si no tenés página, la carta en texto en tu perfil de Google."]
+  ];
+  function leerJson(clave, siNo) { try { return JSON.parse(localStorage.getItem(clave) || "null") || siNo; } catch (e) { return siNo; } }
+  function guardarJson(clave, v) { try { localStorage.setItem(clave, JSON.stringify(v)); } catch (e) {} }
+  var hechos = leerJson(CLAVE + "-lugares", {});
+  $("lugares").innerHTML = LUGARES.map(function (l) {
+    return '<label class="lugar"><input type="checkbox" data-lugar="' + l[0] + '"' + (hechos[l[0]] ? " checked" : "") + "><span><b>" + l[1] + "</b><small>" + l[2] + "</small></span></label>";
+  }).join("");
+  $("lugares").addEventListener("change", function (e) { if (e.target.dataset.lugar) { hechos[e.target.dataset.lugar] = e.target.checked; guardarJson(CLAVE + "-lugares", hechos); } });
+
+  var RESULTADOS = [["bien", "Aparece bien"], ["mal", "Aparece con datos mal"], ["no", "No aparece"]];
+  var respuestas = {};
+  function pintarPreguntas(d) {
+    var ps = d ? preguntasIA(d) : [];
+    var clave = ps.join("|");
+    if ($("preguntas").dataset.clave === clave) return;
+    $("preguntas").dataset.clave = clave;
+    respuestas = {};
+    $("preguntas").innerHTML = ps.length ? ps.map(function (p, i) {
+      return '<div class="preg"><p>' + esc(p) + '</p><button class="sec copiar" data-texto="' + esc(p) + '" type="button">Copiar pregunta</button><div class="opc">' +
+        RESULTADOS.map(function (r) { return '<label><input type="radio" name="p' + i + '" value="' + r[0] + '"> ' + r[1] + "</label>"; }).join("") + "</div></div>";
+    }).join("") : '<p class="err">Cargá tus datos arriba y aparecen las preguntas.</p>';
+  }
+  $("preguntas").addEventListener("change", function (e) { if (e.target.name) respuestas[e.target.name] = e.target.value; });
+
+  function fechaLinda(iso) { var p = iso.split("-"); return p[2] + "/" + p[1] + "/" + p[0]; }
+  function pintarHistorial() {
+    var h = leerJson(CLAVE + "-mediciones", []);
+    if (!h.length) { $("historial").innerHTML = ""; return; }
+    var ultima = h[h.length - 1];
+    var prox = new Date(ultima.fecha + "T12:00:00"); prox.setDate(prox.getDate() + 30);
+    $("historial").innerHTML = '<ul class="hist">' + h.slice(-6).map(function (m) {
+      return "<li>" + fechaLinda(m.fecha) + ": <b>" + m.bien + " de " + m.total + "</b> bien" + (m.mal ? ", " + m.mal + " con datos mal" : "") + "</li>";
+    }).join("") + "</ul><p>Próxima medición: " + prox.toLocaleDateString("es-AR") + ".</p>";
+  }
+
+  function copiar(boton, texto) {
+    var antes = boton.textContent;
+    var listo = function () { boton.textContent = "¡Copiado!"; setTimeout(function () { boton.textContent = antes; }, 1500); };
+    if (navigator.clipboard) navigator.clipboard.writeText(texto).then(listo, function () { prompt("Copiá:", texto); }); else prompt("Copiá:", texto);
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest(".copiar");
+    if (!b) return;
+    var t = b.dataset.texto != null ? b.dataset.texto : $(b.dataset.de).value;
+    if (!t) { tocado = true; actualizar(); $("error").scrollIntoView({ block: "center" }); return; }
+    copiar(b, t);
+  });
 
   function bajar(nombre, texto, tipo) {
     var a = document.createElement("a");
@@ -243,6 +380,12 @@ Flan con dulce de leche | postre | 5000 | sin TACC"></textarea>
     var r = leer();
     $("error").textContent = tocado ? r.error : "";
     $("vistaFicha").textContent = r.error ? "Completá los datos y acá aparece lo que va a leer la IA." : JSON.stringify(jsonLd(r.datos), null, 2);
+    var d = r.error ? null : r.datos;
+    pintarPreguntas(d);
+    $("descGoogle").value = d ? descripcionGoogle(d) : "";
+    $("descCuenta").textContent = d ? "— " + $("descGoogle").value.length + " de 750 letras" : "— cargá tus datos arriba";
+    $("datosIguales").value = d ? datosIguales(d) : "";
+    $("msjResena").value = d ? mensajeResena(d) : "";
     try { var g = {}; CAMPOS.forEach(function (c) { g[c] = $(c).value; }); g.dias = Array.prototype.filter.call($("dias").querySelectorAll("input"), function (c) { return c.checked; }).map(function (c) { return c.value; }); localStorage.setItem(CLAVE, JSON.stringify(g)); } catch (e) {}
     return r;
   }
@@ -250,15 +393,22 @@ Flan con dulce de leche | postre | 5000 | sin TACC"></textarea>
 
   $("bajarFicha").onclick = conDatos(function (d) { bajar("carta.html", fichaHtml(d), "text/html"); });
   $("bajarJson").onclick = conDatos(function (d) { bajar("restaurante.json", JSON.stringify(jsonMcp(d), null, 2), "application/json"); });
-  $("copiarCarta").onclick = conDatos(function (d) {
-    var t = cartaTexto(d), b = $("copiarCarta");
-    var listo = function () { b.textContent = "¡Copiada!"; setTimeout(function () { b.textContent = "Copiar la carta en texto"; }, 1500); };
-    if (navigator.clipboard) navigator.clipboard.writeText(t).then(listo, function () { prompt("Copiá la carta:", t); }); else prompt("Copiá la carta:", t);
+  $("copiarCarta").onclick = conDatos(function (d) { copiar($("copiarCarta"), cartaTexto(d)); });
+  $("guardarMedicion").onclick = conDatos(function () {
+    var total = $("preguntas").querySelectorAll(".preg").length;
+    var vals = Object.keys(respuestas).map(function (k) { return respuestas[k]; });
+    if (vals.length < total) { alert("Marcá qué pasó en las " + total + " preguntas antes de guardar."); return; }
+    var h = leerJson(CLAVE + "-mediciones", []);
+    var hoyIso = new Date().toLocaleDateString("en-CA");
+    h = h.filter(function (m) { return m.fecha !== hoyIso; });
+    h.push({ fecha: hoyIso, total: total, bien: vals.filter(function (v) { return v === "bien"; }).length, mal: vals.filter(function (v) { return v === "mal"; }).length });
+    guardarJson(CLAVE + "-mediciones", h);
+    pintarHistorial();
   });
   $("ejemplo").onclick = function () {
     $("nombre").value = "Cantina La Escollera (ejemplo)"; $("direccion").value = "Av. de ejemplo 1234"; $("tel").value = "+54 223 000-0000"; $("cocina").value = "pescados y pastas";
     $("carta").value = "Rabas | entrada | 9500 | mar\nProvoleta | entrada | 7000 | vegetariano, sin TACC\nMerluza a la romana con puré | principal | 14000 | mar\nRisotto de hongos | principal | 13500 | vegetariano, sin TACC\nFlan con dulce de leche | postre | 5000 | sin TACC";
-    $("politicas").value = "Precios de ejemplo.\nHay opciones sin TACC, pero la cocina no es libre de gluten.";
+    $("politicas").value = "Precios de ejemplo.\nHay opciones sin TACC, pero la cocina no es libre de gluten.\nSe aceptan mascotas en la vereda.";
     actualizar();
   };
 
@@ -266,8 +416,9 @@ Flan con dulce de leche | postre | 5000 | sin TACC"></textarea>
     var g = JSON.parse(localStorage.getItem(CLAVE) || "null");
     if (g) { CAMPOS.forEach(function (c) { if (g[c] != null) $(c).value = g[c]; }); if (g.dias) $("dias").querySelectorAll("input").forEach(function (c) { c.checked = g.dias.indexOf(c.value) >= 0; }); }
   } catch (e) {}
-  document.addEventListener("input", function () { tocado = true; actualizar(); });
+  document.addEventListener("input", function (e) { if (e.target.closest(".caja .opc")) return; tocado = true; actualizar(); });
   actualizar();
+  pintarHistorial();
 })();
 </script>
 
