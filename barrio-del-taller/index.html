@@ -1,0 +1,833 @@
+<!doctype html><html><head><meta charset=utf8>
+<meta name="robots" content="noindex">
+<!-- Copia del artifact https://claude.ai/artifact/2Wog6f8XZpHVGJbMCNYRrb (26/10/2026). Para actualizarla, ver el CLAUDE.md de la raíz. --><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Barrio del Taller</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: full-screen first-person barrio with walk-in interiors; workshop-tag UI pinned to the screen edges. Single committed daytime look. */
+:root{
+  --ink:#16252b;
+  --paper:#f4f7f6;
+  --paper-2:#e3ebe9;
+  --tape:#f2b705;
+  --tape-ink:#2a2100;
+  --muted:#4d6067;
+  --line:#c7d3d1;
+  --font-display:"Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+html,body{height:100%;}
+body{background:#a9d3e3;color:var(--ink);font-family:var(--font-body);overflow:hidden;user-select:none;-webkit-user-select:none;}
+#scene{position:fixed;inset:0;display:block;touch-action:none;cursor:crosshair;}
+
+.brand{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:max(16px, env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:2px;padding:9px 13px;background:var(--paper);border:2px solid var(--ink);
+  border-radius:4px;box-shadow:3px 3px 0 var(--ink);pointer-events:none;max-width:calc(100% - 32px);}
+.brand b{font-family:var(--font-display);font-weight:800;font-size:18px;letter-spacing:-.01em;line-height:1.1;}
+.brand span{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+
+.cross{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 1.5px var(--ink);pointer-events:none;}
+
+.tag{position:fixed;left:0;top:0;font-family:var(--font-display);font-weight:600;font-size:13px;line-height:1;
+  padding:6px 9px 6px 8px;background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:3px;
+  white-space:nowrap;display:flex;align-items:center;gap:6px;box-shadow:2px 2px 0 var(--ink);pointer-events:none;}
+.tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none;}
+.tag[data-status="base"]::before{background:#2f9e6a;}
+.tag[data-status="pronto"]::before{background:var(--tape);}
+
+.prompt{position:fixed;left:50%;bottom:calc(128px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  appearance:none;border:2px solid var(--ink);background:var(--tape);color:var(--tape-ink);border-radius:4px;
+  box-shadow:3px 3px 0 var(--ink);font-family:var(--font-display);font-weight:800;font-size:16px;padding:10px 16px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;max-width:calc(100% - 32px);white-space:nowrap;}
+.prompt kbd{font-family:var(--font-mono);font-size:12px;font-weight:500;background:var(--ink);color:var(--tape);padding:3px 7px;border-radius:2px;}
+.prompt:focus-visible{outline:3px solid #1d6fd8;outline-offset:2px;}
+
+.where{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px, env(safe-area-inset-right,0px));
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--tape);
+  padding:7px 10px;border-radius:3px;pointer-events:none;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.hint{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:max(16px, env(safe-area-inset-left,0px));
+  right:max(16px, env(safe-area-inset-right,0px));display:flex;justify-content:center;pointer-events:none;}
+.hint p{margin:0;padding:8px 12px;background:rgba(22,37,43,.82);color:#f4f7f6;border-radius:999px;font-size:13px;text-align:center;}
+
+.fade{position:fixed;inset:0;background:#0d1518;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+.fade.on{opacity:1;}
+@media (prefers-reduced-motion: reduce){ .fade{transition:none;} }
+
+.start{position:fixed;inset:0;display:grid;place-items:center;padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));background:rgba(22,37,43,.35);}
+.card{width:min(400px,100%);background:var(--paper);border:2px solid var(--ink);border-radius:4px;box-shadow:5px 5px 0 var(--ink);overflow:hidden;}
+.stripe{height:10px;background:repeating-linear-gradient(-45deg,var(--tape) 0 10px,var(--ink) 10px 20px);}
+.card .in{padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px;}
+.card h1{margin:0;font-family:var(--font-display);font-weight:800;font-size:30px;line-height:1;letter-spacing:-.02em;}
+.card p{margin:0;font-size:15px;line-height:1.45;}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:baseline;font-size:14px;margin:0;}
+.keys dt{font-family:var(--font-mono);font-size:12px;background:var(--ink);color:var(--paper);padding:3px 7px;border-radius:2px;justify-self:start;}
+.keys dd{margin:0;}
+.go{appearance:none;border:2px solid var(--ink);background:var(--tape);color:var(--tape-ink);font-family:var(--font-display);
+  font-weight:800;font-size:18px;padding:11px 16px;border-radius:4px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;}
+.go:focus-visible{outline:3px solid #1d6fd8;outline-offset:2px;}
+
+.panel{position:fixed;right:max(16px, env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:min(380px, calc(100% - 32px));max-height:calc(100% - 110px);overflow:auto;background:var(--paper);border:2px solid var(--ink);border-radius:4px;
+  box-shadow:4px 4px 0 var(--ink);display:flex;flex-direction:column;}
+.panel .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;}
+.panel .kind{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.panel h2{margin:2px 0 0;font-family:var(--font-display);font-weight:800;font-size:24px;line-height:1.05;letter-spacing:-.015em;text-wrap:balance;}
+.panel .desc{margin:0;font-size:15px;line-height:1.45;}
+.panel ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;}
+.panel li{display:flex;gap:8px;align-items:baseline;font-size:14px;padding-top:6px;border-top:1px dashed var(--line);}
+.panel li::before{content:"›";font-family:var(--font-mono);color:var(--muted);}
+.chip{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:2px;border:1.5px solid var(--ink);white-space:nowrap;}
+.chip[data-status="base"]{background:#2f9e6a;color:#fff;border-color:#1f6e49;}
+.chip[data-status="pronto"]{background:var(--tape);color:var(--tape-ink);}
+.chip[data-status="futuro"]{background:var(--paper-2);color:var(--ink);}
+.back{appearance:none;border:2px solid var(--ink);background:var(--paper);color:var(--ink);border-radius:4px;font-family:var(--font-display);
+  font-weight:600;font-size:15px;padding:9px 12px;cursor:pointer;align-self:flex-start;}
+.back:focus-visible{outline:3px solid #1d6fd8;outline-offset:2px;}
+
+.stick{position:fixed;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(244,247,246,.85);
+  background:rgba(22,37,43,.25);pointer-events:none;}
+.stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:var(--tape);border:2px solid var(--ink);}
+
+.bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(54px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;
+  align-items:stretch;max-width:calc(100% - 32px);overflow-x:auto;padding:2px 4px 4px 2px;}
+.money{font-family:var(--font-mono);font-size:13px;background:var(--ink);color:var(--tape);padding:0 10px;display:flex;align-items:center;
+  border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums;flex:none;}
+.slot{appearance:none;width:56px;height:54px;flex:none;border:2px solid var(--ink);background:var(--paper);border-radius:4px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:var(--font-display);font-weight:800;font-size:12px;
+  color:var(--ink);cursor:pointer;position:relative;padding:0;box-shadow:2px 2px 0 var(--ink);}
+.slot small{font-family:var(--font-mono);font-weight:500;font-size:9px;color:var(--muted);}
+.slot.on{background:var(--tape);color:var(--tape-ink);}
+.slot.on small{color:var(--tape-ink);}
+.slot:focus-visible{outline:3px solid #1d6fd8;outline-offset:2px;}
+.panel li.row{justify-content:space-between;align-items:center;gap:12px;}
+.panel li.row::before{display:none;}
+.panel li.row span{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.panel li.row em{font-style:normal;font-size:12px;color:var(--muted);}
+.buy{appearance:none;border:2px solid var(--ink);background:var(--tape);color:var(--tape-ink);border-radius:3px;font-family:var(--font-mono);
+  font-size:12px;padding:6px 8px;cursor:pointer;white-space:nowrap;flex:none;font-variant-numeric:tabular-nums;}
+.buy:disabled{background:var(--paper-2);color:var(--muted);border-color:var(--line);cursor:default;}
+.buy:focus-visible{outline:3px solid #1d6fd8;outline-offset:2px;}
+.panel li.clue::before{content:"✓";color:#2f9e6a;}
+
+@media (max-width:520px){
+  .slot{width:48px;}
+  .panel{left:max(16px, env(safe-area-inset-left,0px));width:auto;}
+  .brand b{font-size:16px;}
+  .card h1{font-size:26px;}
+  .where{top:calc(70px + env(safe-area-inset-top,0px));}
+}
+</style>
+
+<canvas id="scene" aria-label="Barrio en 3D en primera persona"></canvas>
+
+<div class="brand"><b>Barrio del Taller</b><span>Root Cause · prototipo</span></div>
+<div class="where" id="where" hidden></div>
+<div class="cross" id="cross" hidden></div>
+<div id="tags"></div>
+<button class="prompt" id="prompt" hidden><kbd id="pKey">E</kbd><span id="pText"></span></button>
+<div class="bar" id="bar" hidden></div>
+<div class="hint" id="hint" hidden><p id="hintText"></p></div>
+<div class="stick" id="stick" hidden><i id="knob"></i></div>
+<div class="fade" id="fade"></div>
+
+<section class="start" id="start">
+  <div class="card">
+    <div class="stripe"></div>
+    <div class="in">
+      <h1>Barrio del Taller</h1>
+      <p>Salís de tu casa-taller. Recorré el barrio, entrá a las casas y negocios, y mirá qué te espera: vecinos con fallas, la ferretería, la concesionaria y el lote del fondo.</p>
+      <dl class="keys" id="keysDesk">
+        <dt>W A S D</dt><dd>caminar</dd>
+        <dt>Mouse</dt><dd>mirar</dd>
+        <dt>Shift</dt><dd>correr</dd>
+        <dt>E</dt><dd>entrar, mirar, hablar, salir</dd>
+        <dt>1 – 6</dt><dd>elegir herramienta</dd>
+        <dt>Esc</dt><dd>soltar el mouse</dd>
+      </dl>
+      <dl class="keys" id="keysTouch" hidden>
+        <dt>Izquierda</dt><dd>arrastrá para caminar</dd>
+        <dt>Derecha</dt><dd>arrastrá para mirar</dd>
+        <dt>Botón</dt><dd>aparece cerca de puertas, objetos y vecinos</dd>
+        <dt>Barra</dt><dd>tocá una herramienta para tenerla en la mano</dd>
+      </dl>
+      <button class="go" id="go">Salir al barrio</button>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="panel" hidden aria-live="polite">
+  <div class="stripe"></div>
+  <div class="body">
+    <div><div class="kind" id="pKind"></div><h2 id="pName"></h2></div>
+    <div id="pChipWrap"><span class="chip" id="pChip"></span></div>
+    <p class="desc" id="pDesc"></p>
+    <ul id="pItems"></ul>
+    <button class="back" id="pClose">Seguir</button>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const touch = window.matchMedia('(pointer: coarse)').matches;
+
+const PLACES = {
+  casa:{name:'Tu casa-taller',kind:'Base',status:'base',chip:'Tu base',verb:'Entrar al taller'},
+  elsa:{name:'Casa de Doña Elsa',kind:'Vecina',status:'pronto',chip:'Caso próximo',verb:'Tocar el timbre'},
+  ferreyra:{name:'Casa de los Ferreyra',kind:'Vecinos',status:'pronto',chip:'Caso próximo',verb:'Tocar el timbre'},
+  ferreteria:{name:'Ferretería El Tornillo',kind:'Comercio',status:'pronto',chip:'Abre pronto',verb:'Entrar a la ferretería'},
+  conces:{name:'Usados del Puerto',kind:'Concesionaria',status:'pronto',chip:'Abre pronto',verb:'Entrar a la concesionaria'},
+  lote:{name:'Lote del fondo',kind:'Lo que viene',status:'futuro',chip:'Futuro',verb:'Mirar el lote',
+    desc:'Acá va a crecer el barrio. Primero la obra y el taller eléctrico. Algún día, la plataforma de lanzamiento.',
+    items:['La obra en construcción','Taller eléctrico','Destino final: una base en Marte']}
+};
+
+function start(){
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, touch?1.5:2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  const scene = new THREE.Scene();
+  const SKY = new THREE.Color(0xa9d3e3);
+  scene.background = SKY;
+  const streetFog = new THREE.Fog(0xa9d3e3, 45, 110);
+  scene.fog = streetFog;
+
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 300);
+  camera.rotation.order = 'YXZ';
+
+  scene.add(new THREE.HemisphereLight(0xdff1ff, 0x6d8a4a, 0.75));
+  const sun = new THREE.DirectionalLight(0xfff1d6, 1.05);
+  sun.position.set(-30, 45, 25);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  const sc = sun.shadow.camera; sc.left=-55; sc.right=55; sc.top=45; sc.bottom=-45; sc.near=5; sc.far=150;
+  sun.shadow.bias = -0.0008;
+  scene.add(sun);
+
+  const mat = (c, o={}) => new THREE.MeshStandardMaterial(Object.assign({color:c, roughness:0.85, flatShading:true}, o));
+  function box(w,h,d,m,x=0,y=0,z=0,parent){
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m);
+    mesh.position.set(x,y,z); mesh.castShadow = true; mesh.receiveShadow = true;
+    (parent||scene).add(mesh); return mesh;
+  }
+  function cyl(rt,rb,h,m,x,y,z,seg=14,parent){
+    const mesh=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg), m); mesh.position.set(x,y,z);
+    mesh.castShadow=true; mesh.receiveShadow=true; (parent||scene).add(mesh); return mesh;
+  }
+
+  function canvasTex(w,h,draw){
+    const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h);
+    const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.anisotropy=4; return t;
+  }
+  function signTex(text,bg,fg,w=512,h=128,size=62){
+    return canvasTex(w,h,(g)=>{ g.fillStyle=bg; g.fillRect(0,0,w,h); g.fillStyle=fg;
+      g.font='800 '+size+'px "Bricolage Grotesque", "Trebuchet MS", sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,w/2,h/2+4); });
+  }
+  function sign(text,bg,fg,w,h,x,y,z,parent,size,rotY=0){
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:signTex(text,bg,fg,512,Math.round(512*h/w),size)}));
+    m.position.set(x,y,z); m.rotation.y=rotY; (parent||scene).add(m); return m;
+  }
+  function board(title,lines,w,h,x,y,z,rotY,bg='#f4f7f6',fg='#16252b'){
+    const tex=canvasTex(512,Math.round(512*h/w),(g,W,H)=>{
+      g.fillStyle=bg; g.fillRect(0,0,W,H); g.strokeStyle='#16252b'; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10);
+      g.fillStyle=fg; g.font='800 40px "Bricolage Grotesque", sans-serif'; g.textBaseline='top'; g.fillText(title,28,24);
+      g.font='26px "JetBrains Mono", monospace'; lines.forEach((l,i)=>g.fillText(l,28,86+i*40));
+    });
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:tex}));
+    m.position.set(x,y,z); m.rotation.y=rotY; scene.add(m); return m;
+  }
+  function gable(w,rh,d,m,y,parent){
+    const s=new THREE.Shape(); s.moveTo(-w/2,0); s.lineTo(w/2,0); s.lineTo(0,rh); s.lineTo(-w/2,0);
+    const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:false}); g.translate(0,0,-d/2);
+    const r=new THREE.Mesh(g,m); r.position.y=y; r.castShadow=true; r.receiveShadow=true; parent.add(r); return r;
+  }
+  const glass = mat(0x9fc9dc,{roughness:0.25,metalness:0.1});
+  const frameM = mat(0xf4f1ea);
+  function windowAt(parent,x,y,z,w=1.4,h=1.3){
+    box(w+0.25,h+0.25,0.12,frameM,x,y,z,parent); box(w,h,0.16,glass,x,y,z+0.02,parent);
+  }
+
+  // ---------- ZONES ----------
+  // Each zone: colliders, hotspots (things you can use with E), inside test.
+  const zones = { street:{colliders:[], hotspots:[]} };
+  const solidIn=(zone,minX,maxX,minZ,maxZ)=>zones[zone].colliders.push({minX,maxX,minZ,maxZ});
+  const solid=(a,b,c,d)=>solidIn('street',a,b,c,d);
+
+  // ---------- STREET ----------
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(220,220), mat(0x86a85a));
+  ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+  box(96,0.1,8, mat(0x3a4347),0,0.05,0).castShadow=false;
+  for(let x=-44;x<=44;x+=6){ box(2.6,0.02,0.25, mat(0xf2e9c9),x,0.11,0).castShadow=false; }
+  [-5,5].forEach(z=>{ box(96,0.3,2.4, mat(0xc9cdc6),0,0.15,z).castShadow=false; });
+  box(8,0.1,40, mat(0x3a4347),38,0.05,-24).castShadow=false;
+
+  const anchors = {}; const doors = {}; const doorSide = {};
+  function placeGroup(key, x, side){
+    const g=new THREE.Group(); g.position.set(x,0, side==='n' ? -12 : 12);
+    if(side==='s') g.rotation.y=Math.PI;
+    scene.add(g);
+    doors[key]=new THREE.Vector3(x,0, side==='n' ? -6.9 : 6.9); doorSide[key]=side;
+    return g;
+  }
+
+  { const g=placeGroup('casa',-24,'n');
+    box(9,4.2,8, mat(0xd9d3c4),-2,2.1,0,g); box(9.4,0.4,8.4, mat(0x5a6266),-2,4.4,0,g);
+    box(6,3.2,0.12, mat(0x8b9599,{metalness:0.3,roughness:0.5}),-2,1.6,4.04,g);
+    for(let i=0;i<8;i++) box(6,0.06,0.16, mat(0x6b7478),-2,0.25+i*0.4,4.08,g);
+    const stripes=canvasTex(256,32,(x)=>{for(let i=-2;i<12;i++){x.fillStyle=i%2?'#16252b':'#f2b705';x.beginPath();x.moveTo(i*32,32);x.lineTo(i*32+32,32);x.lineTo(i*32+64,0);x.lineTo(i*32+32,0);x.fill();}});
+    const band=new THREE.Mesh(new THREE.PlaneGeometry(6.6,0.35),new THREE.MeshBasicMaterial({map:stripes})); band.position.set(-2,3.45,4.08); g.add(band);
+    sign('TALLER','#16252b','#f2b705',4,0.9,-2,3.95,4.12,g,92);
+    box(5,3.4,7, mat(0x7fa7a0),5.2,1.7,0,g); gable(5.8,1.8,7.6, mat(0xa54a3a),3.4,g).position.x=5.2;
+    box(1.1,2.2,0.12, mat(0x3e5a6e),5.9,1.1,3.55,g); windowAt(g,4.2,1.9,3.55,1.2,1.1);
+    anchors.casa=new THREE.Vector3(-24,5.6,-12); doors.casa=new THREE.Vector3(-26,0,-6.9);
+    solid(-30.6,-16.2,-16.2,-7.9);
+  }
+  { const g=placeGroup('elsa',-4,'n');
+    box(7,3.6,7, mat(0xe7c3a1),0,1.8,0,g); gable(7.8,2.4,7.8, mat(0x6e7f8c),3.6,g);
+    box(1.1,2.2,0.12, mat(0x7a3b2e),0,1.1,3.55,g); windowAt(g,-2.2,2,3.55); windowAt(g,2.2,2,3.55);
+    box(0.1,2,0.1, mat(0x8a8f8c),4.5,1,1.5,g); box(0.1,2,0.1, mat(0x8a8f8c),4.5,1,-2.5,g);
+    box(0.03,0.03,4, mat(0xdddddd),4.5,1.95,-0.5,g);
+    [0.3,-0.6,-1.4].forEach((z,i)=>box(0.05,0.7,0.6, mat([0xf2b705,0x4f8fbf,0xe0e0e0][i]),4.5,1.55,z,g));
+    anchors.elsa=new THREE.Vector3(-4,6.6,-12); solid(-7.6,-0.4,-15.6,-8.4);
+  }
+  { const g=placeGroup('ferreteria',16,'n');
+    box(10,4.4,8, mat(0xb9573f),0,2.2,0,g); box(10.4,0.6,8.4, mat(0x8f3f2e),0,4.6,0,g);
+    box(9.6,1.2,0.15, mat(0x16252b),0,3.7,4.06,g);
+    sign('FERRETERÍA EL TORNILLO','#16252b','#f4f7f6',9,1,0,3.7,4.15,g,52);
+    const aw=box(9.6,0.12,1.8, mat(0x2f7d68),0,2.95,4.8,g); aw.rotation.x=0.28;
+    box(2,2.4,0.12, glass,0,1.2,4.04,g);
+    windowAt(g,-3.2,1.6,4.02,2.2,1.8); windowAt(g,3.2,1.6,4.02,2.2,1.8);
+    box(0.9,0.6,0.9, mat(0xc49a5c),-4.2,0.3,5.3,g); box(0.9,0.6,0.9, mat(0xc49a5c),-3.2,0.3,5.4,g);
+    anchors.ferreteria=new THREE.Vector3(16,6.2,-12); solid(10.9,21.1,-16.2,-7.9); solid(11.2,13.3,-7.9,-6.3);
+  }
+  { const g=placeGroup('ferreyra',-20,'s');
+    box(8,3.8,7, mat(0xe9e4d6),0,1.9,0,g); gable(8.8,2.2,7.8, mat(0x4f5d63),3.8,g);
+    box(1.1,2.2,0.12, mat(0x2f7d68),1.6,1.1,3.55,g); windowAt(g,-2.2,2,3.55,1.8,1.3);
+    const patch=new THREE.Mesh(new THREE.CircleGeometry(0.9,18), mat(0xb5ae96)); patch.position.set(-4.02,1.2,0.6); patch.rotation.y=-Math.PI/2; patch.scale.set(1,0.75,1); g.add(patch);
+    anchors.ferreyra=new THREE.Vector3(-20,6.6,12); doors.ferreyra=new THREE.Vector3(-21.6,0,6.9);
+    solid(-24.1,-15.9,8.4,15.6);
+  }
+  const cars=[];
+  function car(color,x,z,rot=0,parent){
+    const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=rot; (parent||scene).add(g);
+    box(3.6,0.8,1.7, mat(color,{roughness:0.5}),0,0.75,0,g);
+    box(2,0.65,1.5, mat(color,{roughness:0.5}),-0.2,1.45,0,g);
+    box(1.9,0.5,1.52, glass,-0.2,1.45,0,g).scale.set(1.02,0.85,1.01);
+    [[1.1,0.85],[-1.2,0.85],[1.1,-0.85],[-1.2,-0.85]].forEach(([wx,wz])=>{
+      const w=new THREE.Mesh(new THREE.CylinderGeometry(0.38,0.38,0.3,12), mat(0x1d2326)); w.rotation.x=Math.PI/2; w.position.set(wx,0.38,wz); w.castShadow=true; g.add(w);
+    });
+    return g;
+  }
+  { const g=placeGroup('conces',6,'s');
+    box(7,3.2,5, mat(0xf4f7f6),-5,1.6,-1.5,g); box(6.4,2.4,0.12, glass,-5,1.4,1.05,g);
+    box(7.4,0.35,5.4, mat(0x16252b),-5,3.3,-1.5,g);
+    sign('USADOS DEL PUERTO','#f2b705','#16252b',6.6,0.9,-5,3.95,1.3,g,58);
+    box(12,0.12,8, mat(0x9aa2a3),3,0.06,0,g).castShadow=false;
+    box(0.12,3.4,0.12, mat(0x8a8f8c),-2.5,1.7,3.8,g); box(0.12,3.4,0.12, mat(0x8a8f8c),9,1.7,3.8,g);
+    for(let i=0;i<12;i++){ const p=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.5,3), mat([0xf2b705,0xb9573f,0x2f7d68][i%3])); p.rotation.x=Math.PI; p.position.set(-2+i*0.95,3.05,3.8); g.add(p); }
+    anchors.conces=new THREE.Vector3(9,5.4,12); doors.conces=new THREE.Vector3(11,0,6.9);
+    [[0.5,-1.6],[4.2,-1.6],[7.9,-1.6],[2.4,1.8]].forEach(([x,z],i)=>cars.push(car([0x2f6ea8,0xe0ddd2,0x8f3f2e,0x3d6b4a][i],x,z,i===3?0.4:Math.PI/2,g)));
+    solid(7.3,14.7,10.8,16.2);
+  }
+  { const g=new THREE.Group(); g.position.set(38,0,-34); scene.add(g);
+    doors.lote=new THREE.Vector3(37,0,-25.4);
+    box(16,0.1,14, mat(0x9b8a6a),0,0.05,0,g).castShadow=false;
+    for(let i=-7;i<=7;i+=1.4){ box(0.12,1.2,0.12, mat(0xc49a5c),i,0.6,7,g); }
+    box(14.2,0.08,0.08, mat(0xc49a5c),0,1.0,7,g);
+    box(0.2,2.6,0.2, mat(0x5a6266),-3,1.3,6.2,g); box(0.2,2.6,0.2, mat(0x5a6266),1,1.3,6.2,g);
+    sign('PRÓXIMAMENTE','#f4f7f6','#16252b',4.4,1.1,-1,2.3,6.32,g,70);
+    box(3,0.3,3, mat(0x7c858a),3.5,0.15,-2,g);
+    cyl(0.55,0.6,4, mat(0xeef1f0),3.5,2.3,-2,12,g);
+    const nose=new THREE.Mesh(new THREE.ConeGeometry(0.55,1.3,12), mat(0xb9573f)); nose.position.set(3.5,4.95,-2); nose.castShadow=true; g.add(nose);
+    for(let i=0;i<3;i++){ const f=box(0.08,0.9,0.7, mat(0xb9573f),0,0,0,g); const a=i*Math.PI*2/3; f.position.set(3.5+Math.sin(a)*0.6,0.75,-2+Math.cos(a)*0.6); f.rotation.y=a; }
+    anchors.lote=new THREE.Vector3(38,4.5,-30); solid(30.2,45.8,-27.15,-26.85);
+  }
+  cars.push(car(0xf2b705,-30,-2.9,0));
+  cars.push(car(0x6e7f8c,22,2,Math.PI));
+
+  function tree(x,z,s=1){
+    cyl(0.18*s,0.25*s,1.6*s, mat(0x6b4f35),x,0.8*s,z,6);
+    const c=new THREE.Mesh(new THREE.IcosahedronGeometry(1.5*s,0), mat(0x4f7d3a)); c.position.set(x,2.4*s,z); c.castShadow=true; scene.add(c);
+    solid(x-0.35,x+0.35,z-0.35,z+0.35);
+  }
+  [[-34,-5.6],[-12,-5.8],[6,-5.8],[28,-5.8],[-30,5.8],[-8,5.9],[18,5.8],[-42,-14],[-40,16],[30,18],[44,-14],[30,-22],[-10,24],[12,26]].forEach(([x,z],i)=>tree(x,z, z>10||z<-10?1.4:0.9+(i%3)*0.1));
+  function lamp(x,z){
+    box(0.15,4.2,0.15, mat(0x3a4347),x,2.1,z);
+    box(0.9,0.12,0.25, mat(0x3a4347),x,4.2,z+(z<0?0.4:-0.4));
+    box(0.4,0.15,0.3, mat(0xfff2c2,{emissive:0xfff2c2,emissiveIntensity:0.4}),x,4.1,z+(z<0?0.75:-0.75));
+    solid(x-0.2,x+0.2,z-0.2,z+0.2);
+  }
+  [-36,-14,10,30].forEach(x=>lamp(x,-6.1)); [-26,0,22].forEach(x=>lamp(x,6.1));
+
+  // Street hotspots: doors
+  const rings=[];
+  function ringAt(x,z){
+    const r=new THREE.Mesh(new THREE.RingGeometry(0.55,0.75,32), new THREE.MeshBasicMaterial({color:0xf2b705,transparent:true,opacity:0.85,side:THREE.DoubleSide}));
+    r.rotation.x=-Math.PI/2; r.position.set(x,0.33,z); scene.add(r); rings.push(r); return r;
+  }
+  Object.keys(doors).forEach(k=>{
+    const d=doors[k];
+    zones.street.hotspots.push({x:d.x,z:d.z,r:3,label:PLACES[k].verb, marker:ringAt(d.x,d.z),
+      act:()=> k==='lote' ? info({kind:PLACES.lote.kind,name:PLACES.lote.name,chip:PLACES.lote.chip,status:'futuro',desc:PLACES.lote.desc,items:PLACES.lote.items}) : enter(k)});
+  });
+
+  // ---------- INTERIORS ----------
+  function npc(x,z,rot,shirt,pants,skin,hair,hairStyle){
+    const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=rot; scene.add(g);
+    box(0.5,0.85,0.32, mat(pants),0,0.43,0,g);
+    box(0.62,0.72,0.38, mat(shirt),0,1.2,0,g);
+    box(0.16,0.62,0.16, mat(shirt),-0.4,1.2,0,g); box(0.16,0.62,0.16, mat(shirt),0.4,1.2,0,g);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(0.24,14,12), mat(skin)); h.position.y=1.8; h.castShadow=true; g.add(h);
+    if(hairStyle==='bun'){ const b=new THREE.Mesh(new THREE.SphereGeometry(0.25,14,10,0,Math.PI*2,0,Math.PI/2), mat(hair)); b.position.y=1.83; g.add(b);
+      const k=new THREE.Mesh(new THREE.SphereGeometry(0.11,10,8), mat(hair)); k.position.set(0,1.98,-0.18); g.add(k); }
+    else if(hairStyle==='cap'){ box(0.48,0.1,0.48, mat(hair),0,2.0,0,g); box(0.3,0.04,0.22, mat(hair),0,1.96,0.3,g); }
+    else { const b=new THREE.Mesh(new THREE.SphereGeometry(0.25,14,10,0,Math.PI*2,0,Math.PI/2.4), mat(hair)); b.position.y=1.84; g.add(b); }
+    return g;
+  }
+
+  let roomIndex=0;
+  function room(key,{w,d,h,wall,floorTex,ceiling=0xf1f1ee,light=0xfff1dc,title}){
+    const ox=300+roomIndex*80; roomIndex++;
+    const Z={key,ox,w,d,h,colliders:[],hotspots:[],title};
+    zones[key]=Z;
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(w,d), new THREE.MeshStandardMaterial({map:floorTex,roughness:0.9}));
+    floor.rotation.x=-Math.PI/2; floor.position.set(ox,0.01,0); floor.receiveShadow=true; scene.add(floor);
+    const wm=mat(wall,{flatShading:false});
+    box(w,h,0.2,wm,ox,h/2,-d/2-0.1); box(w,h,0.2,wm,ox,h/2,d/2+0.1);
+    box(0.2,h,d,wm,ox-w/2-0.1,h/2,0); box(0.2,h,d,wm,ox+w/2+0.1,h/2,0);
+    box(w,0.2,d, mat(ceiling,{flatShading:false}),ox,h+0.1,0).castShadow=false;
+    // baseboards
+    const bb=mat(0x3a4347); box(w,0.14,0.04,bb,ox,0.07,-d/2+0.02); box(0.04,0.14,d,bb,ox-w/2+0.02,0.07,0); box(0.04,0.14,d,bb,ox+w/2-0.02,0.07,0);
+    // ceiling light
+    box(1.4,0.06,0.3, mat(0xffffff,{emissive:0xfff6e0,emissiveIntensity:1}),ox,h-0.03,0).castShadow=false;
+    const pl=new THREE.PointLight(light,0.9,Math.max(w,d)*1.8,1.6); pl.position.set(ox,h-0.4,0); scene.add(pl);
+    // exit door on front wall (+z)
+    box(1.3,2.3,0.08, mat(0x5b4636),ox,1.15,d/2-0.02);
+    box(0.08,0.08,0.12, mat(0xd9b44a,{metalness:0.6,roughness:0.3}),ox+0.45,1.1,d/2-0.08);
+    sign('SALIDA','#2f9e6a','#ffffff',0.8,0.25,ox,2.55,d/2-0.03,null,90,Math.PI);
+    const exitRing=ringAt(ox,d/2-0.9);
+    Z.hotspots.push({x:ox,z:d/2-0.9,r:1.6,label:'Salir a la calle',marker:exitRing,act:()=>exitTo(key)});
+    Z.spawn={x:ox,z:d/2-1.4,yaw:0};
+    return Z;
+  }
+  const hs=(Z,x,z,label,data,y=2.1,r=2.2)=>{
+    const m=new THREE.Mesh(new THREE.OctahedronGeometry(0.13,0), new THREE.MeshBasicMaterial({color:0xf2b705}));
+    m.position.set(Z.ox+x,y,z); scene.add(m); markers.push(m);
+    Z.hotspots.push({x:Z.ox+x,z,r,label,marker:m,act:()=> typeof data==='function' ? data() : info(data)});
+  };
+
+  // ---------- TOOLS, MONEY, SHOP ----------
+  const TOOLS=[
+    {id:'destor',name:'Destornilladores',short:'DEST',price:0},
+    {id:'linterna',name:'Linterna',short:'LUZ',price:0},
+    {id:'multi',name:'Multímetro',short:'MULTI',price:14500,desc:'Medí tensión y continuidad. Confirma fallas eléctricas.'},
+    {id:'tubos',name:'Juego de tubos',short:'TUBOS',price:9800,desc:'Para los bulones del auto y de los aparatos.'},
+    {id:'llave',name:'Llave francesa',short:'LLAVE',price:6500,desc:'Para tuercas y conexiones de agua.'},
+    {id:'pinza',name:'Pinza y pelacables',short:'PINZA',price:5200,desc:'Para cables, enchufes y terminales.'}
+  ];
+  let money=20000; const owned=new Set(['destor','linterna']); let held=null;
+  const fmt=n=>'$ '+n.toLocaleString('es-AR');
+  const toolName=id=>TOOLS.find(t=>t.id===id).name;
+
+  function shop(){
+    info({kind:'Mostrador',name:'Ferretería El Tornillo',chip:'Tenés '+fmt(money),status:'pronto',
+      desc:'“¿Qué andás buscando? Si me decís qué falla tiene, te digo qué te conviene llevar.”',
+      rows:TOOLS.filter(t=>t.price>0).map(t=>({name:t.name,desc:t.desc,
+        btn: owned.has(t.id)?'Ya lo tenés':'Comprar '+fmt(t.price),
+        disabled: owned.has(t.id)||money<t.price,
+        onClick:()=>{ if(owned.has(t.id)||money<t.price) return; money-=t.price; owned.add(t.id); held=t.id; renderBar(); shop(); }}))});
+  }
+
+  const clues=new Set();
+  const WASHER={
+    linterna:['correa','Iluminás por abajo y por atrás: la correa está entera y en su lugar. No parece ser la correa.'],
+    destor:['filtro','Sacás la tapita del filtro de la bomba de desagote: sale agua turbia, una moneda y una hebilla. La bomba no podía sacar el agua.'],
+    multi:['motor','Medís el enchufe: llega tensión normal. Medís el bobinado del motor: tiene continuidad. Motor y alimentación andan bien.']
+  };
+  const CLUE_TEXT={correa:'La correa está bien',filtro:'El filtro de la bomba estaba tapado',motor:'El motor y la tensión están bien'};
+  function washer(){
+    let desc;
+    if(!held) desc='Hay agua en el piso al lado. Elegí una herramienta de tu barra y revisalo con ella.';
+    else if(WASHER[held]){ clues.add(WASHER[held][0]); desc=WASHER[held][1]; }
+    else desc='Con '+toolName(held).toLowerCase()+' no hay mucho para revisar acá. Probá con otra herramienta.';
+    const items=[...clues].map(c=>({clue:true,text:CLUE_TEXT[c]}));
+    if(clues.has('filtro') && clues.size>=2) items.push({text:'Diagnóstico probable: filtro de la bomba tapado. Resolver el caso: próximamente.'});
+    if(!clues.size) items.push({text:'Causas posibles: bomba de desagote, correa, carbones del motor'});
+    if(!owned.has('multi')) items.push({text:'Con un multímetro podrías medir el motor. Lo venden en El Tornillo.'});
+    info({kind:'Caso · Doña Elsa',name:'Lavarropas que no centrifuga',chip:'Pistas '+clues.size+' de 3',status:'pronto',desc,items});
+  }
+  const markers=[];
+  const sol=(Z,x0,x1,z0,z1)=>Z.colliders.push({minX:Z.ox+x0,maxX:Z.ox+x1,minZ:z0,maxZ:z1});
+
+  const concreteTex=canvasTex(512,512,(g,W,H)=>{ g.fillStyle='#8f9592'; g.fillRect(0,0,W,H);
+    for(let i=0;i<900;i++){ g.fillStyle='rgba(0,0,0,'+(Math.random()*0.08)+')'; g.fillRect(Math.random()*W,Math.random()*H,3,3); }
+    g.fillStyle='#f2b705'; g.fillRect(40,120,8,280); g.fillRect(250,120,8,280); g.fillRect(40,120,218,8); });
+  const checkerTex=canvasTex(256,256,(g)=>{ for(let i=0;i<8;i++)for(let j=0;j<8;j++){ g.fillStyle=(i+j)%2?'#e9e4d6':'#4f6b74'; g.fillRect(i*32,j*32,32,32);} });
+  checkerTex.wrapS=checkerTex.wrapT=THREE.RepeatWrapping; checkerTex.repeat.set(3,3);
+  const woodTex=canvasTex(256,256,(g)=>{ for(let i=0;i<8;i++){ g.fillStyle=i%2?'#9b6b43':'#a8774c'; g.fillRect(0,i*32,256,32); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,i*32,256,2); g.fillRect((i*73)%256,i*32,2,32);} });
+  woodTex.wrapS=woodTex.wrapT=THREE.RepeatWrapping; woodTex.repeat.set(3,3);
+  const tileTex=canvasTex(256,256,(g)=>{ g.fillStyle='#cfd5d3'; g.fillRect(0,0,256,256); g.strokeStyle='#aab3b1'; g.lineWidth=3; for(let i=0;i<=4;i++){ g.beginPath(); g.moveTo(i*64,0); g.lineTo(i*64,256); g.stroke(); g.beginPath(); g.moveTo(0,i*64); g.lineTo(256,i*64); g.stroke(); } });
+  tileTex.wrapS=tileTex.wrapT=THREE.RepeatWrapping; tileTex.repeat.set(4,3);
+  const showTex=canvasTex(256,256,(g)=>{ g.fillStyle='#eef1f0'; g.fillRect(0,0,256,256); g.strokeStyle='#d7dcdb'; g.lineWidth=2; for(let i=0;i<=2;i++){ g.beginPath(); g.moveTo(i*128,0); g.lineTo(i*128,256); g.stroke(); g.beginPath(); g.moveTo(0,i*128); g.lineTo(256,i*128); g.stroke(); } });
+  showTex.wrapS=showTex.wrapT=THREE.RepeatWrapping; showTex.repeat.set(5,4);
+
+  // ---- TALLER ----
+  { const Z=room('casa',{w:14,d:10,h:4.4,wall:0xd9d3c4,floorTex:concreteTex,title:'Tu taller'}); const o=Z.ox;
+    // lift + car
+    [[-4.6,-2.6],[-4.6,-0.4],[-0.4,-2.6],[-0.4,-0.4]].forEach(([x,z])=>box(0.3,3.2,0.3, mat(0x2f6ea8,{metalness:0.4,roughness:0.5}),o+x,1.6,z));
+    box(4.6,0.12,0.25, mat(0x2a2f32),o-2.5,1.2,-2.6); box(4.6,0.12,0.25, mat(0x2a2f32),o-2.5,1.2,-0.4);
+    const lifted=car(0xb9573f,o-2.5,-1.5,0); lifted.position.y=1.3;
+    sol(Z,-5,0,-3,0);
+    // workbench + pegboard
+    box(4.2,0.08,1.1, mat(0xa8774c),o+4.4,0.92,-4.3); box(4.2,0.85,0.08, mat(0x5a6266),o+4.4,0.45,-4.8);
+    [-1.9,1.9].forEach(dx=>box(0.1,0.88,1, mat(0x5a6266),o+4.4+dx,0.44,-4.3));
+    box(0.35,0.3,0.25, mat(0x2f6ea8,{metalness:0.5,roughness:0.4}),o+2.8,1.12,-4.2);
+    box(4.4,1.8,0.06, mat(0xc49a5c),o+4.4,2.3,-4.95);
+    for(let i=0;i<9;i++){ const len=0.35+((i*37)%5)*0.08; box(0.06,len,0.04, mat([0xb9573f,0x16252b,0x7c858a,0xf2b705][i%4],{metalness:0.4}),o+2.6+i*0.45,2.4,-4.9); }
+    box(0.45,0.2,0.05, mat(0xf2b705),o+5.6,1.6,-4.9);
+    sol(Z,2.2,6.6,-5,-3.7);
+    // tool cart, drum, tires
+    box(0.9,0.95,0.55, mat(0xc7322b,{roughness:0.5}),o+6.2,0.5,-1.4); for(let i=0;i<4;i++) box(0.84,0.03,0.02, mat(0x8b9599),o+6.2,0.25+i*0.2,-1.12);
+    sol(Z,5.7,6.7,-1.7,-1.1);
+    cyl(0.32,0.32,0.95, mat(0x2f7d68),o-6.2,0.48,-4.3); sol(Z,-6.6,-5.8,-4.7,-3.9);
+    for(let i=0;i<4;i++){ const t=new THREE.Mesh(new THREE.TorusGeometry(0.34,0.14,8,16), mat(0x1d2326)); t.rotation.x=Math.PI/2; t.position.set(o-6.1,0.14+i*0.27,3.6); t.castShadow=true; scene.add(t); }
+    sol(Z,-6.6,-5.6,3.1,4.1);
+    // jobs board
+    board('TRABAJOS',['Auto: diagnóstico pendiente','Lavarropas · Doña Elsa','Humedad · Los Ferreyra','Pedido: multímetro'],2.8,1.7,o-6.88,2.2,0.4,Math.PI/2);
+    box(0.1,0.12,0.6, mat(0x5a6266),o-6.9,1.28,0.4);
+    hs(Z,-2.5,0.9,'Mirar el auto del elevador',{kind:'En el elevador',name:'El auto del taller',chip:'En desarrollo',status:'pronto',
+      desc:'Acá vive el juego de autos que ya estás construyendo: 51 trabajos, guía paso a paso, carrera y el cursor como herramienta.',
+      items:['Próximo: modo diagnóstico con 10 casos','El cliente cuenta el síntoma, vos deducís la falla','Cuando esté, se juega desde este elevador']},2.9,2.6);
+    hs(Z,4.4,-3.1,'Usar el banco de trabajo',{kind:'Banco de trabajo',name:'Tu banco',chip:'Tu base',status:'base',
+      desc:'Las piezas que sacás de los trabajos del barrio se revisan acá: motores de lavarropas, enchufes, cañerías.',
+      items:['Morsa y herramientas de mano','Lo que compres en la ferretería aparece en el tablero','Cada instrumento nuevo abre pruebas nuevas']});
+    hs(Z,-5.6,0.4,'Leer la pizarra',{kind:'Pizarra',name:'Trabajos del barrio',chip:'Tu agenda',status:'base',
+      desc:'Lo que tenés pendiente. Los vecinos te van a ir dejando trabajos a medida que el barrio te conoce.',
+      items:['Auto en el elevador: diagnóstico pendiente','Doña Elsa: el lavarropas no centrifuga','Los Ferreyra: humedad en el living','Comprar un multímetro en El Tornillo']},2.2,2.4);
+  }
+
+  // ---- DOÑA ELSA ----
+  { const Z=room('elsa',{w:8,d:7,h:3,wall:0xf0dcc4,floorTex:checkerTex,title:'Casa de Doña Elsa'}); const o=Z.ox;
+    box(4.2,0.9,0.7, mat(0x2f7d68),o-1.4,0.45,-3.1); box(4.3,0.05,0.75, mat(0xe9e4d6),o-1.4,0.92,-3.1);
+    box(4.2,0.7,0.35, mat(0x2f7d68),o-1.4,2.1,-3.3);
+    box(0.6,0.05,0.4, mat(0xb8c2c4,{metalness:0.6}),o-2,0.95,-3.1);
+    sol(Z,-3.5,0.7,-3.5,-2.7);
+    box(0.85,1.9,0.7, mat(0xeef1f0,{roughness:0.4}),o+3.1,0.95,-3.1); box(0.05,0.5,0.05, mat(0x8b9599),o+2.75,1.3,-2.74);
+    sol(Z,2.65,3.55,-3.5,-2.7);
+    // the washing machine
+    const wm=box(0.68,0.9,0.66, mat(0xf4f7f6,{roughness:0.35}),o+3.55,0.45,-0.9);
+    const dr=new THREE.Mesh(new THREE.TorusGeometry(0.22,0.05,10,24), mat(0x8b9599,{metalness:0.5})); dr.position.set(o+3.2,0.45,-0.9); dr.rotation.y=Math.PI/2; scene.add(dr);
+    const gl=new THREE.Mesh(new THREE.CircleGeometry(0.2,24), mat(0x5a7f95,{roughness:0.2})); gl.position.set(o+3.205,0.45,-0.9); gl.rotation.y=-Math.PI/2; scene.add(gl);
+    box(0.04,0.1,0.5, mat(0x9aa2a3),o+3.2,0.83,-0.9);
+    const puddle=new THREE.Mesh(new THREE.CircleGeometry(0.45,20), mat(0x7fa7c4,{roughness:0.1})); puddle.rotation.x=-Math.PI/2; puddle.position.set(o+2.9,0.02,-0.6); scene.add(puddle);
+    sol(Z,3.15,3.95,-1.3,-0.5);
+    // table + chairs
+    cyl(0.6,0.6,0.06, mat(0xa8774c),o-1.6,0.76,0.6); cyl(0.07,0.1,0.75, mat(0x6b4f35),o-1.6,0.38,0.6);
+    [[-2.5,0.6],[-0.7,0.6]].forEach(([x,z])=>{ box(0.45,0.05,0.45, mat(0x9b6b43),o+x,0.45,z); box(0.45,0.5,0.05, mat(0x9b6b43),o+x+(x<-1.6?-0.2:0.2),0.7,z).rotation.y=Math.PI/2; });
+    sol(Z,-2.3,-0.9,-0.1,1.3);
+    box(0.3,0.25,0.3, mat(0xc7322b),o-1.4,0.92,0.6);
+    npc(o+1.6,-0.4,-Math.PI/2+0.4,0x8f6aa8,0x4f5d63,0xe0b48f,0xd8d8d8,'bun'); sol(Z,1.3,1.9,-0.7,-0.1);
+    hs(Z,1.6,-0.4,'Hablar con Doña Elsa',{kind:'Vecina',name:'Doña Elsa',chip:'Caso próximo',status:'pronto',
+      desc:'“Mirá, nene: lava bien, enjuaga bien, pero cuando tiene que centrifugar hace un ruidito y se queda quieto. Y me deja la ropa empapada.”',
+      items:['Síntoma: no centrifuga','Pista: hace un ruido antes de frenar','Pista: el agua no termina de salir']},2.3);
+    hs(Z,3.55,-0.9,()=> held ? 'Usar '+toolName(held).toLowerCase()+' en el lavarropas' : 'Revisar el lavarropas', washer, 1.4);
+  }
+
+  // ---- FERREYRA ----
+  { const Z=room('ferreyra',{w:9,d:7,h:3,wall:0xe9e4d6,floorTex:woodTex,title:'Casa de los Ferreyra'}); const o=Z.ox;
+    // sofa facing back wall TV
+    box(2.6,0.45,0.9, mat(0x4f6b74),o+0.5,0.23,1.2); box(2.6,0.6,0.25, mat(0x4f6b74),o+0.5,0.6,1.6);
+    box(0.25,0.55,0.9, mat(0x4f6b74),o-0.9,0.45,1.2); box(0.25,0.55,0.9, mat(0x4f6b74),o+1.9,0.45,1.2);
+    sol(Z,-1.05,2.05,0.7,1.75);
+    box(2.2,0.55,0.45, mat(0x6b4f35),o+0.5,0.28,-3.2); box(1.6,0.9,0.06, mat(0x16252b),o+0.5,1.1,-3.3);
+    sol(Z,-0.6,1.6,-3.5,-2.9);
+    const rug=new THREE.Mesh(new THREE.PlaneGeometry(3,2), mat(0xb9573f)); rug.rotation.x=-Math.PI/2; rug.position.set(o+0.5,0.02,-0.6); scene.add(rug);
+    // damp stain on the left wall
+    const stain=canvasTex(512,512,(g,W,H)=>{ const r=g.createRadialGradient(W/2,H*0.62,10,W/2,H*0.62,W*0.46);
+      r.addColorStop(0,'rgba(92,86,62,.85)'); r.addColorStop(0.55,'rgba(120,112,82,.55)'); r.addColorStop(0.8,'rgba(150,140,104,.25)'); r.addColorStop(1,'rgba(150,140,104,0)');
+      g.fillStyle=r; g.fillRect(0,0,W,H);
+      g.strokeStyle='rgba(80,72,50,.5)'; g.lineWidth=4; g.beginPath(); g.ellipse(W/2,H*0.62,W*0.33,H*0.27,0,0,Math.PI*2); g.stroke(); });
+    const st=new THREE.Mesh(new THREE.PlaneGeometry(2.4,2), new THREE.MeshBasicMaterial({map:stain,transparent:true,depthWrite:false}));
+    st.position.set(o-4.48,1.05,-0.8); st.rotation.y=Math.PI/2; scene.add(st);
+    cyl(0.2,0.16,0.3, mat(0x2f6ea8),o-4,0.15,-0.8); sol(Z,-4.3,-3.7,-1.1,-0.5);
+    box(0.5,1.6,0.35, mat(0xc49a5c),o+4.1,0.8,-2.6); sol(Z,3.8,4.4,-2.8,-2.4);
+    npc(o-2.2,1.6,-Math.PI/4*3+Math.PI,0x2f6ea8,0x2a2f32,0xc89a74,0x2a2a2a,'short'); sol(Z,-2.5,-1.9,1.3,1.9);
+    hs(Z,-2.2,1.6,'Hablar con el señor Ferreyra',{kind:'Vecino',name:'Señor Ferreyra',chip:'Caso próximo',status:'pronto',
+      desc:'“Empezó como una manchita en invierno. Ahora está así. Pintamos dos veces y vuelve a salir. Mi señora dice que es el caño del baño.”',
+      items:['Síntoma: mancha que crece','Pista: vuelve después de pintar','Pista: el baño está del otro lado de la pared']},2.3);
+    hs(Z,-3.9,-0.8,'Revisar la mancha',{kind:'Caso',name:'Humedad en la pared',chip:'Próximamente jugable',status:'pronto',
+      desc:'La mancha tiene borde marcado y es más oscura abajo. El balde está seco. Hay que descartar antes de romper.',
+      items:['¿Pérdida en un caño del baño?','¿Filtración desde el techo?','¿Humedad que sube del suelo?','Pruebas: medidor de humedad, cerrar la llave de paso, mirar el techo']},2.2);
+  }
+
+  // ---- FERRETERÍA ----
+  { const Z=room('ferreteria',{w:12,d:9,h:4,wall:0xe7e2d3,floorTex:tileTex,title:'Ferretería El Tornillo'}); const o=Z.ox;
+    const shelf=(x,z,rot)=>{ const g=new THREE.Group(); g.position.set(o+x,0,z); g.rotation.y=rot; scene.add(g);
+      box(3.2,2.6,0.06, mat(0x5a6266),0,1.3,-0.3,g);
+      for(let lv=0;lv<4;lv++){ box(3.2,0.05,0.6, mat(0x7c858a),0,0.25+lv*0.65,0,g);
+        for(let i=0;i<6;i++){ const hh=0.2+((i*7+lv*3)%4)*0.07; box(0.4,hh,0.42, mat([0xb9573f,0x2f6ea8,0xf2b705,0x2f7d68,0xe9e4d6,0x8f6aa8][(i+lv)%6]),-1.3+i*0.52,0.28+lv*0.65+hh/2,0,g); } } };
+    shelf(-4,-4,0); shelf(-0.4,-4,0); shelf(-5.65,-0.6,Math.PI/2); shelf(-1.5,0.6,Math.PI);
+    sol(Z,-5.7,1.3,-4.5,-3.6); sol(Z,-6,-5.3,-2.3,1.1); sol(Z,-3.2,0.2,0.2,1.0);
+    // counter
+    box(3.6,1,0.8, mat(0xa8774c),o+3.4,0.5,-0.6); box(3.7,0.06,0.9, mat(0x16252b),o+3.4,1.03,-0.6);
+    box(0.45,0.3,0.4, mat(0x2a2f32),o+4.4,1.21,-0.6); box(0.35,0.18,0.03, mat(0x2f9e6a,{emissive:0x2f9e6a,emissiveIntensity:0.5}),o+4.4,1.42,-0.4);
+    sol(Z,1.5,5.3,-1.1,-0.1);
+    npc(o+3.2,-1.6,0,0x2f7d68,0x2a2f32,0xd9a77f,0xf2b705,'cap'); sol(Z,2.9,3.5,-1.9,-1.3);
+    // tool wall
+    box(0.06,1.8,5, mat(0xc49a5c),o+5.95,2,-2);
+    for(let i=0;i<10;i++) box(0.04,0.3+(i%3)*0.15,0.08, mat([0xc7322b,0x16252b,0x7c858a][i%3],{metalness:0.4}),o+5.9,2.2,-4+i*0.42);
+    sign('HERRAMIENTAS','#16252b','#f2b705',2.6,0.4,o+5.92,3.2,-2,null,80,-Math.PI/2);
+    hs(Z,3.4,0.3,'Comprar herramientas',shop,2.2);
+    hs(Z,-2.2,-3,'Mirar la estantería',{kind:'Estantería',name:'Repuestos y materiales',chip:'Próximamente',status:'pronto',
+      desc:'Correas, bombas de desagote, carbones, cinta, sellador, caños. Cada caso del barrio va a pedir algo de acá.',
+      items:['Lo que compres queda en tu taller','Comprar la pieza equivocada cuesta plata','Por eso conviene diagnosticar antes de comprar']},2,2.4);
+  }
+
+  // ---- CONCESIONARIA ----
+  { const Z=room('conces',{w:12,d:9,h:3.6,wall:0xf4f7f6,floorTex:showTex,title:'Usados del Puerto'}); const o=Z.ox;
+    const show=car(0x2f6ea8,o-1.8,-0.8,0.5); cars.push(show);
+    const disc=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,0.08,40), mat(0xd7dcdb,{roughness:0.3})); disc.position.set(o-1.8,0.04,-0.8); disc.receiveShadow=true; scene.add(disc);
+    sol(Z,-4,0.4,-2.2,0.6);
+    box(0.8,1.2,0.04, mat(0xf2b705),o-1.8,0.6,1.8).rotation.y=0; sign('U$S ???','#f2b705','#16252b',0.7,0.3,o-1.8,0.9,1.83,null,90);
+    // desk
+    box(2.2,0.06,1, mat(0x16252b),o+3.6,0.76,-2.6); box(0.06,0.74,0.9, mat(0x16252b),o+2.6,0.38,-2.6); box(0.06,0.74,0.9, mat(0x16252b),o+4.6,0.38,-2.6);
+    box(0.5,0.3,0.03, mat(0x2a2f32),o+3.6,1,-2.9); box(0.5,0.02,0.35, mat(0x7c858a),o+3.6,0.8,-2.6);
+    sol(Z,2.5,4.7,-3.2,-2);
+    npc(o+3.6,-3.6,0,0xf4f7f6,0x16252b,0xd2a27a,0x3a2a1a,'short'); sol(Z,3.3,3.9,-4,-3.3);
+    board('OFERTA DEL MES',['Sedán 2009 · "anda bárbaro"','Hatch 2012 · "un detalle"','Pick-up 2005 · "como nueva"'],3,1.5,o-5.88,2,-1,Math.PI/2,'#16252b','#f2b705');
+    // glass front panels
+    box(4,2.4,0.04, glass,o-3.6,1.5,4.45); box(4,2.4,0.04, glass,o+3.6,1.5,4.45);
+    hs(Z,-1.8,1.4,'Mirar el auto en exhibición',{kind:'Auto usado',name:'Sedán azul 2009',chip:'Falla oculta',status:'pronto',
+      desc:'Brilla, pero tiene algo. El vendedor no te lo va a decir. Si lo diagnosticás antes de comprar, sabés cuánto vale de verdad.',
+      items:['Compralo barato si encontrás la falla','Reparalo en tu taller','Revendelo y ganá la diferencia']},2,2.6);
+    hs(Z,3.6,-1.6,'Hablar con el vendedor',{kind:'Vendedor',name:'Usados del Puerto',chip:'Abre pronto',status:'pronto',
+      desc:'“Todos andan bárbaro, eh. Los revisó mi cuñado, que es mecánico.”',
+      items:['Lo que dice el vendedor es una pista, no un diagnóstico','Podés pedir hacer una prueba de ruta','Algunos autos tienen más de una falla']},2.2);
+  }
+
+  scene.updateMatrixWorld(true);
+  const tmpBox=new THREE.Box3();
+  cars.forEach(c=>{ if(c.position.x<200){ tmpBox.setFromObject(c); solid(tmpBox.min.x,tmpBox.max.x,tmpBox.min.z,tmpBox.max.z); } });
+
+  // ---------- PLAYER ----------
+  const EYE=1.7, RADIUS=0.35;
+  const player=new THREE.Vector3(-26,0,-4.6);
+  let yaw=-Math.PI/2+0.25, pitch=-0.05, zone='street';
+
+  function blocked(x,z){
+    const Z=zones[zone];
+    if(zone==='street'){ if(x<-47||x>47||z<-47||z>47) return true; }
+    else { if(x<Z.ox-Z.w/2+RADIUS||x>Z.ox+Z.w/2-RADIUS||z<-Z.d/2+RADIUS||z>Z.d/2-RADIUS) return true; }
+    for(const c of Z.colliders){ if(x>c.minX-RADIUS && x<c.maxX+RADIUS && z>c.minZ-RADIUS && z<c.maxZ+RADIUS) return true; }
+    return false;
+  }
+
+  // ---------- UI ----------
+  const tagsEl=document.getElementById('tags'); const tags={};
+  Object.keys(anchors).forEach(k=>{
+    const b=document.createElement('div'); b.className='tag'; b.textContent=PLACES[k].name; b.dataset.status=PLACES[k].status;
+    tagsEl.appendChild(b); tags[k]=b;
+  });
+  const startEl=document.getElementById('start'), hint=document.getElementById('hint'), hintText=document.getElementById('hintText');
+  const promptEl=document.getElementById('prompt'), pText=document.getElementById('pText'), pKey=document.getElementById('pKey');
+  const panel=document.getElementById('panel'), cross=document.getElementById('cross'), whereEl=document.getElementById('where');
+  const stick=document.getElementById('stick'), knob=document.getElementById('knob'), fade=document.getElementById('fade');
+  const barEl=document.getElementById('bar');
+  function ownedList(){ return TOOLS.filter(t=>owned.has(t.id)); }
+  function renderBar(){
+    barEl.innerHTML='';
+    const m=document.createElement('div'); m.className='money'; m.textContent=fmt(money); barEl.appendChild(m);
+    ownedList().forEach((t,i)=>{
+      const b=document.createElement('button'); b.className='slot'+(held===t.id?' on':''); b.title=t.name;
+      b.setAttribute('aria-pressed', held===t.id ? 'true':'false');
+      b.innerHTML='<small>'+(i+1)+'</small>'+t.short;
+      b.addEventListener('click',e=>{ e.stopPropagation(); held = held===t.id ? null : t.id; renderBar(); });
+      barEl.appendChild(b);
+    });
+  }
+  renderBar();
+  if(touch){ document.getElementById('keysDesk').hidden=true; document.getElementById('keysTouch').hidden=false; pKey.hidden=true; }
+
+  let playing=false, locked=false, near=null, open=false, busy=false;
+  function setHint(){
+    hint.hidden = !playing || open;
+    hintText.textContent = touch ? 'Izquierda: caminar · Derecha: mirar'
+      : (locked ? 'WASD caminar · Shift correr · E usar · Esc soltar el mouse' : 'Hacé clic en la escena para mirar con el mouse · o arrastrá');
+  }
+  function lock(){ if(touch) return; try{ const p=canvas.requestPointerLock && canvas.requestPointerLock(); if(p && p.catch) p.catch(()=>{}); }catch(e){} }
+  document.addEventListener('pointerlockchange',()=>{ locked=document.pointerLockElement===canvas; setHint(); });
+  document.addEventListener('pointerlockerror',()=>{ locked=false; setHint(); });
+
+  document.getElementById('go').addEventListener('click',()=>{ startEl.hidden=true; playing=true; cross.hidden=false; barEl.hidden=false; lock(); setHint(); });
+
+  function info(d){
+    open=true;
+    document.getElementById('pKind').textContent=d.kind||'';
+    document.getElementById('pName').textContent=d.name||'';
+    const chip=document.getElementById('pChip'); chip.textContent=d.chip||''; chip.dataset.status=d.status||'pronto';
+    document.getElementById('pChipWrap').hidden=!d.chip;
+    document.getElementById('pDesc').textContent=d.desc||'';
+    const ul=document.getElementById('pItems'); ul.innerHTML='';
+    (d.items||[]).forEach(t=>{const li=document.createElement('li');
+      if(typeof t==='string') li.textContent=t; else { li.textContent=t.text; if(t.clue) li.className='clue'; }
+      ul.appendChild(li);});
+    let firstBuy=null;
+    (d.rows||[]).forEach(r=>{
+      const li=document.createElement('li'); li.className='row';
+      const s=document.createElement('span'); const b=document.createElement('b'); b.textContent=r.name; const em=document.createElement('em'); em.textContent=r.desc;
+      s.appendChild(b); s.appendChild(em);
+      const btn=document.createElement('button'); btn.className='buy'; btn.textContent=r.btn; btn.disabled=r.disabled;
+      btn.addEventListener('click',r.onClick); if(!r.disabled && !firstBuy) firstBuy=btn;
+      li.appendChild(s); li.appendChild(btn); ul.appendChild(li);
+    });
+    panel.hidden=false; promptEl.hidden=true; cross.hidden=true; barEl.hidden=true;
+    if(document.exitPointerLock && locked) document.exitPointerLock();
+    keys.clear(); setHint();
+    document.getElementById('pClose').focus({preventScroll:true});
+  }
+  function closeInfo(){ panel.hidden=true; open=false; cross.hidden=false; barEl.hidden=false; setHint(); lock(); }
+  document.getElementById('pClose').addEventListener('click',closeInfo);
+
+  function transition(fn){
+    if(busy) return; busy=true; keys.clear();
+    const swap=()=>{ fn(); setTimeout(()=>{ fade.classList.remove('on'); busy=false; }, reduceMotion?0:60); };
+    if(reduceMotion){ swap(); return; }
+    fade.classList.add('on'); setTimeout(swap,230);
+  }
+  function enter(k){
+    transition(()=>{
+      zone=k; const Z=zones[k]; player.set(Z.spawn.x,0,Z.spawn.z); yaw=Z.spawn.yaw; pitch=-0.04;
+      scene.fog=null; whereEl.textContent=Z.title; whereEl.hidden=false;
+    });
+  }
+  function exitTo(k){
+    transition(()=>{
+      zone='street'; const d=doors[k]; const s=doorSide[k]==='n'?1:-1;
+      player.set(d.x,0,d.z+s*1.3); yaw = s>0 ? Math.PI : 0; pitch=-0.04;
+      scene.fog=streetFog; whereEl.hidden=true;
+    });
+  }
+  promptEl.addEventListener('click',e=>{ e.stopPropagation(); if(near) near.act(); });
+
+  const keys=new Set();
+  window.addEventListener('keydown',e=>{
+    if(!playing) return;
+    if(open){ if(e.key==='Escape'||e.key==='e'||e.key==='E') { e.preventDefault(); closeInfo(); } return; }
+    if((e.key==='e'||e.key==='E') && near && !busy){ near.act(); return; }
+    if(/^Digit[1-6]$/.test(e.code)){ const t=ownedList()[+e.code.slice(5)-1]; if(t){ held = held===t.id ? null : t.id; renderBar(); } return; }
+    keys.add(e.code);
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+  });
+  window.addEventListener('keyup',e=>keys.delete(e.code));
+  window.addEventListener('blur',()=>keys.clear());
+
+  const LOOK=0.0024;
+  function look(dx,dy){ yaw-=dx*LOOK; pitch=Math.max(-1.35,Math.min(1.35,pitch-dy*LOOK)); }
+  document.addEventListener('mousemove',e=>{ if(locked && playing && !open) look(e.movementX||0,e.movementY||0); });
+
+  const ptr=new Map(); let stickId=null, stickOrigin=null; const move2=new THREE.Vector2();
+  canvas.addEventListener('pointerdown',e=>{
+    if(!playing || open) return;
+    if(e.pointerType==='mouse'){ if(!locked) lock(); ptr.set(e.pointerId,{x:e.clientX,y:e.clientY}); canvas.setPointerCapture(e.pointerId); return; }
+    canvas.setPointerCapture(e.pointerId);
+    if(e.clientX<window.innerWidth*0.45 && stickId===null){
+      stickId=e.pointerId; stickOrigin={x:e.clientX,y:e.clientY};
+      stick.style.left=e.clientX+'px'; stick.style.top=e.clientY+'px'; stick.hidden=false; knob.style.transform='';
+    } else ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  });
+  canvas.addEventListener('pointermove',e=>{
+    if(e.pointerId===stickId){
+      let dx=e.clientX-stickOrigin.x, dy=e.clientY-stickOrigin.y; const m=Math.hypot(dx,dy), R=45;
+      if(m>R){ dx*=R/m; dy*=R/m; }
+      move2.set(dx/R, dy/R); knob.style.transform='translate('+dx+'px,'+dy+'px)'; return;
+    }
+    const p=ptr.get(e.pointerId); if(!p) return;
+    if(!locked){ const f=e.pointerType==='mouse'?1:1.4; look((e.clientX-p.x)*f,(e.clientY-p.y)*f); }
+    ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  });
+  function up(e){ if(e.pointerId===stickId){ stickId=null; move2.set(0,0); stick.hidden=true; } ptr.delete(e.pointerId); }
+  canvas.addEventListener('pointerup',up); canvas.addEventListener('pointercancel',up);
+
+  function resize(){ const w=window.innerWidth, h=window.innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  window.addEventListener('resize',resize); resize();
+
+  // ---------- LOOP ----------
+  const v=new THREE.Vector3(); const clock=new THREE.Clock(); let t=0, bob=0;
+  const fwd=new THREE.Vector3(), right=new THREE.Vector3();
+  function frame(){
+    const dt=Math.min(clock.getDelta(),0.05); t+=dt;
+    let mx=0, mz=0;
+    if(playing && !open && !busy){
+      if(keys.has('KeyW')||keys.has('ArrowUp')) mz+=1;
+      if(keys.has('KeyS')||keys.has('ArrowDown')) mz-=1;
+      if(keys.has('KeyA')||keys.has('ArrowLeft')) mx-=1;
+      if(keys.has('KeyD')||keys.has('ArrowRight')) mx+=1;
+      if(stickId!==null){ mx+=move2.x; mz-=move2.y; }
+    }
+    const len=Math.hypot(mx,mz);
+    if(len>0.05){
+      if(len>1){ mx/=len; mz/=len; }
+      let speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')? 8 : 4.6) * (touch && len>0.85 ? 1.35 : 1);
+      if(zone!=='street') speed*=0.7;
+      fwd.set(-Math.sin(yaw),0,-Math.cos(yaw)); right.set(Math.cos(yaw),0,-Math.sin(yaw));
+      const dx=(fwd.x*mz+right.x*mx)*speed*dt, dz=(fwd.z*mz+right.z*mx)*speed*dt;
+      if(!blocked(player.x+dx,player.z)) player.x+=dx;
+      if(!blocked(player.x,player.z+dz)) player.z+=dz;
+      bob+=dt*speed*1.9;
+    }
+    const by = reduceMotion ? 0 : Math.sin(bob)*0.045;
+    camera.position.set(player.x, EYE+by, player.z);
+    camera.rotation.set(pitch, yaw, 0);
+
+    // nearest hotspot in this zone (closest within its radius, favoring what you look at)
+    near=null; let best=Infinity;
+    fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
+    for(const h of zones[zone].hotspots){
+      const dx=h.x-player.x, dz=h.z-player.z, d=Math.hypot(dx,dz);
+      if(d>h.r) continue;
+      const facing = d<0.6 ? 1 : (dx*fwd.x+dz*fwd.z)/d;
+      const score = d - facing*0.8;
+      if(score<best){ best=score; near=h; }
+    }
+    rings.forEach(r=>r.scale.set(1,1,1));
+    if(!reduceMotion) markers.forEach((m,i)=>{ m.rotation.y=t*1.6+i; m.position.y+=Math.sin(t*2.2+i)*0.0015; });
+    if(near && near.marker && near.marker.geometry.type==='RingGeometry' && !reduceMotion){ const s=1.15+Math.sin(t*5)*0.1; near.marker.scale.set(s,s,s); }
+    if(playing && !open && !busy && near){ pText.textContent = typeof near.label==='function' ? near.label() : near.label; promptEl.hidden=false; }
+    else promptEl.hidden=true;
+
+    renderer.render(scene,camera);
+
+    const w=window.innerWidth, h=window.innerHeight;
+    Object.keys(anchors).forEach(k=>{
+      const el=tags[k]; const a=anchors[k];
+      if(zone!=='street'){ el.hidden=true; return; }
+      const dist=Math.hypot(a.x-player.x,a.z-player.z);
+      v.copy(a).project(camera);
+      if(v.z>1 || dist>34 || Math.abs(v.x)>1.1 || Math.abs(v.y)>1.1){ el.hidden=true; return; }
+      el.hidden=false;
+      el.style.opacity = dist<8 ? Math.max(0,(dist-3)/5) : 1;
+      el.style.transform='translate('+((v.x*0.5+0.5)*w)+'px,'+((-v.y*0.5+0.5)*h)+'px) translate(-50%,-100%)';
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+const boot=()=>{ try{ start(); }catch(err){ console.error(err); const s=document.getElementById('go'); if(s){ s.textContent='No se pudo iniciar el 3D'; s.disabled=true; } } };
+if(document.fonts && document.fonts.ready){ Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,1500))]).then(boot); } else boot();
+})();
+</script>
+
+</body></html>

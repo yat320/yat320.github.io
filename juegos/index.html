@@ -32,6 +32,8 @@
   .quest a.juego b { color: var(--quest) }
   a.juego p { margin: 2px 0 0; color: var(--suave) }
   a.juego .ir { flex: none; font-size: 26px; color: var(--suave) }
+  a.salto { display: inline-block; margin-top: 10px; padding: 10px 16px; border: 2px solid var(--borde); border-radius: 999px; color: var(--quest); font-weight: 700; text-decoration: none }
+  a.salto:hover, a.salto:focus-visible { border-color: var(--quest); outline: none }
   @media (max-width: 480px) { a.juego p { font-size: 16px } }
 </style>
 </head>
@@ -39,6 +41,7 @@
 <main>
   <h1>Juegos</h1>
   <p class="bajada">Los links de todo lo que vamos haciendo. Tocá uno y jugá.</p>
+  <a class="salto" href="#quest">🥽 Ir a los del Quest 3 ↓</a>
 
   <section>
     <h2><span class="ico">🎮</span>Los que vamos haciendo</h2>
@@ -78,15 +81,123 @@
       <span class="txt"><b>Pump and Dump</b><p>Cada minuto se vota: ¿sube o baja? Todos votan a la vez y se ve el resultado.</p></span>
       <span class="ir">›</span>
     </a>
+
+    <a class="juego" href="/ventana-roja/">
+      <span class="ico">🎯</span>
+      <span class="txt"><b>Ventana Roja</b><p>Francotirador en una terraza: bajá a los armados de las ventanas sin tocar a los vecinos.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/stay-in-the-light/">
+      <span class="ico">💡</span>
+      <span class="txt"><b>Stay in the Light</b><p>Girá lámparas y espejos para iluminar el camino: en la sombra te agarran.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/topo/">
+      <span class="ico">✈️</span>
+      <span class="txt"><b>Topo a bordo</b><p>Desde el panel del avión, descubrí al topo antes de aterrizar.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/junk-car/">
+      <span class="ico">🔩</span>
+      <span class="txt"><b>Junk Car Teardown</b><p>Desarmá autos chatarra: juntá tres piezas iguales sin llenar la bandeja.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/scrapyard/">
+      <span class="ico">🧲</span>
+      <span class="txt"><b>Scrapyard Merge</b><p>Golpeá autos chatarra, juntá piezas iguales y restaurá clásicos en tu desarmadero.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/garage-jam/">
+      <span class="ico">🅿️</span>
+      <span class="txt"><b>Garage Jam</b><p>Destrabá el playón: tocá cada auto en el orden justo para que salga.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/barrio-del-taller/">
+      <span class="ico">🏘️</span>
+      <span class="txt"><b>Barrio del Taller</b><p>Recorré el barrio en primera persona y ayudá a los vecinos con sus fallas. El prototipo de Sospechoso de Siempre.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/guardafaro/">
+      <span class="ico">⛵</span>
+      <span class="txt"><b>Guardafaro</b><p>Noche de temporal: guiá los barcos al puerto con el haz del faro.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/la-curva/">
+      <span class="ico">🌀</span>
+      <span class="txt"><b>La Curva</b><p>Mové las palancas de la IA y tratá de esquivar o provocar la singularidad.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/planilandia/">
+      <span class="ico">🧊</span>
+      <span class="txt"><b>Planilandia Abierta</b><p>Girá cubos y teseractos hasta que su sombra calce con la silueta.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/singularidad/">
+      <span class="ico">🧠</span>
+      <span class="txt"><b>Singularidad</b><p>Tocá el núcleo, comprá chips y mirá cómo la IA se te escapa.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/marea/">
+      <span class="ico">🌊</span>
+      <span class="txt"><b>Marea de Noche</b><p>Tocá el mar de noche, cruzá ondas y despertá medusas, peces y tortugas.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/monte-chico/">
+      <span class="ico">🐾</span>
+      <span class="txt"><b>Monte Chico</b><p>Elegís un bicho, atrapás otros y cruzás el pastizal para prender el faro.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/cueva-cripto/">
+      <span class="ico">🪙</span>
+      <span class="txt"><b>Cueva Cripto</b><p>Treinta días, diez mil dólares de mentira y monedas inventadas que suben y se desploman.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/waffles/">
+      <span class="ico">🧇</span>
+      <span class="txt"><b>Waffle Frenzy</b><p>Cociná waffles, poné los toppings justos y servilos antes de que el cliente se vaya.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/frenesi/">
+      <span class="ico">💥</span>
+      <span class="txt"><b>Frenesí Total</b><p>Esquivá una avalancha de figuras neón mientras disparás solo y cargás el frenesí.</p></span>
+      <span class="ir">›</span>
+    </a>
   </section>
 
-  <section class="quest">
+  <section class="quest" id="quest">
     <h2><span class="ico">🥽</span>Para probar con el Quest 3</h2>
     <p class="nota">Abrilos en el navegador del Quest. Para llegar rápido, escribí <b>yat320.github.io/juegos</b></p>
 
     <a class="juego" href="/palomas/">
       <span class="ico">🕊️</span>
       <span class="txt"><b>¡Fuera palomas!</b><p>Realidad mixta: la cámara encuentra palomas de verdad, o bajan palomas dibujadas a tu piso, y les disparás.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/ventana-roja/">
+      <span class="ico">🎯</span>
+      <span class="txt"><b>Ventana Roja</b><p>Francotirador en una terraza, con el visor: bajá a los armados sin tocar a los vecinos.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="/sospechoso/">
+      <span class="ico">🔧</span>
+      <span class="txt"><b>Sospechoso de Siempre con el visor</b><p>El taller del barrio en realidad virtual: entrá con el botón 🥽.</p></span>
       <span class="ir">›</span>
     </a>
 
@@ -99,6 +210,35 @@
     <a class="juego" href="/arrancalo/">
       <span class="ico">🚗</span>
       <span class="txt"><b>¡Arrancalo! con el visor</b><p>El del auto lo ve en el Quest; el del manual, en el celu o la compu.</p></span>
+      <span class="ir">›</span>
+    </a>
+  </section>
+
+  <section>
+    <h2><span class="ico">🔒</span>Con la IA de Claude</h2>
+    <p class="nota">La IA es parte del juego, así que viven en Claude: abren con tu cuenta iniciada.</p>
+
+    <a class="juego" href="https://claude.ai/artifact/LBGgp9hvTLBR9XuCjZ1zJY">
+      <span class="ico">💰</span>
+      <span class="txt"><b>Prompt Tycoon</b><p>Arrancás con 50 dólares y escribís planes hasta ser más rico que Elon Musk.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="https://claude.ai/artifact/4gvxdGLrT2U1x8P8518PT7">
+      <span class="ico">🕹️</span>
+      <span class="txt"><b>Prompt Game Studio</b><p>Pedile juegos a la IA, lanzalos y hacé crecer tu estudio hasta mil millones.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="https://claude.ai/artifact/VEut71wytU9EoTXTXAkcgH">
+      <span class="ico">🔀</span>
+      <span class="txt"><b>Dos Caminos</b><p>Una aventura que escribe la IA: en cada cruce elegís entre dos caminos.</p></span>
+      <span class="ir">›</span>
+    </a>
+
+    <a class="juego" href="https://claude.ai/artifact/YK4ZtmiFrUAmwvghtZRTUh">
+      <span class="ico">💵</span>
+      <span class="txt"><b>Prompt Tycoon Clásico</b><p>La versión original: la IA hace de mercado y multiplica o se come tu plata.</p></span>
       <span class="ir">›</span>
     </a>
   </section>
