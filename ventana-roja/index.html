@@ -45,6 +45,12 @@ h2{margin:0;font:900 clamp(40px,8vw,64px)/.95 var(--display);text-wrap:balance}
 .btn.primary{background:var(--signal);border-color:var(--signal);color:#1a0905}
 .btn:focus-visible,.chip:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .note{margin:0;font-size:12px;line-height:1.5;color:var(--brass);min-height:1em}
+.mr{display:flex;flex-direction:column;gap:10px;border:1px solid rgba(217,179,106,.45);padding:14px;background:rgba(217,179,106,.05)}
+.mr h3{margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:600}
+.mr p{margin:0;font-size:13px;line-height:1.55}
+.mr .warn{font-size:11px;color:var(--dim)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.camfeed{position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;pointer-events:none}
 .ctrls{display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid var(--line);padding-top:14px}
 @media (max-width:480px){.ctrls{grid-template-columns:1fr}}
 .ctrls h3{margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:600}
@@ -84,13 +90,23 @@ h2{margin:0;font:900 clamp(40px,8vw,64px)/.95 var(--display);text-wrap:balance}
     <h1 class="logo">VENTANA<br><span>ROJA</span></h1>
     <p class="lead">Estás en una terraza sobre la ciudad. Por las ventanas asoman tiradores armados y vecinos que no tienen nada que ver. Bajá a los armados antes de que te apunten y no le toques un pelo a nadie más.</p>
     <div class="levels" id="levels"></div>
+    <div class="mr">
+      <h3>Balcón real · Quest 3</h3>
+      <p>Salí al balcón con el visor. El juego mira por la cámara, encuentra los edificios de enfrente y hace asomar a los tiradores en sus ventanas.</p>
+      <div class="actions">
+        <button id="bCam" class="btn primary">1. Prender la cámara</button>
+        <button id="bMR" class="btn primary" disabled>2. Entrar al balcón</button>
+      </div>
+      <p id="mrNote" class="note"></p>
+      <p class="warn">Jugá quieto, con el límite estacionario del Quest y lejos de la baranda. No dejes los lentes del visor apuntando al sol.</p>
+    </div>
     <div class="actions">
-      <button id="bVR" class="btn primary">Entrar en VR</button>
+      <button id="bVR" class="btn">Ciudad virtual en VR</button>
       <button id="bFlat" class="btn">Jugar en pantalla</button>
     </div>
     <p id="vrNote" class="note"></p>
     <div class="ctrls">
-      <div><h3>Quest 3</h3><p>Gatillo: disparar. Acercá la mira del rifle al ojo para ver con zoom. Stick: girar 45°. A o B: recargar.</p></div>
+      <div><h3>Quest 3</h3><p>Gatillo: disparar. Acercá la mira del rifle al ojo para ver con zoom. A o B: recargar. En la ciudad virtual, stick derecho: girar 45°.</p></div>
       <div><h3>Pantalla</h3><p>Mouse o arrastrar: apuntar. Clic derecho o E: mira. Clic o espacio: disparar. R: recargar. En celular, botones abajo.</p></div>
     </div>
     <p class="note dim" id="best"></p>
@@ -142,7 +158,8 @@ const BASE = -40;     // altura de la calle respecto de la terraza
 const MAG = 5;        // balas por cargador
 
 /* ---------------- Render ---------------- */
-const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'high-performance' });
+renderer.setClearColor(0x000000, 0);   // en el balcón el fondo es la imagen real
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.domElement.id = 'game';
@@ -198,6 +215,8 @@ const parapets=[];
 });
 const tank=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,1.8,16), parapetMat); tank.position.set(-3.6,.9,7.5); scene.add(tank);
 const staticOcc=[own, ground, ...parapets];
+const mrGroup=new THREE.Group(); scene.add(mrGroup);   // ventanas sobre edificios reales
+const D2R=Math.PI/180;
 
 /* ---------------- Ciudad ---------------- */
 const facCanv=[0,1,2,3].map(()=>{ const c=document.createElement('canvas'); c.width=c.height=256; return c; });
@@ -270,9 +289,9 @@ function buildCity(seed, p){
 
 /* ---------------- Personas en las ventanas ---------------- */
 const G={ torso:new THREE.BoxGeometry(.56,.9,.3), head:new THREE.SphereGeometry(.2,12,10), rifle:new THREE.BoxGeometry(.07,.09,1.0),
-  arm:new THREE.BoxGeometry(.13,.6,.13), interior:new THREE.PlaneGeometry(1.88,2.4), hTorso:new THREE.BoxGeometry(.8,1.05,.7), hHead:new THREE.BoxGeometry(.52,.52,.6) };
+  arm:new THREE.BoxGeometry(.13,.6,.13), interior:new THREE.PlaneGeometry(1.88,2.4), frame:new THREE.PlaneGeometry(2.4,2.9), hTorso:new THREE.BoxGeometry(.8,1.05,.7), hHead:new THREE.BoxGeometry(.52,.52,.6) };
 const M={ enemy:new THREE.MeshLambertMaterial({ color:0x3d3b2c }), mask:new THREE.MeshLambertMaterial({ color:0x151515 }),
-  gun:new THREE.MeshLambertMaterial({ color:0x0e0e0e }), hit:new THREE.MeshBasicMaterial({ visible:false }), interior:new THREE.MeshBasicMaterial({ color:0xe8d4a6 }) };
+  gun:new THREE.MeshLambertMaterial({ color:0x0e0e0e }), frame:new THREE.MeshBasicMaterial({ color:0x1d1b19, fog:false }), hit:new THREE.MeshBasicMaterial({ visible:false }), interior:new THREE.MeshBasicMaterial({ color:0xe8d4a6 }) };
 const civMats=[0x3f7fbf,0xd8d2c4,0xc94f7c,0xe2b33c,0x5aa36a,0x8e6bbf].map(c=>new THREE.MeshLambertMaterial({ color:c }));
 const skinMats=[0xe0b48f,0xb07a52,0x8a5a3c,0xf0c9a5].map(c=>new THREE.MeshLambertMaterial({ color:c }));
 const glintMat=new THREE.SpriteMaterial({ map:glowTex, color:0xff3b2a, blending:THREE.AdditiveBlending, depthWrite:false, fog:false, transparent:true });
@@ -280,7 +299,7 @@ const glintMat=new THREE.SpriteMaterial({ map:glowTex, color:0xff3b2a, blending:
 let targets=[], rayList=[];
 const ray=new THREE.Raycaster();
 const V1=new THREE.Vector3(), V2=new THREE.Vector3(), V3=new THREE.Vector3(), Q1=new THREE.Quaternion();
-function rebuildRay(){ rayList=occluders.slice(); for(const t of targets){ rayList.push(t.ht, t.hh); } }
+function rebuildRay(){ rayList= mode==='mr' ? [] : occluders.slice(); for(const t of targets){ rayList.push(t.ht, t.hh); } }
 function eyePos(out){ return camera.getWorldPosition(out); }
 function countActive(type){ let n=0; for(const t of targets) if(t.type===type && (t.state==='in'||t.state==='idle'||t.state==='aim')) n++; return n; }
 
@@ -303,10 +322,23 @@ function pickSlot(maxDist){
   return null;
 }
 
-function spawn(type){
-  const s=pickSlot(L.maxDist); if(!s) return false;
+function placement(){
+  if(mode==='mr'){
+    const free=spots.filter(s=>!s.busy); if(!free.length) return null;
+    const sp=pick(free); sp.busy=true;
+    const root=new THREE.Group(); root.position.copy(sp.pos); mrGroup.add(root);
+    root.lookAt(eyePos(V1));
+    const frame=new THREE.Mesh(G.frame, M.frame); frame.position.z=-.02; root.add(frame);
+    return { root, release:()=>{ sp.busy=false; } };
+  }
+  const s=pickSlot(L.maxDist); if(!s) return null;
   s.b.userData.occupied.add(s.key);
   const root=new THREE.Group(); root.position.set(s.lx,s.ly,s.lz); s.b.add(root);
+  return { root, release:()=>s.b.userData.occupied.delete(s.key) };
+}
+function spawn(type){
+  const pl=placement(); if(!pl) return false;
+  const root=pl.root;
   root.add(new THREE.Mesh(G.interior, M.interior));
   const fig=new THREE.Group(); fig.position.set((Math.random()-.5)*.5, -1.2, .14); fig.scale.set(1,.001,1); root.add(fig);
   const isE=type==='enemy';
@@ -315,7 +347,7 @@ function spawn(type){
   const head=new THREE.Mesh(G.head, isE?M.mask:pick(skinMats)); head.position.y=1.42; fig.add(head);
   const ht=new THREE.Mesh(G.hTorso,M.hit); ht.position.y=.72; fig.add(ht);
   const hh=new THREE.Mesh(G.hHead,M.hit); hh.position.y=1.42; fig.add(hh);
-  const t={ type, root, fig, b:s.b, key:s.key, state:'in', t:0, dur:0, ht, hh };
+  const t={ type, root, fig, release:pl.release, state:'in', t:0, dur:0, ht, hh };
   ht.userData.t=t; hh.userData.t=t; hh.userData.head=true;
   if(isE){
     const gun=new THREE.Group(); gun.position.set(.2,.95,.1); gun.rotation.x=1.1;
@@ -328,7 +360,8 @@ function spawn(type){
   return true;
 }
 function removeTarget(t){
-  t.b.remove(t.root); t.b.userData.occupied.delete(t.key);
+  if(t.root.parent) t.root.parent.remove(t.root);
+  t.release();
   if(t.glint) t.glint.material.dispose();
   const i=targets.indexOf(t); if(i>=0) targets.splice(i,1);
   rebuildRay();
@@ -419,7 +452,28 @@ const rifle=new THREE.Group(); rifle.visible=false;
 }
 const scopeRT=new THREE.WebGLRenderTarget(512,512,{ samples:2 });
 const scopeCam=new THREE.PerspectiveCamera(5,1,1,1600); scopeCam.position.set(0,.075,-.3); rifle.add(scopeCam);
-const lens=new THREE.Mesh(new THREE.CircleGeometry(.032,40), new THREE.MeshBasicMaterial({ map:scopeRT.texture, fog:false }));
+/* El lente mezcla dos cosas: lo virtual (render de la mira) y, en el balcón, la imagen de la cámara
+   recortada en la dirección a la que apunta el rifle. */
+const lensMat=new THREE.ShaderMaterial({
+  uniforms:{ tRT:{ value:scopeRT.texture }, tVid:{ value:null }, useVid:{ value:0 }, M:{ value:new THREE.Matrix3() },
+    tanS:{ value:Math.tan(2.5*D2R) }, tanCam:{ value:new THREE.Vector2(1,1) } },
+  vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader:[
+    'uniform sampler2D tRT; uniform sampler2D tVid; uniform float useVid; uniform mat3 M; uniform float tanS; uniform vec2 tanCam;',
+    'varying vec2 vUv;',
+    'void main(){',
+    '  vec4 v=texture2D(tRT,vUv); vec3 col=v.rgb;',
+    '  if(useVid>0.5){',
+    '    vec3 d=M*normalize(vec3((vUv.x*2.0-1.0)*tanS,(vUv.y*2.0-1.0)*tanS,-1.0));',
+    '    vec3 bg=vec3(0.0);',
+    '    if(d.z<-0.01){ vec2 p=d.xy/(-d.z); vec2 uv=vec2(0.5+p.x/tanCam.x*0.5,0.5+p.y/tanCam.y*0.5);',
+    '      if(uv.x>0.0&&uv.x<1.0&&uv.y>0.0&&uv.y<1.0) bg=texture2D(tVid,uv).rgb; }',
+    '    col=mix(bg,v.rgb,v.a);',
+    '  }',
+    '  gl_FragColor=vec4(col,1.0);',
+    '}'].join('\n')
+});
+const lens=new THREE.Mesh(new THREE.CircleGeometry(.032,40), lensMat);
 lens.position.set(0,.075,.068); rifle.add(lens);
 const ret=new THREE.Mesh(new THREE.CircleGeometry(.032,40), new THREE.MeshBasicMaterial({ map:reticleTexture(), transparent:true, fog:false, depthWrite:false }));
 ret.position.set(0,.075,.0685); rifle.add(ret);
@@ -439,14 +493,22 @@ const ctrls=[0,1].map(i=>{
   c.addEventListener('connected', e=>{
     c.userData.src=e.data; c.userData.hand=e.data.handedness;
     if(!rifle.parent || rifle.parent===scene || e.data.handedness==='right') attachRifle(c);
+    placePanel();
   });
-  c.addEventListener('disconnected', ()=>{ c.userData.src=null; if(rifle.parent===c){ c.remove(rifle); rifle.visible=false; } });
+  c.addEventListener('disconnected', ()=>{ c.userData.src=null; if(rifle.parent===c){ c.remove(rifle); rifle.visible=false; } placePanel(); });
   c.addEventListener('selectstart', ()=>onTrigger(c));
   return c;
 });
-function attachRifle(c){ c.add(rifle); rifle.visible=true; }
+function attachRifle(c){ c.add(rifle); rifle.visible=true; placePanel(); }
 function onTrigger(c){
   initAudio();
+  if(state==='scan'){   // marcar una ventana a mano, donde apunta el control
+    const o=eyePos(new THREE.Vector3());
+    const dir= rifle.parent===c ? scopeCam.getWorldDirection(new THREE.Vector3()) : c.getWorldDirection(new THREE.Vector3()).negate();
+    const from= rifle.parent===c ? scopeCam.getWorldPosition(new THREE.Vector3()) : c.getWorldPosition(new THREE.Vector3());
+    addManualSpot(o, from.addScaledVector(dir, SPOT_D).sub(o).normalize());
+    sfx.hit(false); haptic(.5,40); return;
+  }
   if(state!=='playing'){ if(vrAction) vrAction(); return; }
   if(rifle.parent!==c){ attachRifle(c); return; }   // el rifle pasa a la mano que aprieta
   shoot(scopeCam.getWorldPosition(V1).clone(), scopeCam.getWorldDirection(V2).clone(), muzzle.getWorldPosition(V3).clone());
@@ -455,18 +517,32 @@ function haptic(v,ms){
   try{ const a=rifle.parent && rifle.parent.userData.src && rifle.parent.userData.src.gamepad && rifle.parent.userData.src.gamepad.hapticActuators;
     if(a && a[0] && a[0].pulse){ const p=a[0].pulse(v,ms); if(p && p.catch) p.catch(()=>{}); } }catch(e){}
 }
-const turnLatch={}, btnLatch={};
-function pollGamepads(){
+const turnLatch={}, aLatch={}, bLatch={};
+function pollGamepads(dt){
   const s=renderer.xr.getSession(); if(!s) return;
+  let moved=false;
   for(const src of s.inputSources){
     const gp=src.gamepad; if(!gp) continue; const h=src.handedness||'none';
     const x=gp.axes.length>=4 ? gp.axes[2] : (gp.axes[0]||0);
-    if(!turnLatch[h] && Math.abs(x)>.7){ dolly.rotation.y-=Math.sign(x)*Math.PI/4; turnLatch[h]=true; }
-    else if(Math.abs(x)<.3) turnLatch[h]=false;
-    const b=!!((gp.buttons[4]&&gp.buttons[4].pressed)||(gp.buttons[5]&&gp.buttons[5].pressed));
-    if(b && !btnLatch[h] && state==='playing' && !reloading && ammo<MAG) reload();
-    btnLatch[h]=b;
+    const y=gp.axes.length>=4 ? gp.axes[3] : (gp.axes[1]||0);
+    if(mode==='vr'){   // en el balcón no se gira: lo virtual tiene que quedar pegado a lo real
+      if(!turnLatch[h] && Math.abs(x)>.7){ dolly.rotation.y-=Math.sign(x)*Math.PI/4; turnLatch[h]=true; }
+      else if(Math.abs(x)<.3) turnLatch[h]=false;
+    }
+    if(mode==='mr' && state==='scan' && h==='left' && (Math.abs(x)>.2||Math.abs(y)>.2)){
+      calib.yaw-=x*dt*8; calib.pitch-=y*dt*8; moved=true;   // corrige la puntería de la cámara
+    }
+    const a=!!(gp.buttons[4]&&gp.buttons[4].pressed), b=!!(gp.buttons[5]&&gp.buttons[5].pressed);
+    if(a && !aLatch[h]) onButton('a');
+    if(b && !bLatch[h]) onButton('b');
+    aLatch[h]=a; bLatch[h]=b;
   }
+  if(moved) updateAllSpots();
+}
+function onButton(k){
+  if(state==='playing'){ if(!reloading && ammo<MAG) reload(); return; }
+  if(state==='scan'){ if(k==='a') finishScan(); else { clearSpots(); toast('Ventanas borradas'); drawPanel(); } return; }
+  if(mode==='mr' && k==='b' && (state==='done'||state==='failed')) startScan(false);
 }
 
 /* panel VR apoyado en el parapeto */
@@ -474,6 +550,15 @@ const panelCanvas=document.createElement('canvas'); panelCanvas.width=768; panel
 const panelTex=new THREE.CanvasTexture(panelCanvas);
 const panel=new THREE.Mesh(new THREE.PlaneGeometry(.72,.36), new THREE.MeshBasicMaterial({ map:panelTex, transparent:true, fog:false }));
 panel.position.set(0,.98,-1.0); panel.rotation.x=-.55; panel.visible=false; dolly.add(panel);
+/* En la ciudad virtual el panel se apoya en el parapeto; en el balcón va en la muñeca de la mano libre. */
+function placePanel(){
+  if(mode==='mr'){
+    const host=ctrls.find(c=>c!==rifle.parent && c.userData.src);
+    if(host){ host.add(panel); panel.position.set(0,.06,.04); panel.rotation.set(-1.0,0,0); panel.scale.setScalar(.42); return; }
+    dolly.add(panel); panel.position.set(0,1.1,-.7); panel.rotation.set(-.35,0,0); panel.scale.setScalar(.6); return;
+  }
+  dolly.add(panel); panel.position.set(0,.98,-1.0); panel.rotation.set(-.55,0,0); panel.scale.setScalar(1);
+}
 const toastCanvas=document.createElement('canvas'); toastCanvas.width=640; toastCanvas.height=88;
 const toastTex=new THREE.CanvasTexture(toastCanvas);
 const toastMesh=new THREE.Mesh(new THREE.PlaneGeometry(.5,.069), new THREE.MeshBasicMaterial({ map:toastTex, transparent:true, depthTest:false, fog:false }));
@@ -565,6 +650,170 @@ function updateListener(){
 }
 function setMusic(on){ musicOn=on; store.set('vr.music',on); $('mute').textContent='MÚSICA: '+(on?'SÍ':'NO'); if(musicGain) musicGain.gain.value=on?.32:0; }
 
+/* ---------------- Cámara del visor y detección de edificios ---------------- */
+const SPOT_D=45;   // los enemigos se dibujan a 45 m en la dirección del edificio real
+let calib=Object.assign({ fov:72, yaw:0, pitch:0 }, store.get('vr.calib',{}));
+let video=null, vidTex=null, spots=[];
+const calibQ=()=>new THREE.Quaternion().setFromEuler(new THREE.Euler(calib.pitch*D2R, calib.yaw*D2R, 0, 'YXZ'));
+const camTan=()=>{ const tx=Math.tan(calib.fov/2*D2R), asp=video&&video.videoHeight ? video.videoWidth/video.videoHeight : 4/3; return [tx, tx/asp]; };
+function pixelDir(s,e){ const [tx,ty]=camTan(); return new THREE.Vector3((2*s-1)*tx, -(2*e-1)*ty, -1).normalize(); }
+
+async function startCamera(){
+  initAudio();
+  const note=$('mrNote');
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ note.textContent='Este navegador no deja usar la cámara.'; return; }
+  $('bCam').disabled=true;
+  note.textContent='Prendiendo la cámara. En el Quest el permiso se llama «cámaras del visor».';
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:960 } } });
+    video=document.createElement('video'); video.muted=true; video.playsInline=true; video.setAttribute('playsinline','');
+    video.className='camfeed'; video.srcObject=stream; document.body.appendChild(video);
+    await video.play();
+    vidTex=new THREE.VideoTexture(video); lensMat.uniforms.tVid.value=vidTex;
+    note.textContent=`Cámara andando (${video.videoWidth} × ${video.videoHeight}). Ahora tocá «2. Entrar al balcón».`;
+    $('bCam').textContent='Cámara prendida'; $('bMR').disabled=false;
+  }catch(e){
+    $('bCam').disabled=false;
+    note.textContent='No se pudo usar la cámara: '+(e && (e.message||e.name) || 'sin detalle')+'.';
+  }
+}
+
+/* ¿La cámara sigue mandando imagen? (en el visor a veces se frena) */
+const fzC=document.createElement('canvas'); fzC.width=16; fzC.height=12;
+const fzX=fzC.getContext('2d',{ willReadFrequently:true });
+let fzPrev=null, fzLast=0, fzCheck=0;
+function checkFreeze(now){
+  if(!video || video.readyState<2 || now-fzCheck<500) return; fzCheck=now;
+  fzX.drawImage(video,0,0,16,12); const d=fzX.getImageData(0,0,16,12).data; let u=0;
+  if(fzPrev) for(let i=0;i<d.length;i+=4) u+=Math.abs(d[i]-fzPrev[i])+Math.abs(d[i+1]-fzPrev[i+1]);
+  if(!fzPrev || u>0) fzLast=now; fzPrev=d;
+}
+const camOK=()=>!!video && video.readyState>=2 && performance.now()-fzLast<1500;
+
+/* Detector: de día busca dónde termina el cielo y, debajo, zonas con textura de ventanas;
+   de noche busca ventanas prendidas (puntos claros sobre fondo oscuro). Devuelve puntos 0..1 de la imagen. */
+function detectPixels(d,W,H){
+  const N=W*H, Y=new Float32Array(N), sky=new Uint8Array(N);
+  let top=0, topN=0;
+  for(let i=0;i<N;i++){
+    const r=d[i*4], g=d[i*4+1], b=d[i*4+2];
+    const y=.299*r+.587*g+.114*b; Y[i]=y;
+    const mx=Math.max(r,g,b), mn=Math.min(r,g,b), sat=mx?(mx-mn)/mx:0;
+    sky[i]=((y>105 && b>=r-10 && b>=g-30) || (y>180 && sat<.2)) ? 1 : 0;
+    if(i<W*Math.floor(H*.2)){ top+=y; topN++; }
+  }
+  const night=top/topN<55, C=8, out=[];
+  if(!night){
+    const line=new Int16Array(W).fill(-1);
+    for(let x=0;x<W;x++){
+      if(!sky[x] || !sky[W+x]) continue;           // arriba no hay cielo: techo del balcón o edificio pegado
+      let lastSky=0, gap=0, y=0;
+      for(;y<H;y++){ if(sky[y*W+x]){ lastSky=y; gap=0; } else if(++gap>=3) break; }
+      if(y<H) line[x]=lastSky+1;                   // y>=H: columna toda cielo, no hay edificio
+    }
+    const band=H*.45;
+    for(let cy=0;cy<H/C;cy++) for(let cx=0;cx<W/C;cx++){
+      let n=0, ex=0, ey=0, tot=0;
+      for(let py=cy*C;py<cy*C+C && py<H-1;py++) for(let px=cx*C;px<cx*C+C && px<W-1;px++){
+        tot++; const s=line[px]; if(s<0) continue;
+        const dy=py-s; if(dy<2 || dy>band) continue;
+        const i=py*W+px; if(sky[i]) continue;
+        n++; ex+=Math.abs(Y[i]-Y[i+1]); ey+=Math.abs(Y[i]-Y[i+W]);
+      }
+      // una grilla de ventanas tiene bordes en las dos direcciones; una baranda o un techo, casi solo en una
+      if(tot && n>=tot*.7 && (ex+ey)/n>12 && ex/n>4 && ey/n>4 && Math.min(ex,ey)/Math.max(ex,ey)>.3) out.push([(cx*C+C/2)/W, (cy*C+C/2)/H]);
+    }
+  } else {
+    for(let cy=0;cy<H/C;cy++) for(let cx=0;cx<W/C;cx++){
+      let mx=0, mxi=0, sum=0, tot=0;
+      for(let py=cy*C;py<cy*C+C && py<H;py++) for(let px=cx*C;px<cx*C+C && px<W;px++){
+        const i=py*W+px; tot++; sum+=Y[i]; if(Y[i]>mx){ mx=Y[i]; mxi=i; }
+      }
+      if(mx>170 && sum/tot<110) out.push([((mxi%W)+.5)/W, (Math.floor(mxi/W)+.5)/H]);
+    }
+  }
+  return { points:out, night };
+}
+const dC=document.createElement('canvas'); dC.width=160; dC.height=120;
+const dX=dC.getContext('2d',{ willReadFrequently:true });
+
+const markerGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-1.2,-1.45,0),new THREE.Vector3(1.2,-1.45,0),new THREE.Vector3(1.2,1.45,0),new THREE.Vector3(-1.2,1.45,0)]);
+const markerMat=new THREE.LineBasicMaterial({ color:0xd9b36a, fog:false });
+const markerManualMat=new THREE.LineBasicMaterial({ color:0xe2513d, fog:false });
+function placeSpot(sp){
+  if(!sp.manual) sp.dir=sp.p.clone().applyQuaternion(calibQ()).applyQuaternion(sp.q);
+  sp.pos=sp.origin.clone().addScaledVector(sp.dir, SPOT_D);
+  sp.marker.position.copy(sp.pos); sp.marker.lookAt(sp.origin);
+}
+function farFromOthers(dir){ const lim=Math.cos(2.5*D2R); return !spots.some(s=>s.dir.dot(dir)>lim); }
+function okElevation(dir){ const el=Math.asin(Math.max(-1,Math.min(1,dir.y)))/D2R; return el>-40 && el<35; }
+function addSpot(sp){
+  sp.marker=new THREE.LineLoop(markerGeo, sp.manual?markerManualMat:markerMat);
+  mrGroup.add(sp.marker); spots.push(sp); placeSpot(sp);
+}
+function addManualSpot(origin, dir){
+  if(!farFromOthers(dir)){ toast('Ahí ya hay una ventana marcada'); return; }
+  addSpot({ manual:true, dir:dir.clone(), origin:origin.clone() }); drawPanel();
+}
+function updateAllSpots(){ spots.forEach(placeSpot); calibDirty=true; }
+function clearSpots(){
+  for(const t of targets.slice()) removeTarget(t);
+  for(const s of spots) mrGroup.remove(s.marker);
+  spots=[];
+}
+let calibDirty=false, scanLast=0, panelLast=0, headPrev=null, headVel=0;
+function updateScan(dt, now){
+  camera.getWorldQuaternion(Q1);
+  if(headPrev && dt>0){ const ang=2*Math.acos(Math.min(1,Math.abs(Q1.dot(headPrev)))); headVel+= (ang/dt-headVel)*.2; }
+  headPrev=(headPrev||new THREE.Quaternion()).copy(Q1);
+  if(now-scanLast>350 && headVel<.15 && camOK() && spots.length<60){
+    scanLast=now;
+    dX.drawImage(video,0,0,160,120);
+    const { points }=detectPixels(dX.getImageData(0,0,160,120).data,160,120);
+    const origin=eyePos(new THREE.Vector3()), q=Q1.clone(), cq=calibQ();
+    for(let i=points.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [points[i],points[j]]=[points[j],points[i]]; }
+    let added=0;
+    for(const [s,e] of points){
+      if(added>=10 || spots.length>=60) break;
+      const p=pixelDir(s,e), dir=p.clone().applyQuaternion(cq).applyQuaternion(q);
+      if(!okElevation(dir) || !farFromOthers(dir)) continue;
+      addSpot({ manual:false, p, q, origin, dir }); added++;
+    }
+  }
+  if(now-panelLast>400){ panelLast=now; drawPanel(); }
+  if(calibDirty && now-scanLast>800){ calibDirty=false; store.set('vr.calib',calib); }
+}
+function startScan(clear){
+  state='scan'; hideActive();
+  for(const t of targets.slice()) removeTarget(t);
+  if(clear) clearSpots();
+  spots.forEach(s=>{ s.marker.visible=true; });
+  music.intensity=0; vrAction=null; headPrev=null; headVel=1;
+  drawPanel();
+  toast('Mirá los edificios y quedate quieto');
+}
+function finishScan(){
+  if(spots.length<6){ toast(`Faltan ${6-spots.length} ventanas: gatillo para marcar`,'bad'); return; }
+  store.set('vr.calib',calib);
+  spots.forEach(s=>{ s.marker.visible=false; });
+  startLevel(sel);
+}
+function updateLens(){
+  const use= mode==='mr' && vidTex && camOK();
+  lensMat.uniforms.useVid.value= use?1:0;
+  if(!use) return;
+  scopeCam.updateWorldMatrix(true,false);
+  camera.getWorldQuaternion(Q1);
+  const qs=scopeCam.getWorldQuaternion(new THREE.Quaternion());
+  const qm=Q1.clone().multiply(calibQ()).invert().multiply(qs);
+  lensMat.uniforms.M.value.setFromMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(qm));
+  const [tx,ty]=camTan(); lensMat.uniforms.tanCam.value.set(tx,ty);
+}
+function setScopeFov(f){ scopeCam.fov=f; scopeCam.updateProjectionMatrix(); lensMat.uniforms.tanS.value=Math.tan(f/2*D2R); }
+const worldObjs=()=>[sky, stars, ground, own, tank, cityGroup, ...parapets];
+function setWorld(v){ worldObjs().forEach(o=>{ o.visible=v; }); }
+window.__vr={ detectPixels };   // para probar el detector con fotos
+
 /* ---------------- Estado del juego ---------------- */
 let state='menu', mode='flat', levelIdx=0, L=LEVELS[0];
 let kills=0, lives=3, score=0, levelStartScore=0, ammo=MAG, reloading=false, reloadT=0, boltT=0;
@@ -584,7 +833,8 @@ function applyPalette(p){
 function prepareLevel(i){ levelIdx=i; L=LEVELS[i]; const p=SKIES[L.time]; applyPalette(p); buildCity(i+1,p); }
 
 function startLevel(i){
-  prepareLevel(i);
+  if(mode==='mr'){ levelIdx=i; L=LEVELS[i]; for(const t of targets.slice()) removeTarget(t); }
+  else prepareLevel(i);
   kills=0; lives=3; ammo=MAG; reloading=false; boltT=0; enemyTimer=2.5; civTimer=1.5;
   if(i===0) score=0;
   levelStartScore=score;
@@ -745,10 +995,22 @@ function drawPanel(){
     g.font=`600 34px ${mono}`; g.fillStyle='#e2513d'; g.fillText(hearts(),36,250);
     g.fillStyle='#ece6d6'; g.fillText(bullets(),260,250);
     g.fillStyle='#8f96a3'; g.font=`600 28px ${mono}`; g.fillText(`PUNTOS ${String(score).padStart(5,'0')}`,36,330);
+  } else if(state==='scan'){
+    g.fillStyle='#d9b36a'; g.font=`600 26px ${mono}`; g.fillText('ESCANEANDO EDIFICIOS',36,58);
+    g.fillStyle='#ece6d6'; g.font=`900 80px ${disp}`; g.fillText(`VENTANAS ${spots.length}`,36,150);
+    g.font=`600 24px ${mono}`;
+    g.fillStyle= camOK() ? '#8f96a3' : '#e2513d';
+    g.fillText(camOK() ? 'Cámara: anda. Mirá los edificios, quieto.' : 'Cámara: frenada. Marcá a mano con el gatillo.',36,200);
+    g.fillStyle='#8f96a3';
+    g.fillText('Gatillo: marcar a mano · B: borrar todo',36,236);
+    g.fillText('Stick izq.: correr los recuadros',36,272);
+    g.fillStyle='#e2513d'; g.font=`600 28px ${mono}`;
+    g.fillText(spots.length>=6 ? 'A: EMPEZAR' : `FALTAN ${6-spots.length} PARA EMPEZAR`,36,336);
   } else {
     g.fillStyle='#ece6d6'; g.font=`900 72px ${disp}`; g.fillText(vrTitle||'VENTANA ROJA',36,110);
     g.fillStyle='#8f96a3'; g.font=`600 28px ${mono}`; (vrLines||[]).forEach((l,i)=>g.fillText(l,36,170+i*42));
-    g.fillStyle='#e2513d'; g.font=`600 30px ${mono}`; g.fillText(`GATILLO: ${(vrPrompt||'').toUpperCase()}`,36,330);
+    const extra= mode==='mr' && (state==='done'||state==='failed') ? ' · B: ESCANEAR' : '';
+    g.fillStyle='#e2513d'; g.font=`600 26px ${mono}`; g.fillText(`GATILLO: ${(vrPrompt||'').toUpperCase()}${extra}`,36,330);
   }
   panelTex.needsUpdate=true;
 }
@@ -800,6 +1062,8 @@ $('tFire').addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropaga
 $('mute').addEventListener('click',()=>{ initAudio(); setMusic(!musicOn); });
 $('bFlat').addEventListener('click',()=>{ initAudio(); mode='flat'; startLevel(sel); });
 $('bVR').addEventListener('click',enterVR);
+$('bCam').addEventListener('click',startCamera);
+$('bMR').addEventListener('click',enterMR);
 setMusic(musicOn);
 
 function updateFlatCam(dt){
@@ -818,12 +1082,35 @@ function updateFlatCam(dt){
 }
 
 /* ---------------- Entrar a VR ---------------- */
+async function supports(kind){
+  try{ return !!(navigator.xr && await Promise.race([navigator.xr.isSessionSupported(kind), new Promise(r=>setTimeout(()=>r(false),3000))])); }
+  catch(e){ return false; }
+}
 async function checkVR(){
-  let ok=false;
-  try{ ok=!!(navigator.xr && await navigator.xr.isSessionSupported('immersive-vr')); }catch(e){ ok=false; }
-  $('vrNote').textContent= ok ? 'Visor detectado: tocá «Entrar en VR».'
-    : 'Para VR, abrí este juego desde el navegador del Quest 3 en una dirección https. Acá podés jugar en pantalla.';
-  return ok;
+  const vr=await supports('immersive-vr'), ar=await supports('immersive-ar');
+  $('vrNote').textContent= vr ? 'Visor detectado: la ciudad virtual está lista.'
+    : 'Para el visor, abrí este juego desde el navegador del Quest 3. Acá podés jugar en pantalla.';
+  if(!ar) $('mrNote').textContent='Este navegador no tiene realidad mixta. El balcón real anda en el navegador del Quest 3.';
+}
+async function enterMR(){
+  initAudio();
+  if(!video){ $('mrNote').textContent='Primero prendé la cámara.'; return; }
+  if(!navigator.xr){ $('mrNote').textContent='Este navegador no tiene WebXR. Abrilo desde el navegador del Quest 3.'; return; }
+  try{
+    const session=await navigator.xr.requestSession('immersive-ar',{ optionalFeatures:['local-floor'] });
+    await renderer.xr.setSession(session);
+    session.addEventListener('end', onXREnd);
+    mode='mr'; dolly.rotation.y=0;
+    setWorld(false); scene.fog=null;
+    hemi.color.set('#ffffff'); hemi.groundColor.set('#6b6560'); hemi.intensity=1; sun.color.set('#ffffff'); sun.intensity=.6;
+    M.interior.color.set('#f0d6a0');
+    setScopeFov(8); rebuildRay();
+    panel.visible=true; placePanel();
+    $('menu').hidden=true; $('card').hidden=true;
+    startScan(spots.length===0);
+  }catch(e){
+    $('mrNote').textContent='No se pudo abrir la realidad mixta ('+(e && e.message ? e.message : 'sin detalle')+').';
+  }
 }
 async function enterVR(){
   initAudio();
@@ -831,18 +1118,24 @@ async function enterVR(){
   try{
     const session=await navigator.xr.requestSession('immersive-vr',{ optionalFeatures:['local-floor','bounded-floor'] });
     await renderer.xr.setSession(session);
-    session.addEventListener('end', onVREnd);
+    session.addEventListener('end', onXREnd);
     mode='vr'; dolly.rotation.y=0; camera.fov=72; fovNow=72; camera.updateProjectionMatrix();
-    panel.visible=true;
+    setWorld(true); setScopeFov(5);
+    panel.visible=true; placePanel();
     startLevel(sel);
   }catch(e){
     $('vrNote').textContent='No se pudo abrir el modo VR acá ('+(e && e.message ? e.message : 'sin detalle')+'). Abrí el juego en el navegador del Quest desde https.';
   }
 }
-function onVREnd(){
+function onXREnd(){
+  const wasMR=mode==='mr';
+  for(const t of targets.slice()) removeTarget(t);
+  if(wasMR) spots.forEach(s=>{ s.marker.visible=false; });
   mode='flat'; panel.visible=false; toastMesh.visible=false; dolly.rotation.y=0;
   camera.position.set(0,1.6,0); camera.quaternion.identity(); camera.rotation.order='YXZ';
   if(rifle.parent) rifle.parent.remove(rifle); rifle.visible=false;
+  placePanel(); setWorld(true); rebuildRay();
+  prepareLevel(sel);
   showMenu();
 }
 
@@ -860,7 +1153,8 @@ renderer.setAnimationLoop(now=>{
   }
   updateTargets(dt);
   if(renderer.xr.isPresenting){
-    pollGamepads();
+    pollGamepads(dt);
+    if(mode==='mr'){ const pn=performance.now(); checkFreeze(pn); if(state==='scan') updateScan(dt,pn); updateLens(); }
     recoil=Math.max(0,recoil-dt*8);
     rifle.position.z=recoil*.05; rifle.rotation.x=recoil*.12;
     renderScope();
