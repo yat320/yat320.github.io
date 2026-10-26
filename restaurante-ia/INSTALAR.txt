@@ -1,0 +1,29 @@
+TU RESTAURANTE EN LA IA: cómo enchufarlo a Claude (prototipo)
+
+Necesitás una compu con Node (https://nodejs.org, la versión LTS).
+
+1. Poné en una misma carpeta:
+   - restaurante.mjs  (el programa)
+   - restaurante.json (tus datos, bajado del kit)
+
+2. En Claude Desktop: Configuración > Desarrollador > Editar configuración.
+   Agregá esto (cambiá la ruta por la de tu carpeta):
+
+   { "mcpServers": {
+       "mi-restaurante": { "command": "node", "args": ["C:\\ruta\\a\\restaurante.mjs"] },
+       "mi-restaurante-dueno": { "command": "node", "args": ["C:\\ruta\\a\\restaurante.mjs"],
+                                 "env": { "RESTO_MODO": "dueno" } }
+   } }
+
+3. Reiniciá Claude Desktop y probá:
+   - Como cliente: "Somos 3 el sábado, uno es celíaco. ¿Qué podemos pedir? Reservá a las 22:30."
+   - Como dueño:   "¿Quién viene el sábado? Se acabó la merluza, sacala por hoy."
+
+Las reservas se guardan en la carpeta "datos", al lado del programa.
+
+Para que lo use el ChatGPT o el Claude de cualquier cliente (no solo tu compu)
+hay que subirlo a un servidor con https. Eso todavía no está armado.
+
+Prototipo hecho con IA y probado con un restaurante inventado.
+Antes de guardar datos de clientes (nombre y teléfono), consultá con un
+profesional: en Argentina rige la ley 25.326 de datos personales.
