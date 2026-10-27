@@ -1,0 +1,289 @@
+{
+  "origen": "taller-mecanico/src/data/ap16.ts",
+  "unidades": "mm; X a lo largo del cigüeñal (cil. 1 = lado distribución), Y arriba, Z a lo ancho (admisión y escape en -Z)",
+  "geometria": {
+    "headTopY": 290,
+    "camY": 300,
+    "deckY": 216,
+    "cylX": [
+      -132,
+      -44,
+      44,
+      132
+    ]
+  },
+  "piezas": [
+    {
+      "id": "tapa-cilindros",
+      "nombre": "Tapa de cilindros",
+      "descripcion": "Tapa de aluminio con flujo invertido: admisión y escape del mismo lado. Aloja el árbol de levas, los botadores hidráulicos y las 8 válvulas. Se puede sacar con el árbol, las válvulas y los múltiples puestos.",
+      "material": "aluminio",
+      "sobre": [
+        "bloque",
+        "junta-tapa-cil"
+      ],
+      "unSoloUso": false,
+      "sale": [
+        0,
+        1,
+        0
+      ],
+      "datos": [
+        [
+          "Material",
+          "Aleación de aluminio"
+        ],
+        [
+          "Bulones",
+          "10 × 12 estrías, de estiramiento"
+        ],
+        [
+          "Apriete",
+          "40 Nm → 60 Nm → +90° → +90°"
+        ],
+        [
+          "Orden",
+          "Del centro hacia afuera, en cruz"
+        ],
+        [
+          "Planitud máx.",
+          "0,1 mm"
+        ]
+      ],
+      "fijaciones": []
+    },
+    {
+      "id": "junta-tapa-valvulas",
+      "nombre": "Junta de tapa de válvulas",
+      "descripcion": "Junta de goma de la tapa de válvulas. Conviene cambiarla cada vez que se saca la tapa.",
+      "material": "goma",
+      "sobre": [
+        "tapa-cilindros"
+      ],
+      "unSoloUso": true,
+      "sale": [
+        0,
+        1,
+        0
+      ],
+      "datos": [],
+      "fijaciones": []
+    },
+    {
+      "id": "tapa-valvulas",
+      "nombre": "Tapa de válvulas",
+      "descripcion": "Tapa de chapa estampada que cierra la parte superior de la tapa de cilindros y contiene el aceite que lubrica el árbol de levas.",
+      "material": "chapa",
+      "sobre": [
+        "tapa-cilindros",
+        "junta-tapa-valvulas"
+      ],
+      "unSoloUso": false,
+      "sale": [
+        0,
+        1,
+        0
+      ],
+      "datos": [
+        [
+          "Apriete tuercas",
+          "10 Nm"
+        ]
+      ],
+      "fijaciones": [
+        {
+          "id": "tapa-valv-t1",
+          "nombre": "Tuerca de tapa de válvulas 1",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            -150,
+            296,
+            -88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "tapa-valv-t2",
+          "nombre": "Tuerca de tapa de válvulas 2",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            -150,
+            296,
+            88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "tapa-valv-t3",
+          "nombre": "Tuerca de tapa de válvulas 3",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            -50,
+            296,
+            -88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "tapa-valv-t4",
+          "nombre": "Tuerca de tapa de válvulas 4",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            -50,
+            296,
+            88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "tapa-valv-t5",
+          "nombre": "Tuerca de tapa de válvulas 5",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            50,
+            296,
+            -88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "tapa-valv-t6",
+          "nombre": "Tuerca de tapa de válvulas 6",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            50,
+            296,
+            88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "tapa-valv-t7",
+          "nombre": "Tuerca de tapa de válvulas 7",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            150,
+            296,
+            -88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "tapa-valv-t8",
+          "nombre": "Tuerca de tapa de válvulas 8",
+          "encastre": "hex",
+          "medida": 10,
+          "rosca": "M6",
+          "largo": 14,
+          "apriete": [
+            {
+              "kind": "nm",
+              "value": 10
+            }
+          ],
+          "pos": [
+            150,
+            296,
+            88
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}
