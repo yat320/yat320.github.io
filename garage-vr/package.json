@@ -1,0 +1,9 @@
+{
+  "name": "garage-vr",
+  "private": true,
+  "type": "module",
+  "description": "Garage VR: un garage y un auto hiperdetallados para el Meta Quest 3 (WebXR + Three.js).",
+  "scripts": {
+    "test": "node --test pruebas/*.test.mjs"
+  }
+}
