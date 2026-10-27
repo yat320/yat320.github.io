@@ -67,6 +67,7 @@ for (const nombre of pedidas) {
     e.yaw = Math.atan2(-dx, -dz);
     e.pitch = Math.atan2(dy, Math.hypot(dx, dz));
   }, v);
+  await page.evaluate(() => { const m = window.garage.escritorio.mano; m.activa = false; });
   await page.waitForTimeout(1200);
   await page.screenshot({ path: path.join(OUT, `${nombre}.png`) });
   console.log('captura', nombre);

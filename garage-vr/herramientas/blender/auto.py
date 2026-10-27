@@ -193,33 +193,63 @@ def capo(caras):
     zf = suave(Z_ARRIBA, Y_FRENTE) + 0.0055
     wf = interp(ANCHO_HOMBRO, Y_FRENTE) - 0.05
     partes.append(caja_min_max('capo_labio', (-wf, Y_FRENTE - 0.006, zf - 0.03), (wf, Y_FRENTE - 0.0025, zf), 'pintura_auto', 0.001))
-    # estructura de abajo: marco perimetral y refuerzos en X, pintados del color del auto
+    # estructura de abajo: marco perimetral y refuerzos en X, pintados del color del auto.
+    # Todo sigue la superficie del capó (comba a lo ancho y caída hacia adelante) para no asomar por la chapa.
     yb, yf = Y_PARABRISAS + 0.03, Y_FRENTE - 0.03
-    def z_capo(y):
-        return suave(Z_ARRIBA, y) + interp(COMBA_CAPO, y) - 0.002
+
+    def z_sup(x, y):
+        """Altura de la cara de abajo de la chapa del capó en (x, y)."""
+        sec = seccion_baja(y)
+        (x0, z0), (x1, z1), (x2, z2) = sec[12], sec[11], sec[10]
+        ax = abs(x)
+        if ax <= x1:
+            z = z0 + (z1 - z0) * ax / x1
+        else:
+            z = z1 + (z2 - z1) * min(1.0, (ax - x1) / max(1e-6, x2 - x1))
+        return z + 0.0015 - 0.0015 - 0.0025
+
     def viga(nombre, a, b, ancho=0.05, alto=0.022):
-        pa = Vector((a[0], a[1], z_capo(a[1]) - alto / 2))
-        pb = Vector((b[0], b[1], z_capo(b[1]) - alto / 2))
+        pa = Vector((a[0], a[1], z_sup(a[0], a[1]) - alto / 2))
+        pb = Vector((b[0], b[1], z_sup(b[0], b[1]) - alto / 2))
         d = pb - pa
         v = caja(nombre, (pa + pb) / 2, (ancho, d.length, alto), 'pintura_auto', 0.004)
         v.rotation_euler = (math.atan2(d.z, math.hypot(d.x, d.y)), 0, -math.atan2(d.x, d.y))
         return v
-    w = interp(ANCHO_HOMBRO, 1.2) - 0.09
+
+    def z_capo(y):
+        return z_sup(0, y)
+
+    w = interp(ANCHO_HOMBRO, 1.2) - 0.11
     partes.append(viga('capo_marco_t', (-w, yb), (w, yb), 0.06))
     partes.append(viga('capo_marco_f', (-w + 0.02, yf - 0.02), (w - 0.02, yf - 0.02), 0.07))
     partes.append(viga('capo_marco_i', (-w, yb), (-w + 0.02, yf - 0.02), 0.05))
     partes.append(viga('capo_marco_d', (w, yb), (w - 0.02, yf - 0.02), 0.05))
     partes.append(viga('capo_cruz_a', (-w + 0.05, yb + 0.05), (w - 0.07, yf - 0.08), 0.045, 0.018))
     partes.append(viga('capo_cruz_b', (w - 0.05, yb + 0.05), (-w + 0.07, yf - 0.08), 0.045, 0.018))
-    # aislante (paño negro) en el medio de atrás
-    ais = caja_min_max('capo_aislante', (-0.45, yb + 0.06, z_capo(0.9) - 0.012), (0.45, yb + 0.5, z_capo(0.9) - 0.002), 'tapizado', 0.006)
+    # aislante (paño negro): una manta que copia la forma del capó, 6 mm abajo
+    vs, cs = [], []
+    nx, ny = 10, 8
+    for j in range(ny + 1):
+        y = yb + 0.06 + 0.44 * j / ny
+        for i in range(nx + 1):
+            x = -0.45 + 0.9 * i / nx
+            vs.append((x, y, z_sup(x, y) - 0.006))
+    for j in range(ny):
+        for i in range(nx):
+            a = j * (nx + 1) + i
+            cs.append((a, a + nx + 1, a + nx + 2, a + 1))
+    ais = malla('capo_aislante', vs, cs, 'tapizado', suave=True)
+    s = ais.modifiers.new('esp', 'SOLIDIFY')
+    s.thickness = 0.008
+    s.offset = -1
     partes.append(ais)
     # traba del capó (gancho) adelante al medio y alojamiento de la varilla
     partes.append(caja_min_max('capo_gancho', (-0.02, yf - 0.05, z_capo(yf) - 0.06), (0.02, yf - 0.035, z_capo(yf) - 0.02), 'metal_gris', 0.003))
-    partes.append(caja_min_max('capo_alojamiento_varilla', (-w + 0.05, yf - 0.16, z_capo(yf) - 0.03), (-w + 0.09, yf - 0.12, z_capo(yf) - 0.015), 'plastico_negro', 0.003))
+    zv = z_sup(-w + 0.07, yf - 0.14)
+    partes.append(caja_min_max('capo_alojamiento_varilla', (-w + 0.05, yf - 0.16, zv - 0.022), (-w + 0.09, yf - 0.12, zv - 0.004), 'plastico_negro', 0.003))
     o = unir('capo', partes)
     usar('anclas')
-    ancla('ancla_capo_varilla', (-w + 0.07, yf - 0.14, z_capo(yf) - 0.03))
+    ancla('ancla_capo_varilla', (-w + 0.07, yf - 0.14, zv - 0.022))
     usar('dinamico')
     # el origen va en la bisagra para girarlo
     eje = Vector((0, Y_PARABRISAS + 0.015, suave(Z_ARRIBA, Y_PARABRISAS) - 0.006))
@@ -507,6 +537,23 @@ def rueda(nombre, x, y, sx, delantera):
     return o
 
 
+def labios_arco():
+    """Borde enrollado de la chapa en cada arco de rueda (pintado)."""
+    usar('estatico')
+    for i, y in enumerate((EJE_D, EJE_T)):
+        for sx in (-1, 1):
+            pts = []
+            for k in range(25):
+                a = math.radians(-6 + 192 * k / 24)
+                yy = y + math.cos(a) * 0.342
+                zz = R_RUEDA + 0.01 + math.sin(a) * 0.342
+                # x del costado a esa altura (sección del cuerpo)
+                sec = seccion_baja(yy)
+                ancho = sec[3][0] if zz < 0.35 else sec[4][0] if zz < sec[5][1] else sec[5][0]
+                pts.append((sx * (ancho - 0.004), yy, zz))
+            tubo(f'labio_arco{i}{sx}', pts, 0.006, 'pintura_auto', 8, res=2)
+
+
 def pasos_rueda():
     """Guardabarros interiores negros dentro de cada arco."""
     usar('estatico')
@@ -646,6 +693,7 @@ def construir():
     cola()
     costados()
     ruedas()
+    labios_arco()
     pasos_rueda()
     interior()
     bajos()

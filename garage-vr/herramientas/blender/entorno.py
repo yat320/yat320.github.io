@@ -21,6 +21,9 @@ if capo:
 for o in bpy.data.objects:
     if o.name in ('piso_manchas', 'tablero_siluetas'):
         o.hide_render = True
+    # las luces de área no se ven en la panorámica (sí los tubos encendidos)
+    if o.type == 'LIGHT':
+        o.visible_camera = False
 cd = bpy.data.cameras.new('pano')
 cd.type = 'PANO'
 cd.panorama_type = 'EQUIRECTANGULAR'

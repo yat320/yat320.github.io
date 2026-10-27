@@ -314,8 +314,9 @@ export class Escritorio {
     } else {
       m.obj.position.copy(v1).addScaledVector(v2, dist ?? m.datos.dist ?? 0.5);
     }
-    // rumbo sin cabeceo (lo que se lleva no se inclina al mirar arriba o abajo)
-    m.obj.quaternion.setFromAxisAngle(ARRIBA, this.yaw);
+    // rumbo sin cabeceo (lo que se lleva no se inclina al mirar arriba o abajo); la linterna sí apunta adonde se mira
+    if (m.sostiene && m.sostiene === this.j.linterna) m.obj.quaternion.copy(c.quaternion);
+    else m.obj.quaternion.setFromAxisAngle(ARRIBA, this.yaw);
     m.obj.updateMatrixWorld(true);
   }
 

@@ -18,8 +18,8 @@ const renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: !qs.has('s
 renderer.setPixelRatio(qs.has('px') ? +qs.get('px') : Math.min(devicePixelRatio, 1.75));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.NeutralToneMapping;
-renderer.toneMappingExposure = 0.85;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.62;
 renderer.xr.enabled = true;
 if (qs.has('escala')) renderer.xr.setFramebufferScaleFactor(+qs.get('escala'));
 
@@ -45,6 +45,29 @@ pizarra.malla.visible = false;
 escena.add(pizarra.malla);
 const aviso = new Aviso();
 escena.add(aviso.malla);
+// el paso también sobre la mano izquierda, cuando se la lleva frente a la cara (para leerlo desde cualquier lado)
+const muneca = new Pizarra(0.2, 0.077);
+muneca.malla.visible = false;
+escena.add(muneca.malla);
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
+function actualizarReloj(dt) {
+  const m = rv?.manos.find((x) => x.lado === 'izquierda' && x.activa);
+  let ver = false;
+  if (modo === 'vr' && m && !m.sostiene) {
+    camara.getWorldPosition(_v1);
+    camara.getWorldDirection(_v2);
+    _v3.copy(m.obj.position).sub(_v1);
+    const d = _v3.length();
+    ver = d > 0.15 && d < 0.55 && _v3.normalize().dot(_v2) > Math.cos(THREE.MathUtils.degToRad(28));
+  }
+  const op = muneca.malla.material.opacity;
+  muneca.malla.material.opacity = THREE.MathUtils.clamp(op + (ver ? dt * 5 : -dt * 5), 0, 1);
+  muneca.malla.visible = muneca.malla.material.opacity > 0.01;
+  if (muneca.malla.visible && m) {
+    muneca.malla.position.copy(m.obj.position).add(_v3.set(0, 0.07, 0));
+    muneca.malla.quaternion.copy(camara.getWorldQuaternion(new THREE.Quaternion()));
+  }
+}
 
 let juego = null, escritorio = null, rv = null, sonido = null;
 let modo = 'inicio'; // 'inicio' | 'escritorio' | 'vr'
@@ -59,6 +82,7 @@ const ui = {
     if (!tr.sacoTapa && tr.manguera === 'sacada') avance = { hechas: L.cuantas(tr, ['afuera']), total: n, etiqueta: 'tuercas afuera' };
     else if (tr.sacoTapa && tr.tapa === 'puesta') avance = { hechas: L.cuantas(tr, ['ajustada']), total: n, etiqueta: 'ajustadas' };
     pizarra.mostrar(p.titulo, p.detalle, avance, tr.terminado ? 'listo' : 'normal', ui.pie || '');
+    muneca.mostrar(p.titulo, p.detalle, avance, tr.terminado ? 'listo' : 'normal');
     $('pasoTitulo').textContent = p.titulo;
     $('pasoDetalle').textContent = p.detalle;
     $('hud').classList.toggle('listo', tr.terminado);
@@ -173,6 +197,7 @@ function cuadro() {
   if (modo === 'vr') rv.actualizar(dt);
   juego.actualizar(dt);
   aviso.actualizar(dt, camara);
+  actualizarReloj(dt);
   // el texto del paso depende de lo que tiene en la mano: se revisa de vez en cuando
   pasoCada += dt;
   if (pasoCada > 0.3) {

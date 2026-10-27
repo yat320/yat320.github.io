@@ -24,7 +24,7 @@ def luces():
         d.shape = 'RECTANGLE'
         d.size = 1.18
         d.size_y = 0.1
-        d.energy = 260
+        d.energy = 210
         d.color = (1.0, 0.96, 0.9)
         o = bpy.data.objects.new(f'luz_tubos{i}', d)
         o.location = (0, y, ALTO - 0.155)
@@ -32,13 +32,23 @@ def luces():
     # luz de afuera por la ventana (cálida, de costado)
     d = bpy.data.lights.new('luz_ventana', 'AREA')
     d.shape = 'RECTANGLE'
-    d.size = 1.2
-    d.size_y = 0.6
-    d.energy = 700
-    d.color = (1.0, 0.82, 0.62)
+    d.size = 2.0
+    d.size_y = 1.2
+    d.energy = 320
+    d.color = (1.0, 0.86, 0.7)
     o = bpy.data.objects.new('luz_ventana', d)
-    o.location = (X0 - 0.6, -1.0, 2.55)
-    o.rotation_euler = (0, math.radians(-70), 0)
+    o.location = (X0 - 0.5, -1.0, 2.9)
+    o.rotation_euler = (0, math.radians(-38), 0)
+    COL['actual'].objects.link(o)
+    # relleno: el techo blanco rebota la luz de los tubos (suaviza la diferencia entre lo de arriba y los costados)
+    d = bpy.data.lights.new('luz_relleno', 'AREA')
+    d.shape = 'RECTANGLE'
+    d.size = 3.6
+    d.size_y = 5.6
+    d.energy = 110
+    d.color = (1.0, 0.95, 0.88)
+    o = bpy.data.objects.new('luz_relleno', d)
+    o.location = (0, 0, ALTO - 0.33)
     COL['actual'].objects.link(o)
     # cielo apenas azulado (rebota por la ventana)
     w = bpy.data.worlds.new('mundo')

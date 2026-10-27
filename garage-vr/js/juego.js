@@ -88,7 +88,7 @@ class Pieza {
     this.brillo = v;
     for (const m of this.materiales) {
       if (!m.emissive) continue;
-      m.emissive.setRGB(0.09 * v, 0.07 * v, 0.02 * v);
+      m.emissive.setRGB(0.035 * v, 0.03 * v, 0.018 * v);
     }
   }
 }
@@ -213,7 +213,8 @@ export class Juego {
     this.enBandeja = [];
 
     // ── linterna: una luz siempre presente (apagada) para no recompilar los shaders al prenderla
-    this.luz = new THREE.SpotLight(0xfff4e0, 0, 4, rad(22), 0.55, 2);
+    this.luz = new THREE.SpotLight(0xfff4e0, 0, 6, rad(20), 0.5, 2);
+    this.potenciaLinterna = 45;
     escena.add(this.luz, this.luz.target);
     this.luzAncla = N['linterna_luz'];
     this.ponerCapo(0);
@@ -446,7 +447,7 @@ export class Juego {
           mano.datos.id = pz.calzadaEn;
           this.empezarLlave(mano, pz, pz.calzadaEn);
         }
-        if (pz === this.linterna) this.luz.intensity = 9;
+        if (pz === this.linterna) this.luz.intensity = this.potenciaLinterna;
         break;
     }
     this.sonido.tocar('agarrar', pos, 0.4);
@@ -754,7 +755,10 @@ export class Juego {
     if (!m.sostiene) {
       const ahora = performance.now();
       if (!m.apretado) {
+        const antes = m.hover;
         m.hover = this.buscar(p, m.tipo === 'mano' ? 0.035 : 0.03);
+        // un toquecito en el control al llegar a algo que se puede agarrar
+        if (m.hover && m.hover !== antes) m.vibrar(0.08, 12);
         // lo último que señaló la mano abierta (al pellizcar, los dedos se corren unos centímetros)
         if (m.hover) m.reciente = { pieza: m.hover, t: ahora, cuadro: this.cuadro };
       }
