@@ -53,7 +53,7 @@ for o in bpy.data.objects:
         o.hide_render = True
 capo = bpy.data.objects.get('capo')
 if capo and os.environ.get('CAPO', 'abierto') == 'abierto':
-    capo.rotation_euler.x = math.radians(58)
+    capo.rotation_euler.x = math.radians(42)
 if os.environ.get('SIN_TAPA'):
     for o in bpy.data.objects:
         if o.name == 'tapa_valvulas' or o.name.startswith('tuerca_'):

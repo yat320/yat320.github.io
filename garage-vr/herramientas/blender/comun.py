@@ -24,6 +24,9 @@ MATERIALES = {
     'goma': ((0.03, 0.03, 0.03), 0.85, 0.0),
     'llanta': ((0.55, 0.56, 0.57), 0.35, 0.8),
     'vidrio': ((0.6, 0.7, 0.7), 0.05, 0.0),
+    'vidrio_esmerilado': ((0.85, 0.88, 0.9), 0.4, 0.0),
+    'iman': ((0.08, 0.08, 0.09), 0.35, 0.8),
+    'funda': ((0.05, 0.12, 0.30), 0.7, 0.0),
     'optica': ((0.9, 0.9, 0.9), 0.05, 0.0),
     'optica_roja': ((0.6, 0.02, 0.02), 0.1, 0.0),
     'optica_ambar': ((0.9, 0.4, 0.02), 0.1, 0.0),
@@ -63,7 +66,7 @@ def material(nombre):
     b.inputs['Base Color'].default_value = (*color, 1)
     b.inputs['Roughness'].default_value = rug
     b.inputs['Metallic'].default_value = met
-    if nombre in ('vidrio', 'optica', 'optica_roja', 'optica_ambar', 'plastico_traslucido'):
+    if nombre in ('vidrio', 'vidrio_esmerilado', 'optica', 'optica_roja', 'optica_ambar', 'plastico_traslucido'):
         b.inputs['Transmission Weight'].default_value = 0.9 if nombre == 'vidrio' else 0.6
         b.inputs['IOR'].default_value = 1.5
     if nombre == 'tubo_luz':

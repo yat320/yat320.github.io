@@ -233,8 +233,8 @@ def admision_escape():
     DIN.append(h)
     reg(h)
     usar('anclas')
-    e = ancla('ancla_respiradero_boca', (150, 330, -106))
-    reg(e)
+    reg(ancla('ancla_respiradero_boca', (150, 330, -106)))
+    reg(ancla('ancla_respiradero_pivote', tuple(piv)))
     usar('estatico')
     return o
 
@@ -486,6 +486,25 @@ def vano():
     p.append(cilindro('bobina', 0.03, 0.13, 'plastico_negro', 20, (0.0, Yp + 0.06, 0.66), 'X'))
     # mazo de cables por la pollera izquierda con cinta
     p.append(tubo('mazo', [(-0.6, Yp + 0.05, 0.74), (-0.6, 1.0, 0.76), (-0.58, 1.4, 0.74), (-0.5, 1.7, 0.68), (-0.55, 1.75, 0.62)], 0.012, 'cable', 10))
+    # mangueras de la calefacción: del motor al parallamas
+    for k, dz in enumerate((0.0, 0.05)):
+        p.append(tubo(f'calefaccion{k}', [(term.x + 0.02 + dz, term.y - 0.05, term.z - 0.04), (term.x + 0.08 + dz, term.y - 0.25, term.z - 0.02), (0.15 + dz, Yp + 0.12, 0.62), (0.18 + dz, Yp + 0.005, 0.58)], 0.011, 'goma', 10))
+    # caja de fusibles y relés sobre la pollera izquierda
+    p.append(caja_min_max('fusibles', (-0.6, 0.78, 0.66), (-0.5, 0.95, 0.76), 'plastico_negro', 0.01))
+    p.append(caja_min_max('fusibles_tapa', (-0.605, 0.775, 0.755), (-0.495, 0.955, 0.77), 'plastico_negro', 0.008))
+    for k in range(3):
+        p.append(caja_min_max(f'rele{k}', (-0.48, 0.8 + k * 0.045, 0.66), (-0.45, 0.835 + k * 0.045, 0.7), 'plastico_negro', 0.004))
+    # bocina detrás de la parrilla
+    bocina = torno('bocina', [(0, 0), (0.045, 0), (0.05, 0.01), (0.05, 0.03), (0.02, 0.035), (0, 0.035)], 'plastico_negro', 24)
+    bocina.rotation_euler = (math.radians(-90), 0, 0)
+    bocina.location = (0.4, 1.73, 0.4)
+    p.append(bocina)
+    # malla de masa del motor a la carrocería
+    p.append(tubo('masa', [(-0.25, 1.15, 0.45), (-0.4, 1.12, 0.5), (-0.6, 1.1, 0.58)], 0.006, 'cobre', 6))
+    # burlete del capó sobre la bandeja
+    p.append(caja_min_max('burlete_capo', (-0.68, Yp + 0.1, 0.835), (0.68, Yp + 0.13, 0.85), 'goma', 0.008))
+    # chapa de identificación (sin texto) en el parallamas
+    p.append(caja_min_max('chapa_id', (0.2, Yp + 0.002, 0.7), (0.32, Yp + 0.004, 0.76), 'acero'))
     # soportes del motor
     for sx2 in (-1, 1):
         p.append(caja_min_max(f'soporte_motor{sx2}', (sx2 * 0.28 - 0.05 - 0.05, 1.35, 0.25), (sx2 * 0.28 + 0.05 - 0.05, 1.45, 0.38), 'fundicion', 0.01))
@@ -509,7 +528,7 @@ def varilla():
     """Varilla que sostiene el capó: gira en el porta radiador."""
     usar('dinamico')
     piv = Vector((-0.55, 1.80, 0.765))
-    v = tubo('varilla', [(0, 0, 0), (0.0, -0.003, 0.3), (0.0, -0.0, 0.58), (0.0, 0.015, 0.6)], 0.004, 'metal_gris', 8)
+    v = tubo('varilla', [(0, 0, 0), (0.0, -0.003, 0.45), (0.0, -0.0, 0.86), (0.0, 0.015, 0.88)], 0.004, 'metal_gris', 8)
     # guardada: acostada sobre el travesaño hacia el centro
     v.rotation_euler = (0, math.radians(90), 0)
     v.location = piv
@@ -517,7 +536,7 @@ def varilla():
     v['pieza'] = 'varilla'
     usar('estatico')
     caja_min_max('varilla_pivote', (piv.x - 0.012 + A.CX, piv.y - 0.012 + A.CY, piv.z - 0.012), (piv.x + 0.012 + A.CX, piv.y + 0.012 + A.CY, piv.z + 0.004), 'plastico_negro', 0.003)
-    caja_min_max('varilla_clip', (piv.x + 0.5 + A.CX, piv.y - 0.008 + A.CY, piv.z - 0.008), (piv.x + 0.53 + A.CX, piv.y + 0.008 + A.CY, piv.z + 0.006), 'plastico_negro', 0.003)
+    caja_min_max('varilla_clip', (piv.x + 0.78 + A.CX, piv.y - 0.008 + A.CY, piv.z - 0.008), (piv.x + 0.81 + A.CX, piv.y + 0.008 + A.CY, piv.z + 0.006), 'plastico_negro', 0.003)
     usar('anclas')
     ancla('ancla_varilla_pivote', tuple(M_AUTO @ piv))
     return v

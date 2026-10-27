@@ -212,7 +212,7 @@ def tablero(n=512):
     d = np.sqrt(((xx * k) % 1 - 0.5) ** 2 + ((yy * k) % 1 - 0.5) ** 2)
     agujero = 1 - suave(0.11, 0.135, d)
     fibra = ruido(n, 0.8, 91, fmin=30)
-    c = np.ones((n, n, 3)) * color((0.66, 0.54, 0.40)) / color((0.62, 0.50, 0.36)) * (0.93 + 0.07 * fibra[..., None])
+    c = np.ones((n, n, 3)) * color((0.60, 0.47, 0.33)) * (0.93 + 0.07 * fibra[..., None])
     c = mezclar(c, np.array([0.02, 0.02, 0.02]), agujero)
     alto = -agujero * 1.0 + 0.1 * fibra
     guardar('tablero', c, normal_desde_alto(alto, 6.0), 1 - 0.8 * agujero, 0.85 + 0.0 * fibra, 0.0)

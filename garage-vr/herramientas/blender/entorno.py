@@ -17,7 +17,7 @@ sc.view_settings.view_transform = 'Standard'
 sc.render.image_settings.file_format = 'HDR'
 capo = bpy.data.objects.get('capo')
 if capo:
-    capo.rotation_euler.x = math.radians(58)
+    capo.rotation_euler.x = math.radians(42)
 for o in bpy.data.objects:
     if o.name in ('piso_manchas', 'tablero_siluetas'):
         o.hide_render = True

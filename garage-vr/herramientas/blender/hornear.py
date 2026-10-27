@@ -21,7 +21,7 @@ bpy.ops.wm.open_mainfile(filepath=entrada)
 sc = bpy.context.scene
 vl = bpy.context.view_layer
 
-SIN_LIGHTMAP_MAT = {'vidrio', 'optica', 'optica_roja', 'optica_ambar', 'tubo_luz', 'plastico_traslucido'}
+SIN_LIGHTMAP_MAT = {'vidrio', 'vidrio_esmerilado', 'optica', 'optica_roja', 'optica_ambar', 'tubo_luz', 'plastico_traslucido'}
 
 
 def mallas(col):
@@ -205,7 +205,7 @@ for o in mallas('estatico'):
 # capó abierto mientras se hornea (es como se juega casi siempre)
 capo = bpy.data.objects.get('capo')
 if capo:
-    capo.rotation_euler.x = math.radians(58)
+    capo.rotation_euler.x = math.radians(42)
 # sin la tapa de válvulas: así queda horneada la luz del árbol de levas (que se ve al sacarla)
 for o in mallas('dinamico'):
     if o.get('pieza') in ('tapa-valvulas',) or (o.get('pieza') or '').startswith('tapa-valv-t'):

@@ -12,8 +12,8 @@ export const AJUSTE = 14;
 /** pasado esto, es apretar de más */
 export const DE_MAS = 34;
 /** ángulo del capó (grados) a partir del cual se puede poner la varilla */
-export const CAPO_VARILLA = 50;
-export const CAPO_MAX = 62;
+export const CAPO_VARILLA = 38;
+export const CAPO_MAX = 58;
 
 export const ESTADOS_TUERCA = ['ajustada', 'asentada', 'floja', 'suelta', 'afuera'];
 

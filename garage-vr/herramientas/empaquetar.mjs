@@ -25,7 +25,7 @@ async function ktx2(entrada, salida, tipo) {
     // color: ETC1S liviano, en sRGB
     color: { isUASTC: false, qualityLevel: 230, compressionLevel: 2, isPerceptual: true, isSetKTX2SRGBTransferFunc: true, generateMipmap: true },
     // oclusión-rugosidad-metal: ETC1S lineal
-    orm: { isUASTC: false, qualityLevel: 230, compressionLevel: 2, isPerceptual: false, isSetKTX2SRGBTransferFunc: false, generateMipmap: true },
+    orm: { isUASTC: true, isPerceptual: false, isSetKTX2SRGBTransferFunc: false, generateMipmap: true, needSupercompression: true, enableRDO: true, rdoQualityLevel: 2, uastcLDRQualityLevel: 1 },
     // normales: UASTC (ETC1S las arruina)
     normal: { isUASTC: true, isNormalMap: true, isPerceptual: false, isSetKTX2SRGBTransferFunc: false, generateMipmap: true, needSupercompression: true, enableRDO: true, rdoQualityLevel: 1.5, uastcLDRQualityLevel: 2 },
     // lightmaps: UASTC sin mipmaps (la luz cambia suave)
@@ -60,7 +60,7 @@ for (const f of fs.readdirSync(EXPORT).filter((f) => /^lm_.*\.png$/.test(f))) {
   total += n;
   console.log(f, (n / 1e6).toFixed(2), 'MB');
 }
-fs.copyFileSync(path.join(EXPORT, 'lightmaps.json'), path.join(SALIDA, 'lightmaps.json'));
+for (const f of ['lightmaps.json', 'oclusion.json']) fs.copyFileSync(path.join(EXPORT, f), path.join(SALIDA, f));
 if (fs.existsSync(path.join(EXPORT, 'entorno.hdr'))) fs.copyFileSync(path.join(EXPORT, 'entorno.hdr'), path.join(SALIDA, 'entorno.hdr'));
 
 // 3) texturas de materiales

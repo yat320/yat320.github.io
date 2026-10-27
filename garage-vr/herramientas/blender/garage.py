@@ -144,7 +144,7 @@ def ventana():
     partes.append(caja_min_max('vent_marco_d', (x - 0.08, y1 - 0.04, z0), (x - 0.03, y1, z1), 'metal_pintado', 0.003))
     partes.append(caja_min_max('vent_marco_m', (x - 0.08, (y0 + y1) / 2 - 0.015, z0), (x - 0.03, (y0 + y1) / 2 + 0.015, z1), 'metal_pintado', 0.003))
     unir('ventana_marco', partes)
-    v = caja_min_max('ventana_vidrio', (x - 0.06, y0 + 0.02, z0 + 0.02), (x - 0.055, y1 - 0.02, z1 - 0.02), 'vidrio')
+    v = caja_min_max('ventana_vidrio', (x - 0.06, y0 + 0.02, z0 + 0.02), (x - 0.055, y1 - 0.02, z1 - 0.02), 'vidrio_esmerilado')
     v['vidrio_esmerilado'] = True
     # alféizar
     caja_min_max('alfeizar', (x - 0.02, y0 - 0.03, z0 - 0.03), (x + 0.07, y1 + 0.03, z0), 'revoque', 0.004)
@@ -371,7 +371,34 @@ def accesorios():
     unir('banqueta', p)
 
 
+def carrito():
+    """Carrito de herramientas con ruedas al lado del frente del auto, con una bandeja magnética para las tuercas."""
+    usar('estatico')
+    x, y = -1.55, 2.3
+    a, b = 0.30, 0.22
+    partes = []
+    for z in (0.22, 0.55, 0.86):
+        partes.append(caja_min_max(f'carrito_bandeja{z}', (x - a, y - b, z - 0.012), (x + a, y + b, z), 'metal_pintado', 0.004))
+        for s in (-1, 1):
+            partes.append(caja_min_max(f'carrito_borde_x{z}{s}', (x - a, y + s * b - 0.006, z), (x + a, y + s * b + 0.006, z + 0.04), 'metal_pintado', 0.003))
+            partes.append(caja_min_max(f'carrito_borde_y{z}{s}', (x + s * a - 0.006, y - b, z), (x + s * a + 0.006, y + b, z + 0.04), 'metal_pintado', 0.003))
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            partes.append(cilindro(f'carrito_pata{sx}{sy}', 0.012, 0.8, 'metal_pintado', 12, (x + sx * (a - 0.02), y + sy * (b - 0.02), 0.5)))
+            partes.append(cilindro(f'carrito_rueda{sx}{sy}', 0.035, 0.025, 'goma', 16, (x + sx * (a - 0.02), y + sy * (b - 0.02), 0.04), 'X'))
+            partes.append(caja_min_max(f'carrito_horquilla{sx}{sy}', (x + sx * (a - 0.02) - 0.02, y + sy * (b - 0.02) - 0.01, 0.05), (x + sx * (a - 0.02) + 0.02, y + sy * (b - 0.02) + 0.01, 0.1), 'metal_gris', 0.003))
+    partes.append(tubo('carrito_manija', [(x - a, y - b + 0.05, 0.9), (x - a - 0.08, y - b + 0.05, 0.95), (x - a - 0.08, y + b - 0.05, 0.95), (x - a, y + b - 0.05, 0.9)], 0.011, 'metal_gris', 10))
+    unir('carrito', partes)
+    # bandeja magnética: un plato de acero con un imán abajo
+    plato = torno('bandeja_iman', [(0, 0.0), (0.06, 0.0), (0.075, 0.004), (0.078, 0.028), (0.074, 0.03), (0.07, 0.006), (0, 0.006)], 'acero', 40)
+    plato.location = (x + 0.12, y - 0.04, 0.86)
+    iman = cilindro('bandeja_iman_base', 0.045, 0.006, 'iman', 32, (x + 0.12, y - 0.04, 0.857))
+    usar('anclas')
+    ancla('ancla_bandeja', (x + 0.12, y - 0.04, 0.866))
+
+
 def construir():
+    carrito()
     piso()
     paredes()
     ventana()

@@ -117,7 +117,7 @@ test('una tuerca enroscada no se saca con la mano', () => {
 
 test('el capó sin varilla se cae', () => {
   const tr = L.nuevoTrabajo(ids);
-  tr.capo = 40;
+  tr.capo = 25;
   assert.equal(L.soltarCapo(tr), 'cae');
   assert.equal(L.ponerVarilla(tr).ok, false);
   tr.capo = 58;

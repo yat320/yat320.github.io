@@ -150,7 +150,7 @@ def construir():
         o, cx, bx = llave(s)
         # ancla de la estría (para encastrar en la tuerca)
         usar('dinamico')
-        e = ancla(f'{o.name}_estria', (cx, 0, 0))
+        e = ancla(f'{o.name}_estria', (cx, 0, 0), (0, math.radians(-12), 0))
         e.parent = o
         e2 = ancla(f'{o.name}_boca', (bx, 0, 0))
         e2.parent = o

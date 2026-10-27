@@ -218,6 +218,9 @@ def capo(caras):
     partes.append(caja_min_max('capo_gancho', (-0.02, yf - 0.05, z_capo(yf) - 0.06), (0.02, yf - 0.035, z_capo(yf) - 0.02), 'metal_gris', 0.003))
     partes.append(caja_min_max('capo_alojamiento_varilla', (-w + 0.05, yf - 0.16, z_capo(yf) - 0.03), (-w + 0.09, yf - 0.12, z_capo(yf) - 0.015), 'plastico_negro', 0.003))
     o = unir('capo', partes)
+    usar('anclas')
+    ancla('ancla_capo_varilla', (-w + 0.07, yf - 0.14, z_capo(yf) - 0.03))
+    usar('dinamico')
     # el origen va en la bisagra para girarlo
     eje = Vector((0, Y_PARABRISAS + 0.015, suave(Z_ARRIBA, Y_PARABRISAS) - 0.006))
     o.data.transform(Matrix.Translation(-eje))
@@ -352,6 +355,8 @@ def frente():
         r = caja_min_max(f'optica_reflector{sx}', (a + 0.004, y - 0.02, 0.565), (b - 0.004, y + 0.006, 0.735), 'reflector', 0.004)
         # lámpara
         cilindro(f'optica_lampara{sx}', 0.012, 0.03, 'optica', 12, ((a + b) / 2, y + 0.006, 0.65), 'Y')
+        # carcasa negra de atrás (lo que se ve desde el vano)
+        caja_min_max(f'optica_carcasa{sx}', (a + 0.01, y - 0.11, 0.575), (b - 0.01, y - 0.018, 0.728), 'plastico_negro', 0.02)
         v = caja_min_max(f'optica_vidrio{sx}', (a + 0.002, y + 0.012, 0.562), (b - 0.002, y + 0.016, 0.738), 'optica', 0.003)
         # luz de giro en el paragolpes
         caja_min_max(f'giro_del{sx}', (sx * 0.52 - 0.06, y + 0.035, 0.40), (sx * 0.52 + 0.06, y + 0.06, 0.45), 'optica_ambar', 0.004)
@@ -514,7 +519,7 @@ def pasos_rueda():
                 a = math.radians(-10 + 200 * k / n)
                 pts.append((math.cos(a) * 0.345, math.sin(a) * 0.345))
             verts, caras = [], []
-            x0, x1 = sx * 0.56, sx * 0.795
+            x0, x1 = sx * 0.63, sx * 0.795
             for k, (py, pz) in enumerate(pts):
                 verts.append((x0, y + py, R_RUEDA + 0.01 + pz))
                 verts.append((x1, y + py, R_RUEDA + 0.01 + pz))
@@ -586,6 +591,41 @@ def bajos():
     unir('bajos', partes)
 
 
+def fundas():
+    """Fundas de guardabarros (vinilo azul) sobre los dos lados del vano, como en cualquier taller."""
+    usar('estatico')
+    for sx in (-1, 1):
+        ys = [0.72 + i * 0.07 for i in range(13)]
+        filas = []
+        for y in ys:
+            sec = seccion_baja(y)
+            # del borde de arriba (cerca del capó) hacia abajo por el costado
+            pts = [sec[10], sec[9], sec[8], sec[7], sec[6], sec[5]]
+            fila = []
+            for k, (x, z) in enumerate(pts):
+                # 4 mm afuera de la chapa, con una onda suave de tela
+                ox = 0.004 + 0.002 * math.sin(y * 31 + k)
+                fila.append((sx * (x + ox), y, z + (0.004 if k < 2 else 0)))
+            # el borde de adentro se apoya sobre el ala de la pollera
+            fila.insert(0, (sx * (sec[10][0] - 0.05), y, sec[10][1] + 0.003))
+            # el borde de abajo cuelga un poco más
+            x, z = sec[5]
+            fila.append((sx * (x + 0.012), y, z - 0.1 - 0.02 * math.sin(y * 9)))
+            filas.append(fila)
+        verts, caras = [], []
+        n = len(filas[0])
+        for f in filas:
+            verts.extend(f)
+        for i in range(len(filas) - 1):
+            for k in range(n - 1):
+                a = i * n + k
+                c = (a, a + 1, a + n + 1, a + n) if sx > 0 else (a, a + n, a + n + 1, a + 1)
+                caras.append(c)
+        o = malla(f'funda{sx}', verts, caras, 'funda', suave=True)
+        s = o.modifiers.new('esp', 'SOLIDIFY')
+        s.thickness = 0.002
+
+
 def ubicar():
     """Mueve todo lo del auto a su lugar en el garage."""
     t = Matrix.Translation((CX, CY, 0))
@@ -609,6 +649,7 @@ def construir():
     pasos_rueda()
     interior()
     bajos()
+    fundas()
     for o in bpy.data.objects:
         if o not in previos:
             o['_auto'] = True

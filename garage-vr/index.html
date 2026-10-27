@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Garage VR</title>
+<meta name="description" content="Un garage y un auto hiperdetallados en realidad virtual: abrí el capó y sacá la tapa de válvulas de un motor 1.6 tipo AP con la llave justa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#0b0c0d; --tinta:#efece4; --tenue:#9a9c9f; --cinta:#e8b62c; --linea:rgba(239,236,228,.16);
+  --placa:rgba(12,13,15,.84); --bien:#58c27d; --aviso:#d97a2b;
+  --titulo:'Barlow Condensed', 'Arial Narrow', sans-serif; --texto:'IBM Plex Sans', system-ui, sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--fondo);color:var(--tinta);font-family:var(--texto);overflow:hidden}
+#juego{position:fixed;inset:0;width:100%;height:100%;display:block}
+/* pantalla de inicio */
+#inicio{position:fixed;inset:0;z-index:10;display:flex;align-items:flex-end;overflow-y:auto;
+  padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  background:linear-gradient(180deg,rgba(11,12,13,0) 0%,rgba(11,12,13,.55) 45%,rgba(11,12,13,.96) 100%)}
+.tarjeta{max-width:560px;width:100%;margin:0 auto 4vh;display:flex;flex-direction:column;gap:16px}
+.cinta{height:8px;width:120px;background:repeating-linear-gradient(-45deg,var(--cinta) 0 12px,#151515 12px 24px);border-radius:2px}
+h1{margin:0;font:800 clamp(56px,13vw,104px)/.86 var(--titulo);letter-spacing:.01em;text-transform:uppercase}
+h1 span{color:var(--cinta)}
+.lead{margin:0;font-size:16px;line-height:1.55;color:var(--tinta);max-width:52ch}
+#botones{display:flex;flex-wrap:wrap;gap:10px}
+button{font:600 16px var(--texto);border-radius:10px;padding:14px 18px;cursor:pointer;border:1px solid var(--linea);background:rgba(255,255,255,.04);color:var(--tinta)}
+button.principal{background:var(--cinta);color:#16130a;border-color:transparent}
+button:disabled{opacity:.35;cursor:not-allowed}
+button:not(:disabled):hover{filter:brightness(1.08)}
+.nota{margin:0;font-size:13px;color:var(--tenue);line-height:1.5}
+.ayuda{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;line-height:1.5;color:var(--tenue)}
+.ayuda b{color:var(--tinta);font-weight:600;display:block;margin-bottom:2px}
+@media (max-width:560px){.ayuda{grid-template-columns:1fr}}
+#cargando{display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--tenue)}
+.pista{height:4px;background:var(--linea);border-radius:2px;overflow:hidden}
+#barra{height:100%;width:0;background:var(--cinta);transition:width .2s}
+/* interfaz de escritorio */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:5}
+#paso{position:absolute;top:max(14px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));max-width:min(440px,calc(100% - 32px));
+  background:var(--placa);border-left:5px solid var(--cinta);border-radius:8px;padding:12px 14px}
+#hud.listo #paso{border-left-color:var(--bien)}
+#pasoTitulo{margin:0;font-weight:600;font-size:17px;line-height:1.3}
+#pasoDetalle{margin:4px 0 0;font-size:13px;line-height:1.45;color:#b9bcc0}
+#mira{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 0 1.5px rgba(0,0,0,.5)}
+#miraTexto{position:absolute;left:50%;top:calc(50% + 16px);transform:translateX(-50%);font-size:13px;white-space:nowrap;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:6px}
+#miraTexto:empty{display:none}
+#aviso{position:absolute;left:50%;bottom:16%;transform:translateX(-50%);padding:10px 16px;border-radius:10px;font-weight:600;font-size:15px;opacity:0;max-width:calc(100% - 32px);text-align:center;background:rgba(90,40,14,.92)}
+#aviso[data-tono=bien]{background:rgba(30,70,44,.92)}
+#aviso[data-tono=info]{background:rgba(20,22,26,.9)}
+#aviso.ver{animation:aviso 2.6s ease forwards}
+@keyframes aviso{0%{opacity:0;transform:translate(-50%,8px)}8%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+#teclas{position:absolute;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);font-size:12px;color:var(--tenue);background:rgba(0,0,0,.45);padding:5px 10px;border-radius:6px;white-space:nowrap}
+#rend{position:absolute;top:max(14px,env(safe-area-inset-top));right:16px;font:500 12px ui-monospace,monospace;background:rgba(0,0,0,.6);padding:5px 8px;border-radius:6px}
+#pausa{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(0,0,0,.35);font-weight:600;cursor:pointer}
+@media (max-width:700px){#teclas{display:none}}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="juego"></canvas>
+
+<section id="inicio">
+  <div class="tarjeta">
+    <div class="cinta"></div>
+    <h1>Garage <span>VR</span></h1>
+    <p class="lead">Un garage, un hatchback de los 80 y su motor 1.6 tipo AP. Abrí el capó, sacá la tapa de válvulas con la llave justa y volvela a poner.</p>
+    <div id="cargando">
+      <span>Cargando el garage…</span>
+      <div class="pista"><div id="barra"></div></div>
+    </div>
+    <div id="botones" hidden>
+      <button id="btnVR" class="principal">🥽 Entrar con el visor</button>
+      <button id="btnPC">🖱️ Probar en la compu</button>
+    </div>
+    <p id="notaVR" class="nota" hidden>Para jugar en realidad virtual, abrí esta página desde el navegador del Meta Quest 3.</p>
+    <div class="ayuda">
+      <div><b>Con el visor</b>Gatillo o agarre para tomar las cosas. Joystick izquierdo camina, derecho gira. Con las manos: pellizcá o cerrá la mano.</div>
+      <div><b>En la compu</b>WASD camina, el mouse mira. Clic agarra y deja. Mantené el clic sobre una tuerca y mové el mouse para girarla.</div>
+    </div>
+  </div>
+</section>
+
+<div id="hud" hidden>
+  <div id="paso"><p id="pasoTitulo"></p><p id="pasoDetalle"></p></div>
+  <div id="mira"></div>
+  <div id="miraTexto"></div>
+  <div id="aviso"></div>
+  <div id="teclas">WASD caminar · clic agarrar o dejar · Q soltar · C agacharse · F rendimiento</div>
+  <div id="rend" hidden></div>
+</div>
+<div id="pausa" hidden>Hacé clic para seguir</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
