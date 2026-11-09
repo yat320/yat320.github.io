@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#a4441f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23a4441f%22/%3E%3Cpath d=%22M18 33l9 9 19-21%22 stroke=%22white%22 stroke-width=%227%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+</head>
+<body>
+<title>Turno en orden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Turno en orden: el encargado arma la lista de cada puesto y la manda por WhatsApp; cada uno tilda su turno y avisa al terminar. Sin cuentas ni servidor. */
+:root {
+  --bg: #f3efe9; --surface: #ffffff; --ink: #221a14; --muted: #6b5f55; --line: #e0d6cc;
+  --accent: #a4441f; --accent-ink: #ffffff; --accent-soft: #f6e1d6;
+  --ok: #2c7a30; --ok-soft: #dcefdc; --warn: #9a5b00; --warn-soft: #fbecd2;
+  --f-display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17120e; --surface: #221b16; --ink: #f1e9e2; --muted: #ad9f93; --line: #3a2f27;
+  --accent: #ec8a5f; --accent-ink: #2a1206; --accent-soft: #43271a;
+  --ok: #78c47b; --ok-soft: #1d3320; --warn: #eba24c; --warn-soft: #3a2a14; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #17120e; --surface: #221b16; --ink: #f1e9e2; --muted: #ad9f93; --line: #3a2f27;
+  --accent: #ec8a5f; --accent-ink: #2a1206; --accent-soft: #43271a;
+  --ok: #78c47b; --ok-soft: #1d3320; --warn: #eba24c; --warn-soft: #3a2a14; color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+html { -webkit-text-size-adjust: 100% }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.4;
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)) }
+.wrap { max-width: 720px; margin: 0 auto }
+button, input, textarea { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.1; margin: 0 }
+.muted { color: var(--muted) }
+.num { font-variant-numeric: tabular-nums }
+
+header.top { padding: 6px 0 14px; border-bottom: 1px solid var(--line); margin-bottom: 16px }
+header.top small { display: block; color: var(--muted); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; overflow-wrap: anywhere }
+header.top h1 { font-weight: 800; font-size: clamp(28px, 7vw, 40px); overflow-wrap: anywhere }
+header.top p { margin: 6px 0 0; color: var(--muted) }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px }
+.aviso { background: var(--warn-soft); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 15px }
+label { display: grid; gap: 6px; font-weight: 700; font-size: 15px; margin-bottom: 12px }
+label .hint { font-weight: 400; color: var(--muted); font-size: 14px }
+input[type=text], input[type=tel], textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 17px }
+textarea { resize: vertical; min-height: 88px; line-height: 1.35 }
+.btn { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 700; font-size: 16px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px }
+.btn.primary { background: var(--accent); color: var(--accent-ink) }
+.btn.ghost { background: none; border: 1px solid var(--line); color: var(--ink) }
+.btn.link { background: none; color: var(--muted); text-decoration: underline; padding-inline: 4px }
+.btn.big { width: 100%; font-size: 19px; padding: 16px }
+.fila { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+
+/* Armar */
+details.puesto { padding: 0 }
+details.puesto > summary { list-style: none; padding: 16px; display: flex; align-items: center; gap: 10px; cursor: pointer }
+details.puesto > summary::-webkit-details-marker { display: none }
+details.puesto > summary h2 { font-size: 22px; margin-right: auto; overflow-wrap: anywhere; min-width: 0 }
+details.puesto > summary .cuenta { color: var(--muted); font-size: 14px; white-space: nowrap }
+details.puesto > summary::after { content: "▾"; color: var(--muted); transition: transform .15s }
+details.puesto[open] > summary::after { transform: rotate(180deg) }
+details.puesto .cuerpo { padding: 0 16px 16px }
+.copiado { color: var(--ok); font-weight: 700; font-size: 14px }
+
+/* Turno */
+.progreso { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 8px 0 10px; margin-bottom: 6px }
+.barra { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden }
+.barra i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .2s }
+.progreso p { margin: 6px 0 0; font-weight: 700 }
+h3.momento { font-size: 20px; margin: 18px 0 8px }
+ul.tareas { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.tarea { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-weight: 400; font-size: 18px; margin: 0; cursor: pointer; min-height: 60px }
+.tarea input { appearance: none; -webkit-appearance: none; width: 32px; height: 32px; border: 2px solid var(--muted); border-radius: 8px; margin: 0; display: grid; place-items: center; background: var(--surface) }
+.tarea input:checked { background: var(--ok); border-color: var(--ok) }
+.tarea input:checked::after { content: ""; width: 9px; height: 16px; border: solid #fff; border-width: 0 3px 3px 0; transform: translateY(-2px) rotate(45deg) }
+.tarea:has(input:checked) { background: var(--ok-soft); border-color: transparent }
+.tarea:has(input:checked) span { color: var(--muted); text-decoration: line-through }
+.tarea span { overflow-wrap: anywhere }
+.listo { background: var(--ok-soft); border-radius: 12px; padding: 12px 14px; font-weight: 700; margin-top: 14px }
+
+/* Hojas para imprimir */
+#hojas { display: none }
+@media print {
+  body { background: #fff; color: #000; padding: 0 }
+  .wrap > :not(#hojas) { display: none !important }
+  #hojas { display: block }
+  .hoja { page-break-after: always; font-size: 15pt; padding: 10mm }
+  .hoja h1 { font-size: 28pt } .hoja small { font-size: 11pt; color: #444 }
+  .hoja h3 { margin-top: 14pt; font-size: 16pt }
+  .hoja ul { list-style: none; padding: 0 } .hoja li { padding: 5pt 0; border-bottom: 1px solid #ccc }
+  .hoja li::before { content: "☐  "; font-size: 16pt }
+  .hoja .firma { margin-top: 18pt }
+}
+</style>
+
+<div class="wrap">
+  <!-- ===== Vista: armar (el encargado) ===== -->
+  <section id="armar" hidden>
+    <header class="top">
+      <small>Turno en orden</small>
+      <h1>Cada uno sabe qué le toca</h1>
+      <p>Armá la lista de cada puesto y mandásela por WhatsApp. En cada turno la abren, tildan lo que hicieron y al terminar te llega el aviso con lo que faltó. Sin cuentas ni contraseñas.</p>
+    </header>
+
+    <div class="aviso" id="avisoEjemplo">Las tareas que ves son <b>un ejemplo</b>. Cambialas por las de tu local: una por renglón.</div>
+
+    <div class="card">
+      <label>Nombre del local
+        <input type="text" id="local" autocomplete="organization" placeholder="Ej.: Mi restaurante">
+      </label>
+      <label>Tu WhatsApp, para recibir los avisos
+        <span class="hint">Con código de área, sin el 0 y sin el 15. Ej.: 223 555 1234</span>
+        <input type="tel" id="tel" inputmode="tel" autocomplete="tel" placeholder="223 555 1234">
+      </label>
+    </div>
+
+    <div id="puestos"></div>
+
+    <div class="fila" style="margin-top:6px">
+      <button class="btn ghost" id="sumarPuesto" type="button">+ Sumar un puesto</button>
+      <button class="btn ghost" id="imprimir" type="button">Imprimir las listas</button>
+      <button class="btn link" id="volverEjemplo" type="button">Volver al ejemplo</button>
+    </div>
+  </section>
+
+  <!-- ===== Vista: turno (cada empleado) ===== -->
+  <section id="turno" hidden>
+    <header class="top">
+      <small id="tLocal"></small>
+      <h1 id="tPuesto"></h1>
+      <p id="tFecha" class="num"></p>
+    </header>
+
+    <label>¿Quién está hoy?
+      <input type="text" id="quien" autocomplete="given-name" placeholder="Tu nombre">
+    </label>
+
+    <div class="progreso" aria-live="polite">
+      <div class="barra"><i id="barra"></i></div>
+      <p id="cuenta" class="num"></p>
+    </div>
+
+    <div id="listas"></div>
+
+    <label style="margin-top:18px">Algo para avisar <span class="hint">Opcional: falta mercadería, se rompió algo, mañana llego tarde.</span>
+      <textarea id="nota" rows="2"></textarea>
+    </label>
+
+    <a class="btn primary big" id="avisar" href="#" target="_blank" rel="noopener">Terminé: avisar por WhatsApp</a>
+    <p class="muted" style="font-size:14px;text-align:center;margin-top:10px">La lista se guarda en este celular y arranca vacía cada día de trabajo (cambia a las 6 de la mañana, así el cierre de la noche no se borra).</p>
+  </section>
+
+  <!-- ===== Link roto ===== -->
+  <section id="roto" hidden>
+    <header class="top"><small>Turno en orden</small><h1>Este link está cortado</h1>
+      <p>Pedile a tu encargado que te lo mande de nuevo, entero.</p></header>
+  </section>
+
+  <div id="hojas" aria-hidden="true"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var MOMENTOS = [
+    { k: "a", nombre: "Al abrir" },
+    { k: "s", nombre: "Durante el servicio" },
+    { k: "c", nombre: "Al cerrar" }
+  ];
+
+  // Ejemplo de restaurante chico. Está marcado como ejemplo en la pantalla.
+  function ejemplo() {
+    return {
+      local: "",
+      tel: "",
+      editado: false,
+      puestos: [
+        { nombre: "Cocina",
+          a: ["Prender cámaras y anotar la temperatura", "Revisar mercadería y fechas de vencimiento", "Mise en place lista antes de abrir"],
+          s: ["Comandas en orden de llegada", "Avisar al salón lo que se termina"],
+          c: ["Tapar, rotular y guardar en cámara", "Limpiar plancha, horno y campana", "Anotar lo que falta para mañana", "Cerrar el gas y apagar luces"] },
+        { nombre: "Salón",
+          a: ["Mesas armadas con manteles y cubiertos", "Baños limpios y con papel", "Cartas limpias y opción sin TACC a mano"],
+          s: ["Saludar a cada mesa en menos de un minuto", "Ofrecer postre y café"],
+          c: ["Mesas limpias y sillas arriba", "Juntar manteles para lavar"] },
+        { nombre: "Caja",
+          a: ["Contar el cambio inicial", "Posnet cargado y con papel"],
+          s: ["Cada mesa cobrada con su ticket"],
+          c: ["Cerrar la caja y anotar si hay diferencia", "Repartir la propina y anotar cuánto le tocó a cada uno"] },
+        { nombre: "Bacha",
+          a: ["Vajilla y copas limpias antes de abrir"],
+          s: ["Bandejas vacías a mano para el salón"],
+          c: ["Vaciar tachos y separar reciclables", "Piso de la cocina limpio"] }
+      ]
+    };
+  }
+
+  // ---------- Guardado seguro (puede no haber localStorage) ----------
+  function leer(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function borrar(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  // ---------- Link de cada puesto: JSON en base64url dentro del # ----------
+  function aB64(texto) {
+    var bytes = new TextEncoder().encode(texto), bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function deB64(b64) {
+    var s = b64.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    var bin = atob(s), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  }
+  function limpiarLista(arr) {
+    return (Array.isArray(arr) ? arr : []).map(function (t) { return String(t).trim(); }).filter(Boolean).slice(0, 60);
+  }
+  function datosPuesto(cfg, p) {
+    return { v: 1, l: cfg.local.trim(), t: telWa(cfg.tel), p: p.nombre.trim() || "Puesto", a: limpiarLista(p.a), s: limpiarLista(p.s), c: limpiarLista(p.c) };
+  }
+  function base() { return location.href.split("#")[0]; }
+  function linkPuesto(cfg, p) { return base() + "#t=" + aB64(JSON.stringify(datosPuesto(cfg, p))); }
+
+  // Número para wa.me: 549 + característica + número (Argentina, celular).
+  function telWa(t) {
+    var d = String(t || "").replace(/\D/g, "");
+    if (!d) return "";
+    if (d.indexOf("00") === 0) d = d.slice(2);
+    if (d.indexOf("0") === 0) d = d.slice(1);
+    if (d.indexOf("54") === 0) { d = d.slice(2); if (d.indexOf("9") === 0) d = d.slice(1); }
+    if (d.indexOf("0") === 0) d = d.slice(1);
+    // Si vino con el 15 (característica de 2 a 4 cifras + 15 + número), se lo saca.
+    if (d.length === 12) {
+      for (var i = 2; i <= 4; i++) if (d.substr(i, 2) === "15") { d = d.slice(0, i) + d.slice(i + 2); break; }
+    }
+    return d.length === 10 ? "549" + d : (d.length >= 8 ? d : "");
+  }
+  function waLink(tel, texto) {
+    return "https://wa.me/" + (tel || "") + "?text=" + encodeURIComponent(texto);
+  }
+
+  // Día de trabajo: cambia a las 6 de la mañana.
+  function diaTrabajo(ahora) {
+    var d = new Date((ahora || new Date()).getTime() - 6 * 3600 * 1000);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function fechaLinda(ahora) {
+    var d = new Date((ahora || new Date()).getTime() - 6 * 3600 * 1000);
+    var dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    return dias[d.getDay()] + " " + d.getDate() + "/" + (d.getMonth() + 1);
+  }
+  function hashCorto(s) { var h = 5381; for (var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(36); }
+
+  function el(tag, attrs, hijos) {
+    var n = document.createElement(tag);
+    for (var k in attrs || {}) { if (k === "text") n.textContent = attrs[k]; else n.setAttribute(k, attrs[k]); }
+    (hijos || []).forEach(function (h) { n.appendChild(h); });
+    return n;
+  }
+
+  // =================== Vista armar ===================
+  var CLAVE_CFG = "turno:cfg";
+  var cfg;
+
+  function cargarCfg() {
+    var crudo = leer(CLAVE_CFG);
+    if (crudo) { try { var c = JSON.parse(crudo); if (c && Array.isArray(c.puestos)) return c; } catch (e) {} }
+    return ejemplo();
+  }
+  function persistir() { guardar(CLAVE_CFG, JSON.stringify(cfg)); }
+
+  function armar() {
+    cfg = cargarCfg();
+    document.getElementById("armar").hidden = false;
+    var local = document.getElementById("local"), tel = document.getElementById("tel");
+    local.value = cfg.local; tel.value = cfg.tel;
+    local.addEventListener("input", function () { cfg.local = local.value; persistir(); });
+    tel.addEventListener("input", function () { cfg.tel = tel.value; persistir(); });
+    document.getElementById("sumarPuesto").addEventListener("click", function () {
+      cfg.puestos.push({ nombre: "Puesto nuevo", a: [], s: [], c: [] }); cfg.editado = true; persistir(); pintarPuestos(cfg.puestos.length - 1);
+    });
+    document.getElementById("imprimir").addEventListener("click", function () { pintarHojas(); window.print(); });
+    document.getElementById("volverEjemplo").addEventListener("click", function () {
+      if (!confirm("¿Borrar lo que armaste y volver al ejemplo?")) return;
+      borrar(CLAVE_CFG); cfg = ejemplo(); local.value = ""; tel.value = ""; pintarPuestos(-1);
+    });
+    pintarPuestos(-1);
+  }
+
+  function pintarPuestos(abrir) {
+    document.getElementById("avisoEjemplo").hidden = !!cfg.editado;
+    var cont = document.getElementById("puestos");
+    cont.textContent = "";
+    cfg.puestos.forEach(function (p, i) {
+      var total = limpiarLista(p.a).length + limpiarLista(p.s).length + limpiarLista(p.c).length;
+      var titulo = el("h2", { text: p.nombre || "Puesto" });
+      var cuenta = el("span", { "class": "cuenta num", text: total + (total === 1 ? " tarea" : " tareas") });
+      var det = el("details", { "class": "card puesto" }, [el("summary", {}, [titulo, cuenta])]);
+      if (i === abrir) det.open = true;
+      var cuerpo = el("div", { "class": "cuerpo" });
+
+      var nombre = el("input", { type: "text", value: p.nombre });
+      nombre.addEventListener("input", function () { p.nombre = nombre.value; titulo.textContent = nombre.value || "Puesto"; cambio(); });
+      cuerpo.appendChild(el("label", {}, [document.createTextNode("Nombre del puesto"), nombre]));
+
+      MOMENTOS.forEach(function (m) {
+        var ta = el("textarea", { rows: "4", placeholder: "Una tarea por renglón" });
+        ta.value = (p[m.k] || []).join("\n");
+        ta.addEventListener("input", function () {
+          p[m.k] = ta.value.split("\n");
+          var t = limpiarLista(p.a).length + limpiarLista(p.s).length + limpiarLista(p.c).length;
+          cuenta.textContent = t + (t === 1 ? " tarea" : " tareas");
+          cambio();
+        });
+        cuerpo.appendChild(el("label", {}, [document.createTextNode(m.nombre), el("span", { "class": "hint", text: "Una por renglón. Si no hay, dejalo vacío." }), ta]));
+      });
+
+      var mandar = el("a", { "class": "btn primary", href: "#", target: "_blank", rel: "noopener", text: "Mandar por WhatsApp" });
+      mandar.addEventListener("click", function () {
+        var texto = "Hola. Esta es tu lista de " + (p.nombre || "tu puesto") + (cfg.local.trim() ? " en " + cfg.local.trim() : "") +
+          ". Abrila en cada turno, tildá lo que vas haciendo y al terminar tocá «Avisar»: " + linkPuesto(cfg, p);
+        mandar.href = waLink("", texto);
+      });
+      var copiado = el("span", { "class": "copiado", text: "" });
+      var copiar = el("button", { "class": "btn ghost", type: "button", text: "Copiar link" });
+      copiar.addEventListener("click", function () {
+        var l = linkPuesto(cfg, p);
+        var listo = function () { copiado.textContent = "Copiado"; setTimeout(function () { copiado.textContent = ""; }, 2000); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(l).then(listo, function () { prompt("Copiá el link:", l); });
+        else prompt("Copiá el link:", l);
+      });
+      var probar = el("a", { "class": "btn ghost", href: "#", target: "_blank", rel: "noopener", text: "Verlo como empleado" });
+      probar.addEventListener("click", function () { probar.href = linkPuesto(cfg, p); });
+      var sacar = el("button", { "class": "btn link", type: "button", text: "Sacar puesto" });
+      sacar.addEventListener("click", function () {
+        if (!confirm("¿Sacar " + (p.nombre || "este puesto") + "?")) return;
+        cfg.puestos.splice(i, 1); cambio(); pintarPuestos(-1);
+      });
+      cuerpo.appendChild(el("div", { "class": "fila" }, [mandar, copiar, probar, copiado, sacar]));
+
+      det.appendChild(cuerpo);
+      cont.appendChild(det);
+    });
+  }
+  function cambio() { if (!cfg.editado) { cfg.editado = true; document.getElementById("avisoEjemplo").hidden = true; } persistir(); }
+
+  function pintarHojas() {
+    var hojas = document.getElementById("hojas");
+    hojas.textContent = "";
+    cfg.puestos.forEach(function (p) {
+      var h = el("div", { "class": "hoja" }, [el("small", { text: cfg.local.trim() || "Turno en orden" }), el("h1", { text: p.nombre || "Puesto" })]);
+      MOMENTOS.forEach(function (m) {
+        var lista = limpiarLista(p[m.k]);
+        if (!lista.length) return;
+        h.appendChild(el("h3", { text: m.nombre }));
+        h.appendChild(el("ul", {}, lista.map(function (t) { return el("li", { text: t }); })));
+      });
+      h.appendChild(el("p", { "class": "firma", text: "Fecha: ______________   Quién: ______________________" }));
+      hojas.appendChild(h);
+    });
+  }
+
+  // =================== Vista turno ===================
+  function turno(d) {
+    document.getElementById("turno").hidden = false;
+    document.title = d.p + " · Turno en orden";
+    document.getElementById("tLocal").textContent = d.l || "Turno en orden";
+    document.getElementById("tPuesto").textContent = d.p;
+    document.getElementById("tFecha").textContent = "Turno del " + fechaLinda();
+
+    var idLista = hashCorto(JSON.stringify([d.l, d.p, d.a, d.s, d.c]));
+    var claveDia = function () { return "turno:" + idLista + ":" + diaTrabajo(); };
+    var estado = {};
+    function cargarEstado() { estado = {}; try { estado = JSON.parse(leer(claveDia()) || "{}") || {}; } catch (e) {} }
+    function guardarEstado() { guardar(claveDia(), JSON.stringify(estado)); }
+    cargarEstado();
+
+    var quien = document.getElementById("quien"), nota = document.getElementById("nota");
+    quien.value = leer("turno:quien") || "";
+    quien.addEventListener("input", function () { guardar("turno:quien", quien.value); });
+    nota.value = estado.nota || "";
+    nota.addEventListener("input", function () { estado.nota = nota.value; guardarEstado(); });
+
+    var todas = [];
+    var listas = document.getElementById("listas");
+    MOMENTOS.forEach(function (m) {
+      var tareas = limpiarLista(d[m.k]);
+      if (!tareas.length) return;
+      listas.appendChild(el("h3", { "class": "momento", text: m.nombre }));
+      var ul = el("ul", { "class": "tareas" });
+      tareas.forEach(function (t, i) {
+        var id = m.k + i;
+        var cb = el("input", { type: "checkbox", "aria-label": t });
+        cb.checked = !!estado[id];
+        cb.addEventListener("change", function () { estado[id] = cb.checked; guardarEstado(); contar(); });
+        todas.push({ id: id, texto: t, cb: cb });
+        ul.appendChild(el("li", {}, [el("label", { "class": "tarea" }, [cb, el("span", { text: t })])]));
+      });
+      listas.appendChild(ul);
+    });
+
+    var listo = el("div", { "class": "listo", text: "Todo hecho. Avisá y listo." });
+    listo.hidden = true;
+    listas.appendChild(listo);
+
+    function contar() {
+      var hechas = todas.filter(function (x) { return x.cb.checked; }).length;
+      document.getElementById("cuenta").textContent = hechas + " de " + todas.length + " hechas";
+      document.getElementById("barra").style.width = (todas.length ? 100 * hechas / todas.length : 0) + "%";
+      listo.hidden = !(todas.length && hechas === todas.length);
+    }
+    contar();
+
+    // Si el turno queda abierto y pasan las 6 de la mañana, arranca vacío.
+    var diaVisto = diaTrabajo();
+    setInterval(function () {
+      if (diaTrabajo() === diaVisto) return;
+      diaVisto = diaTrabajo(); cargarEstado();
+      todas.forEach(function (x) { x.cb.checked = !!estado[x.id]; });
+      nota.value = estado.nota || "";
+      document.getElementById("tFecha").textContent = "Turno del " + fechaLinda();
+      contar();
+    }, 60000);
+
+    var avisar = document.getElementById("avisar");
+    avisar.addEventListener("click", function () {
+      avisar.href = waLink(d.t, resumen(d, todas, quien.value, nota.value));
+    });
+  }
+
+  function resumen(d, todas, quien, nota) {
+    var hechas = todas.filter(function (x) { return x.cb.checked; });
+    var faltan = todas.filter(function (x) { return !x.cb.checked; });
+    var lineas = [];
+    lineas.push((faltan.length ? "⚠️ " : "✅ ") + d.p + (quien.trim() ? " · " + quien.trim() : "") + " · " + fechaLinda());
+    if (!faltan.length) lineas.push("Todo hecho (" + hechas.length + " de " + todas.length + ").");
+    else {
+      lineas.push(hechas.length + " de " + todas.length + " hechas. Faltó:");
+      faltan.forEach(function (x) { lineas.push("- " + x.texto); });
+    }
+    if (nota.trim()) lineas.push("Nota: " + nota.trim());
+    return lineas.join("\n");
+  }
+
+  // =================== Arranque ===================
+  function arrancar() {
+    var m = location.hash.match(/^#t=([A-Za-z0-9_-]+)$/);
+    if (location.hash.indexOf("#t=") === 0) {
+      try {
+        if (!m) throw new Error("formato");
+        var d = JSON.parse(deB64(m[1]));
+        if (!d || typeof d.p !== "string") throw new Error("datos");
+        d.a = limpiarLista(d.a); d.s = limpiarLista(d.s); d.c = limpiarLista(d.c);
+        d.t = /^\d{8,15}$/.test(d.t || "") ? d.t : "";
+        d.l = typeof d.l === "string" ? d.l : "";
+        if (!d.a.length && !d.s.length && !d.c.length) throw new Error("vacía");
+        turno(d);
+      } catch (e) { document.getElementById("roto").hidden = false; }
+    } else armar();
+  }
+  window.addEventListener("hashchange", function () { location.reload(); });
+
+  // Pruebas: expone las funciones puras sin tocar la pantalla.
+  window.__turno = { aB64: aB64, deB64: deB64, telWa: telWa, diaTrabajo: diaTrabajo, resumen: resumen };
+
+  arrancar();
+
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
+})();
+</script>
+
+</body>
+</html>
