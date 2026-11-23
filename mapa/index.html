@@ -28,6 +28,9 @@ header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;f
 h1{font-size:20px;margin:6px 0}
 h1 span{color:var(--sol)}
 .hilo{font-size:14px;color:var(--dim)}
+.hilos{display:flex;gap:8px;margin:4px 0}
+.hilos button{flex:1}
+.hilos button[aria-pressed="true"]{border-color:var(--sol);background:color-mix(in srgb,var(--sol) 20%,var(--panel));font-weight:600}
 button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer}
 button:hover{border-color:var(--sol)}
 button:focus-visible{outline:2px solid var(--sol);outline-offset:2px}
@@ -78,8 +81,12 @@ details summary{cursor:pointer;color:var(--txt)}
 <div class="wrap">
   <header>
     <h1>Cómo funciona <span>todo</span></h1>
-    <div class="hilo">Hilo: la energía · v1</div>
+    <div class="hilo" id="hiloTxt">Hilo: la energía · v2</div>
   </header>
+  <div class="hilos" id="hilos" role="group" aria-label="Elegir hilo">
+    <button data-h="energia">⚡ Energía</button>
+    <button data-h="comida">🌱 Comida</button>
+  </div>
 
   <div class="zoom">
     <svg class="anillos" viewBox="0 0 150 150" aria-label="Niveles de zoom" id="anillos"></svg>
@@ -103,11 +110,13 @@ details summary{cursor:pointer;color:var(--txt)}
     <summary>De dónde salen los números</summary>
     <p>Todos los números son aproximados y están redondeados para que se puedan comparar. La medida es el <b>cuerpo</b>: una persona en reposo gasta unos 100 watts, como una lamparita vieja.</p>
     <p>La casa es un ejemplo inventado de Mar del Plata, con 3 personas, luz, gas de red y un auto. Las cifras del país y del mundo cuentan la energía primaria, es decir todo lo que se quema o se capta, incluidas las fábricas, los camiones y lo que se pierde en el camino.</p>
-    <p>Fuentes generales: Agencia Internacional de Energía (balances de Argentina y del mundo), CAMMESA y Secretaría de Energía (generación eléctrica argentina), censo 2022 del INDEC (población) y NASA (balance de energía de la Tierra).</p>
+    <p>Comida: el cinturón hortícola y la agroecología, de trabajos de la UNMdP, el INTA y el CONICET; la cuenta de los paneles por hectárea es aproximada y la hizo Claude (unos 200 kg de nitrógeno por hectárea, electrólisis y sol de Mar del Plata). Fuentes generales: Agencia Internacional de Energía (balances de Argentina y del mundo), CAMMESA y Secretaría de Energía (generación eléctrica argentina), censo 2022 del INDEC (población) y NASA (balance de energía de la Tierra).</p>
   </details>
   <details>
     <summary>Qué probar en esta versión</summary>
     <ul>
+      <li><b>Nuevo en la v2:</b> el hilo de la comida (botón 🌱) y el recorrido “Fertilizante: del sol viejo al sol nuevo”.</li>
+      <li>Cambiá de hilo en el mismo nivel: ¿se entiende que es el mismo lugar visto de otra forma?</li>
       <li>Acercá y alejá con los botones, tocando los anillos o con las flechas del teclado.</li>
       <li>En “Qué entra”, tocá “¿de dónde viene?” y fijate si te lleva al lugar correcto del nivel de arriba.</li>
       <li>Hacé los dos recorridos de punta a punta. ¿Hubo algún “ahora entiendo”?</li>
@@ -226,6 +235,93 @@ const NIVELES = [
   aha:'<b>Ahora entendés:</b> en una hora llega del sol más energía que la que usa toda la humanidad en un año. La luz de tu lámpara y tu comida son, al final, luz del sol: la de hoy o la de hace 150 millones de años.'}
 ];
 
+const COMIDA = [
+ {id:'cuerpo', medida:1, medidaTxt:'1 boca',
+  frase:'Comés para tener energía y también para conseguir nitrógeno, el ladrillo de tus músculos.',
+  entra:[
+   {k:'comida', t:'Comida', d:'Un kilo y pico por día. Trae energía (el sol que guardaron las plantas) y materiales para reponerte.', de:'casa.heladera'},
+   {k:'proteina', t:'Proteínas', d:'Unos 50 a 60 gramos por día. Llevan nitrógeno: sin él no hay músculo, ni sangre, ni ADN.', de:'casa.heladera'}],
+  sale:[
+   {k:'orina', t:'Urea', d:'El nitrógeno que te sobra lo largás en la orina como urea: la misma molécula que el fertilizante que más se vende en el mundo.'},
+   {k:'calor', t:'Calor y CO₂', d:'Lo que queda de la energía de la comida, como en el hilo de la energía.'}],
+  decide:[
+   {k:'vos', t:'Vos', d:'Qué comés.'},
+   {k:'precio', t:'El precio', d:'Lo barato llena el carrito.'},
+   {k:'costumbre', t:'La costumbre', d:'Comés lo que comía tu casa.'}],
+  aha:'<b>Ahora entendés:</b> se calcula que cerca de la mitad del nitrógeno de tus proteínas pasó por una fábrica de fertilizante hecha a gas. Una parte de tu cuerpo es sol viejo.'},
+ {id:'casa', medida:3, medidaTxt:'3 bocas (ejemplo)',
+  frase:'La casa compra comida, guarda, cocina y tira.',
+  entra:[
+   {k:'heladera', t:'Las compras', d:'Bolsas del súper, de la verdulería y de la carnicería.', de:'barrio.verdu'}],
+  sale:[
+   {k:'restos', t:'Restos de comida', d:'Cerca de la mitad de la basura de una casa es orgánica: cáscaras, yerba, sobras. Con eso se hace compost, que es fertilizante.'},
+   {k:'cloaca', t:'Cloaca', d:'Lleva el nitrógeno que comieron todos: el de la urea.'}],
+  decide:[
+   {k:'vos', t:'Vos', d:'Qué comprás y qué tirás.'},
+   {k:'heladera2', t:'La heladera', d:'Lo que se pudre al fondo también decide.'}],
+  aha:'<b>Ahora entendés:</b> tu tacho de basura tiene fertilizante adentro. Si los restos van a compost, vuelven a la tierra; si van al camión, se pierden.'},
+ {id:'barrio', medida:3000, medidaTxt:'unas 3.000 bocas (ejemplo)',
+  frase:'El barrio es donde la comida cambia de manos: del camión al mostrador y del mostrador a la bolsa.',
+  entra:[
+   {k:'verdu', t:'Verdulería, súper y feria', d:'La verdura llega de madrugada, casi siempre de las quintas de la ciudad.', de:'ciudad.quintas'}],
+  sale:[
+   {k:'basura', t:'Basura orgánica', d:'Lo que tiran las casas y lo que no se vende en la verdulería se va en el camión.'}],
+  decide:[
+   {k:'muni', t:'El municipio', d:'Si se separa la basura o va toda junta al relleno.'},
+   {k:'comercio', t:'Los comerciantes', d:'Qué traen y de dónde.'}],
+  aha:'<b>Ahora entendés:</b> un barrio tira todos los días toneladas de lo que las quintas tienen que comprar como fertilizante.'},
+ {id:'ciudad', medida:680000, medidaTxt:'unas 680.000 bocas (y muchas más en enero)',
+  frase:'Mar del Plata produce mucha de su verdura y de su pescado, pero el fertilizante lo trae de afuera.',
+  entra:[
+   {k:'quintas', t:'Las quintas', d:'El cinturón hortícola de Mar del Plata es el segundo del país: unas 9.500 hectáreas a campo, sobre todo choclo, lechuga y zanahoria.', de:'pais.urea'},
+   {k:'puerto', t:'El puerto', d:'El puerto pesquero más grande del país.'}],
+  sale:[
+   {k:'relleno', t:'Relleno sanitario', d:'Adonde va el camión del barrio.'},
+   {k:'emisario', t:'Emisario al mar', d:'Las cloacas salen por un caño debajo del mar, con su nitrógeno.'}],
+  decide:[
+   {k:'productores', t:'Los productores', d:'Cada quintero decide con qué fertiliza. Se calcula que solo unos 5 de cada 100 trabajan de forma agroecológica (dato de 2020).'},
+   {k:'muni', t:'El municipio', d:'Una ordenanza de 2008 prohíbe usar agroquímicos a menos de 1.000 metros de las casas.'}],
+  aha:'<b>Ahora entendés:</b> la ciudad tira nitrógeno al mar y al relleno, mientras sus quintas compran el que viene de una fábrica a gas en Bahía Blanca.'},
+ {id:'pais', medida:4e8, medidaTxt:'unos 400 millones de bocas (lo que se suele decir que alimenta el campo argentino)',
+  frase:'Argentina produce comida para muchas más personas de las que viven acá, y una parte del fertilizante sale del gas.',
+  entra:[
+   {k:'urea', t:'Urea de Bahía Blanca', d:'La fábrica más grande del país la hace con gas que llega de Neuquén. Es sol viejo convertido en fertilizante.', de:'mundo.hb'},
+   {k:'soja', t:'Bacterias de la soja', d:'La soja hace su propio fertilizante: unas bacterias que viven en sus raíces atrapan el nitrógeno del aire con energía de la planta, que es sol nuevo. En Argentina se inoculan millones de hectáreas.', de:'planeta.bacterias'}],
+  sale:[
+   {k:'granos', t:'Granos por barco', d:'Cada barco de soja o de trigo se lleva nutrientes del suelo argentino.'},
+   {k:'suelo', t:'Suelo más pobre', d:'Se repone menos de lo que se saca: el suelo pierde nutrientes año a año.'}],
+  decide:[
+   {k:'productores', t:'Los productores', d:'Cuánto fertilizan, según el precio del grano y del fertilizante.'},
+   {k:'nacion', t:'La Nación', d:'Los impuestos a la exportación y las reglas del gas.'}],
+  aha:'<b>Ahora entendés:</b> el país ya usa sol nuevo a lo grande sin decirlo: las bacterias de la soja. El fertilizante de sol nuevo no es ciencia ficción: ya existe dentro de una raíz.'},
+ {id:'mundo', medida:8.2e9, medidaTxt:'unas 8.200 millones de bocas',
+  frase:'La mitad de la humanidad come gracias a un invento de 1913 que rompe el nitrógeno del aire usando gas.',
+  entra:[
+   {k:'hb', t:'Haber-Bosch', d:'Una fábrica junta el nitrógeno del aire con hidrógeno sacado del gas, a 400 grados y a 200 atmósferas. Sale amoníaco, que se convierte en urea. Gasta entre 1 y 2 de cada 100 unidades de energía del mundo.', de:'planeta.aire'},
+   {k:'verde', t:'El amoníaco de sol nuevo', d:'El mismo amoníaco, pero el hidrógeno sale del agua con electricidad de paneles o de viento, o se usa plasma. Lo prueban empresas como TalusAg, PlasmaLeap, Faraday Earth y NitroVolt. Lo difícil es achicar la máquina y que salga barata.', de:'planeta.aire'}],
+  sale:[
+   {k:'rios', t:'Nitrógeno en ríos y mares', d:'Lo que la planta no toma se lava y alimenta algas que dejan sin oxígeno a los mares: las zonas muertas.'},
+   {k:'n2o', t:'Óxido nitroso', d:'Un gas que calienta el planeta mucho más que el CO₂.'}],
+  decide:[
+   {k:'gas', t:'El precio del gas', d:'En 2022, cuando el gas se disparó por la guerra, el fertilizante también.'},
+   {k:'paises', t:'Los que lo fabrican', d:'Pocos países y pocas empresas hacen la mayor parte.'}],
+  aha:'<b>Ahora entendés:</b> el fertilizante es gas con otra forma. Si sube el gas, sube la comida, aunque vivas lejos de la guerra.'},
+ {id:'planeta', medida:null, medidaTxt:'todo lo que vive',
+  frase:'Estamos rodeados de nitrógeno y aun así las plantas pasan hambre de nitrógeno.',
+  entra:[
+   {k:'aire', t:'El aire', d:'78 de cada 100 partes del aire son nitrógeno, pero vienen de a pares muy pegados. Las plantas no lo pueden romper.'},
+   {k:'bacterias', t:'Bacterias y rayos', d:'Solo algunas bacterias (y los rayos de una tormenta) rompen ese par. Es el fertilizante natural, hecho con sol nuevo.'},
+   {k:'sol', t:'Sol', d:'Todo el trabajo de romper el nitrógeno cuesta energía, y al final la energía es del sol: nuevo (plantas, paneles) o viejo (gas).'}],
+  sale:[
+   {k:'vuelta', t:'La vuelta al aire', d:'Otras bacterias devuelven el nitrógeno al aire. Es un círculo.'}],
+  decide:[
+   {k:'nadie', t:'Nadie', d:'La química y las bacterias. Desde 1913, también nosotros: hoy los humanos rompemos tanto nitrógeno como toda la naturaleza en tierra firme.'}],
+  aha:'<b>Ahora entendés:</b> el problema no es conseguir nitrógeno, porque sobra. El problema es romperlo, y eso cuesta energía. La pregunta es de qué sol sale esa energía: del viejo o del nuevo.'}
+];
+
+const HILOS = {energia:NIVELES, comida:COMIDA};
+const NOMBRES = {energia:'la energía', comida:'la comida'};
+
 const RECORRIDOS = [
  {titulo:'De tu lámpara al sol', pasos:[
    ['casa','luz','Prendés la lámpara. La electricidad llega por el cable de la calle.'],
@@ -242,11 +338,23 @@ const RECORRIDOS = [
    ['ciudad','cinturon','La verdura viene de las quintas de Mar del Plata, y el resto, del campo.'],
    ['pais','campo','El campo es sol convertido en comida, ayudado por gasoil y fertilizante.'],
    ['mundo','fertilizante','La mitad de la comida del mundo depende de un fertilizante hecho con gas. Comés un poco de gas.'],
-   ['planeta','foto','Y todo empieza en la fotosíntesis: una hoja atrapando luz del sol.']]}
+   ['planeta','foto','Y todo empieza en la fotosíntesis: una hoja atrapando luz del sol.']]},
+ {titulo:'Fertilizante: del sol viejo al sol nuevo', pasos:[
+   ['planeta','aire','El aire está lleno de nitrógeno, pero las plantas no lo pueden usar: hay que romperlo, y eso cuesta energía.','comida'],
+   ['mundo','hb','Desde 1913 se rompe en fábricas con gas: sol viejo. La mitad de la humanidad come gracias a eso.','comida'],
+   ['pais','urea','En Argentina la urea sale de Bahía Blanca, hecha con gas de Neuquén.','comida'],
+   ['ciudad','quintas','La compran las quintas de Mar del Plata para la lechuga y la zanahoria.','comida'],
+   ['cuerpo','proteina','Ese nitrógeno termina en tus músculos.','comida'],
+   ['cuerpo','orina','Y lo devolvés como urea, la misma molécula, que se va por la cloaca al mar.','comida'],
+   ['casa','restos','Sol nuevo 1: el compost. Los restos de tu casa ya tienen nitrógeno; reciclarlo cuesta poca energía.','comida'],
+   ['pais','soja','Sol nuevo 2: las bacterias de la soja, que lo rompen con la energía de la planta. Ya se usan en millones de hectáreas.','comida'],
+   ['mundo','verde','Sol nuevo 3: amoníaco hecho con paneles, agua y aire. Cuenta aproximada: para el nitrógeno de una hectárea de quinta alcanzarían unos 4 o 5 paneles. Lo difícil es la máquina.','comida']]}
 ];
 
 const $ = s => document.querySelector(s);
-let i = 0, marca = null, tour = null;
+let i = 0, marca = null, tour = null, hilo = 'energia';
+const H = () => HILOS[hilo];
+const N = k => ({...NIVELES[k], ...H()[k]});
 
 function anillos(){
   const svg = $('#anillos'); let h = '';
@@ -268,19 +376,29 @@ function lista(cls, titulo, items, nivel){
 }
 
 function pintar(){
-  const n = NIVELES[i];
+  const n = N(i);
+  document.querySelectorAll('#hilos button').forEach(b => b.setAttribute('aria-pressed', b.dataset.h === hilo));
+  $('#hiloTxt').textContent = 'Hilo: ' + NOMBRES[hilo] + ' · v2';
   $('#num').textContent = `Nivel ${i + 1} de ${NIVELES.length}`;
   $('#nombre').textContent = n.nombre;
   $('#escala').textContent = 'Tamaño: ' + n.escala;
   $('#acercar').disabled = i === 0;
   $('#alejar').disabled = i === NIVELES.length - 1;
-  const max = Math.log10(NIVELES[NIVELES.length - 1].cuerpos);
-  const ancho = Math.max(2, Math.log10(n.cuerpos) / max * 100);
+  const en = hilo === 'energia';
+  const num = en ? n.cuerpos : n.medida;
+  const max = en ? Math.log10(NIVELES[NIVELES.length - 1].cuerpos) : Math.log10(8.2e9);
+  const ancho = num ? Math.max(2, Math.log10(num) / max * 100) : 100;
+  const medida = en
+    ? `Usa <b>${n.cuerposTxt}</b> de energía todo el tiempo (aprox.)`
+    : `Alimenta a <b>${n.medidaTxt}</b>`;
+  const nota = en
+    ? 'Un cuerpo son unos 100 watts. La barra crece por saltos: cada tramo multiplica por diez.'
+    : 'Una boca es una persona que come. La barra crece por saltos: cada tramo multiplica por diez.';
   $('#nivel').innerHTML = `<div class="anim">
     <p class="frase">${n.frase}</p>
-    <div class="cuerpos">Usa <b>${n.cuerposTxt}</b> de energía todo el tiempo (aprox.)
+    <div class="cuerpos">${medida}
       <div class="barra"><i style="width:${ancho}%"></i></div>
-      <small>Un cuerpo son unos 100 watts. La barra crece por saltos: cada tramo multiplica por diez.</small></div>
+      <small>${nota}</small></div>
     <div class="tres">${lista('entra','Qué entra',n.entra,n)}${lista('sale','Qué sale',n.sale,n)}${lista('decide','Quién decide',n.decide,n)}</div>
     <div class="aha">${n.aha}</div></div>`;
   document.querySelectorAll('.sube').forEach(b => b.onclick = () => {
@@ -296,7 +414,8 @@ function pintar(){
 }
 
 function ir(n){ if (n < 0 || n >= NIVELES.length) return; i = n; marca = null; pintar(); }
-function marcar(nid, k){ i = NIVELES.findIndex(n => n.id === nid); marca = [nid, k]; pintar(); }
+function marcar(nid, k, h){ if (h) hilo = h; i = NIVELES.findIndex(n => n.id === nid); marca = [nid, k]; pintar(); }
+function cambiarHilo(h){ hilo = h; marca = null; try { localStorage.setItem('mapa-hilo', h); } catch(e){} pintar(); }
 
 function pintarTour(){
   const box = $('#tour');
@@ -307,7 +426,7 @@ function pintarTour(){
     <button id="tAnt" ${tour.p === 0 ? 'disabled' : ''}>←</button>
     <span class="paso">${tour.p + 1} de ${r.pasos.length}</span>
     ${tour.p === r.pasos.length - 1 ? '<button id="tFin">Terminar</button>' : '<button id="tSig">Siguiente →</button>'}</div>`;
-  marcar(p[0], p[1]);
+  marcar(p[0], p[1], p[3] || 'energia');
   const ant = $('#tAnt'), sig = $('#tSig'), fin = $('#tFin');
   if (ant) ant.onclick = () => { tour.p--; pintarTour(); };
   if (sig) sig.onclick = () => { tour.p++; pintarTour(); };
@@ -322,6 +441,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowUp' || e.key === '+') { ir(i + 1); e.preventDefault(); }
   if (e.key === 'ArrowDown' || e.key === '-') { ir(i - 1); e.preventDefault(); }
 });
+document.querySelectorAll('#hilos button').forEach(b => b.onclick = () => cambiarHilo(b.dataset.h));
+try { const h = localStorage.getItem('mapa-hilo'); if (HILOS[h]) hilo = h; } catch(e){}
 try { const g = +localStorage.getItem('mapa-nivel'); if (g >= 0 && g < NIVELES.length) i = g; } catch(e){}
 pintar();
 </script>
