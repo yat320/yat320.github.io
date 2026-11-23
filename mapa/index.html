@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#e0a030">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23e0a030%22/%3E%3Cpath d=%22M18 33l9 9 19-21%22 stroke=%22white%22 stroke-width=%227%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<title>Cómo funciona todo</title>
+</head>
+<body>
+<style>
+:root{
+  --bg:#14110d; --panel:#1f1a14; --line:#3a3127; --txt:#f3ead9; --dim:#b3a58d;
+  --sol:#e0a030; --entra:#7fc8a0; --sale:#e7866b; --decide:#9ab3ee;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f7f1e6; --panel:#fffaf1; --line:#e2d6c2; --txt:#2a2218; --dim:#6f6150;
+    --sol:#b8700a; --entra:#22805a; --sale:#b8462a; --decide:#3456a8;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt)}
+body{font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:12px 16px 80px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+h1{font-size:20px;margin:6px 0}
+h1 span{color:var(--sol)}
+.hilo{font-size:14px;color:var(--dim)}
+button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer}
+button:hover{border-color:var(--sol)}
+button:focus-visible{outline:2px solid var(--sol);outline-offset:2px}
+.zoom{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;margin:10px 0 6px}
+svg.anillos{width:150px;height:150px;display:block}
+svg.anillos circle{fill:none;stroke:var(--line);stroke-width:7;cursor:pointer;transition:stroke .3s}
+svg.anillos circle.aca{stroke:var(--sol)}
+svg.anillos circle.dentro{stroke:color-mix(in srgb,var(--sol) 35%,var(--line))}
+.donde .num{font-size:13px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+.donde h2{font-size:28px;margin:2px 0 4px;line-height:1.1}
+.donde .escala{color:var(--dim);font-size:14px}
+.botones{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.botones button{flex:1;min-width:120px}
+.frase{font-size:19px;margin:14px 0 10px}
+.cuerpos{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0}
+.cuerpos b{color:var(--sol);font-size:20px}
+.barra{height:8px;border-radius:4px;background:var(--line);margin-top:8px;overflow:hidden}
+.barra i{display:block;height:100%;background:var(--sol);border-radius:4px;transition:width .5s}
+.cuerpos small{display:block;color:var(--dim);margin-top:6px;font-size:13px}
+.tres{display:grid;gap:10px;margin:12px 0}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.col h3{margin:2px 0 6px;font-size:15px;letter-spacing:.04em;text-transform:uppercase}
+.col.entra h3{color:var(--entra)} .col.sale h3{color:var(--sale)} .col.decide h3{color:var(--decide)}
+.col ul{list-style:none;margin:0;padding:0}
+.col li{padding:8px 0;border-top:1px solid var(--line);transition:background .4s}
+.col li:first-child{border-top:0}
+.col li b{display:block}
+.col li .d{color:var(--dim);font-size:15px}
+.col li.marca{background:color-mix(in srgb,var(--sol) 18%,transparent);border-radius:8px;padding:8px;margin:0 -8px}
+.sube{display:block;margin-top:6px;font-size:14px;padding:6px 10px;border-radius:10px}
+.aha{border-left:4px solid var(--sol);padding:10px 14px;margin:14px 0;background:var(--panel);border-radius:0 14px 14px 0}
+.aha b{color:var(--sol)}
+.recorridos{display:grid;gap:8px;margin:8px 0}
+.recorridos button{text-align:left}
+.tour{position:sticky;bottom:10px;background:var(--panel);border:2px solid var(--sol);border-radius:14px;padding:12px 14px;margin-top:14px;box-shadow:0 6px 24px #0006}
+.tour p{margin:0 0 10px}
+.tour .fila{display:flex;gap:8px;justify-content:space-between;align-items:center}
+.tour .paso{color:var(--dim);font-size:14px}
+details{margin:18px 0 0;color:var(--dim);font-size:15px}
+details summary{cursor:pointer;color:var(--txt)}
+.anim{animation:entrar .35s ease}
+@keyframes entrar{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@media (min-width:700px){.tres{grid-template-columns:1fr 1fr 1fr}}
+@media (max-width:380px){.zoom{grid-template-columns:110px 1fr}svg.anillos{width:110px;height:110px}.donde h2{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Cómo funciona <span>todo</span></h1>
+    <div class="hilo">Hilo: la energía · v1</div>
+  </header>
+
+  <div class="zoom">
+    <svg class="anillos" viewBox="0 0 150 150" aria-label="Niveles de zoom" id="anillos"></svg>
+    <div class="donde">
+      <div class="num" id="num"></div>
+      <h2 id="nombre"></h2>
+      <div class="escala" id="escala"></div>
+      <div class="botones">
+        <button id="acercar" aria-label="Acercar">↓ Acercar</button>
+        <button id="alejar" aria-label="Alejar">↑ Alejar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="recorridos" id="recorridos"></div>
+
+  <main id="nivel"></main>
+  <div id="tour" class="tour" hidden></div>
+
+  <details>
+    <summary>De dónde salen los números</summary>
+    <p>Todos los números son aproximados y están redondeados para que se puedan comparar. La medida es el <b>cuerpo</b>: una persona en reposo gasta unos 100 watts, como una lamparita vieja.</p>
+    <p>La casa es un ejemplo inventado de Mar del Plata, con 3 personas, luz, gas de red y un auto. Las cifras del país y del mundo cuentan la energía primaria, es decir todo lo que se quema o se capta, incluidas las fábricas, los camiones y lo que se pierde en el camino.</p>
+    <p>Fuentes generales: Agencia Internacional de Energía (balances de Argentina y del mundo), CAMMESA y Secretaría de Energía (generación eléctrica argentina), censo 2022 del INDEC (población) y NASA (balance de energía de la Tierra).</p>
+  </details>
+  <details>
+    <summary>Qué probar en esta versión</summary>
+    <ul>
+      <li>Acercá y alejá con los botones, tocando los anillos o con las flechas del teclado.</li>
+      <li>En “Qué entra”, tocá “¿de dónde viene?” y fijate si te lleva al lugar correcto del nivel de arriba.</li>
+      <li>Hacé los dos recorridos de punta a punta. ¿Hubo algún “ahora entiendo”?</li>
+      <li>Abrilo en el celu y en el Quest. ¿Se lee bien la letra?</li>
+      <li>Lo que importa: ¿te dan ganas de volver a abrirlo mañana?</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+const NIVELES = [
+ {id:'cuerpo', nombre:'Tu cuerpo', escala:'1,7 metros', cuerpos:1, cuerposTxt:'1 cuerpo',
+  frase:'Sos una máquina que quema comida para mantenerse a 36 grados y moverse.',
+  entra:[
+   {k:'comida', t:'Comida', d:'Unas 2.000 a 2.500 calorías por día. Es energía del sol que guardaron las plantas, o los animales que comieron plantas.', de:'casa.comida'},
+   {k:'aire', t:'Oxígeno', d:'Sin oxígeno, la comida no se puede “quemar” adentro tuyo. Lo hace cada célula, despacito y sin llama.'}],
+  sale:[
+   {k:'calor', t:'Calor', d:'Casi todo lo que comés termina como calor: unos 100 watts todo el día, como una lamparita vieja.'},
+   {k:'mov', t:'Movimiento', d:'Caminar, hablar, latir. Es una parte chica del total.'},
+   {k:'co2', t:'CO₂ y agua', d:'Es lo que queda de la comida quemada. Lo sacás al respirar.'}],
+  decide:[
+   {k:'vos', t:'Vos', d:'Qué comés y cuánto te movés.'},
+   {k:'hambre', t:'Tu cuerpo', d:'El hambre y el cansancio deciden antes que vos.'},
+   {k:'gondola', t:'La góndola', d:'Lo que hay y lo que cuesta decide mucho de lo que comés.'}],
+  aha:'<b>Ahora entendés:</b> estar vivo cuesta energía aunque no hagas nada. Por eso tenés hambre durmiendo.'},
+ {id:'casa', nombre:'Tu casa', escala:'10 metros', cuerpos:30, cuerposTxt:'unos 30 cuerpos',
+  frase:'Una casa es un cuerpo grande: le entra energía por cables, caños y bolsas, y la pierde por paredes y ventanas.',
+  entra:[
+   {k:'luz', t:'Electricidad', d:'Llega por el cable de la distribuidora (en Mar del Plata, EDEA). Unos 250 kWh por mes (ejemplo).', de:'barrio.trafo'},
+   {k:'gas', t:'Gas', d:'Llega por el caño de red (Camuzzi) o en garrafa. Lo usan la estufa, el calefón y la cocina.', de:'barrio.cano'},
+   {k:'nafta', t:'Nafta', d:'La que carga el auto en la estación de servicio.', de:'barrio.estacion'},
+   {k:'comida', t:'Comida', d:'Entra en bolsas del súper o de la verdulería. Es la energía de los cuerpos que viven en la casa.', de:'barrio.super'}],
+  sale:[
+   {k:'calor', t:'Calor', d:'Se escapa por las paredes, el techo y las ventanas. En invierno la estufa trabaja para reponerlo.'},
+   {k:'humo', t:'CO₂', d:'Sale de la estufa, la cocina y el caño de escape del auto.'},
+   {k:'basura', t:'Basura y cloaca', d:'Restos de comida y envases: todavía tienen energía adentro.'}],
+  decide:[
+   {k:'vos', t:'Vos', d:'Qué prendés, cuánto tiempo y a qué temperatura.'},
+   {k:'tarifa', t:'La tarifa', d:'La fijan el Estado y los entes que controlan a las empresas (ENRE, ENARGAS y, en la provincia, OCEBA).'},
+   {k:'clima', t:'El clima', d:'Un invierno frío pesa más en la cuenta que cualquier electrodoméstico.'}],
+  aha:'<b>Ahora entendés:</b> en el ejemplo, el gas de la estufa y el calefón es más del doble de toda la electricidad de la casa. Si la cuenta de invierno te asusta, la culpa es casi siempre del calor, no de la tele.'},
+ {id:'barrio', nombre:'Tu barrio', escala:'1 kilómetro', cuerpos:35000, cuerposTxt:'unos 35.000 cuerpos',
+  frase:'El barrio reparte: baja la energía de la ciudad al tamaño de una casa.',
+  entra:[
+   {k:'trafo', t:'Transformador de la cuadra', d:'Recibe cables de media tensión (13.200 volts) y los baja a 220 volts para las casas. Si “se cortó en la cuadra”, muchas veces es él o su fusible.', de:'ciudad.alta'},
+   {k:'cano', t:'Caño de gas del barrio', d:'Una red de caños bajo la vereda, a baja presión. Sale de una estación que le baja la presión al gas que llega a la ciudad.', de:'ciudad.gasoducto'},
+   {k:'estacion', t:'Estación de servicio', d:'Un camión cisterna le llena los tanques cada pocos días.', de:'ciudad.puerto'},
+   {k:'super', t:'Súper y verdulería', d:'Camiones que llegan de madrugada con comida de la ciudad y del campo.', de:'ciudad.cinturon'}],
+  sale:[
+   {k:'calor', t:'Calor', d:'Sale de mil casas, de los autos y del asfalto que se calentó en el día.'},
+   {k:'luzcalle', t:'Luz de la calle', d:'El alumbrado público: energía que se va al cielo.'},
+   {k:'basura', t:'El camión de basura', d:'Se lleva lo que sobró de todo lo que entró.'}],
+  decide:[
+   {k:'distri', t:'La distribuidora', d:'Decide dónde va cada transformador y cuándo se cambia.'},
+   {k:'muni', t:'El municipio', d:'El alumbrado, las calles y la basura.'},
+   {k:'vecinos', t:'Los vecinos', d:'Si todos prenden el aire a la vez, el transformador salta.'}],
+  aha:'<b>Ahora entendés:</b> el corte de luz “de la cuadra” y el “de todo el barrio” son fallas distintas: una es del transformador de tu esquina y la otra está más arriba, en la ciudad.'},
+ {id:'ciudad', nombre:'Mar del Plata', escala:'20 kilómetros', cuerpos:16e6, cuerposTxt:'unos 16 millones de cuerpos',
+  frase:'La ciudad casi no produce la energía que usa: vive de cables, caños y barcos que vienen de lejos.',
+  entra:[
+   {k:'alta', t:'Líneas de alta tensión', d:'Torres que traen electricidad desde la red de todo el país. En las subestaciones de la ciudad se baja a media tensión.', de:'pais.centrales'},
+   {k:'gasoducto', t:'Gasoducto', d:'Un caño enterrado que trae gas desde cientos de kilómetros. Sale de los yacimientos del sur y del oeste del país.', de:'pais.gas'},
+   {k:'puerto', t:'Combustible', d:'Nafta y gasoil que llegan de las refinerías en camión o por barco.', de:'pais.petroleo'},
+   {k:'cinturon', t:'Comida', d:'Mar del Plata tiene uno de los cinturones de quintas más grandes del país. El resto llega del campo en camión.', de:'pais.campo'}],
+  sale:[
+   {k:'calor', t:'Calor y CO₂', d:'De 680 mil personas, de los colectivos, del puerto y de las fábricas.'},
+   {k:'cloaca', t:'Cloacas y basura', d:'Llevan energía química que casi nunca se aprovecha.'},
+   {k:'verano', t:'El pico de enero', d:'Con los turistas sube el consumo, y la red tiene que aguantar los días de más calor.'}],
+  decide:[
+   {k:'muni', t:'El municipio', d:'El alumbrado, el transporte y por dónde crece la ciudad.'},
+   {k:'prov', t:'La provincia', d:'Controla a la distribuidora de luz (OCEBA).'},
+   {k:'empresas', t:'Las empresas', d:'EDEA para la luz y Camuzzi para el gas: cuidan los cables y los caños que tenés más cerca.'}],
+  aha:'<b>Ahora entendés:</b> si se corta un gasoducto o una línea grande, la ciudad entera se queda sin nada. Nadie en Mar del Plata puede arreglar eso desde acá.'},
+ {id:'pais', nombre:'Argentina', escala:'3.700 kilómetros', cuerpos:1.1e9, cuerposTxt:'unos 1.100 millones de cuerpos',
+  frase:'El país saca energía de abajo de la tierra (gas y petróleo), del agua, del átomo, del viento y del sol, y la mueve de punta a punta.',
+  entra:[
+   {k:'gas', t:'Gas', d:'Es más de la mitad de toda la energía del país, y una gran parte sale de Vaca Muerta, en Neuquén. En los inviernos fríos, además, llegan barcos con gas de afuera.', de:'mundo.mercado'},
+   {k:'petroleo', t:'Petróleo', d:'Vaca Muerta, la Patagonia y Mendoza. Las refinerías lo convierten en nafta y gasoil.', de:'mundo.barril'},
+   {k:'centrales', t:'Centrales eléctricas', d:'Más de la mitad de la luz sale de quemar gas. El resto viene de represas (Yacyretá, Salto Grande, El Chocón), de las nucleares (Atucha y Embalse) y cada vez más del viento y del sol.', de:'mundo.mercado'},
+   {k:'campo', t:'El campo', d:'Soja, trigo, maíz y vacas: es el sol convertido en comida, con ayuda del gasoil de los tractores y del fertilizante.', de:'mundo.fertilizante'}],
+  sale:[
+   {k:'expo', t:'Exportaciones', d:'Petróleo, gas y sobre todo comida (granos, harinas, carne), que salen por barco.'},
+   {k:'co2', t:'CO₂', d:'Lo que se quema en todo el país termina en el aire de todo el planeta.'},
+   {k:'perdidas', t:'Pérdidas', d:'Parte de la electricidad se pierde en los cables en el camino, como calor.'}],
+  decide:[
+   {k:'prov', t:'Las provincias', d:'Son las dueñas del gas y del petróleo que hay bajo su tierra (Neuquén, Mendoza, Chubut y otras).'},
+   {k:'nacion', t:'La Nación', d:'Pone las reglas, los subsidios y las tarifas. CAMMESA decide minuto a minuto qué central prende.'},
+   {k:'empresas', t:'Las empresas', d:'YPF y las demás deciden dónde perforar y cuánto invertir.'}],
+  aha:'<b>Ahora entendés:</b> tu factura de luz depende de cuánto gas sale de Neuquén, porque la mayor parte de la electricidad del país se hace quemando gas.'},
+ {id:'mundo', nombre:'El mundo', escala:'40.000 kilómetros (una vuelta)', cuerpos:1.96e11, cuerposTxt:'unos 196.000 millones de cuerpos',
+  frase:'Ocho mil millones de personas usan unos 24 cuerpos de energía cada una, y cuatro de cada cinco salen de quemar petróleo, gas y carbón.',
+  entra:[
+   {k:'barril', t:'El precio del barril', d:'El petróleo se compra y se vende en todo el mundo. Cuando sube allá, sube la nafta en Mar del Plata.', de:'planeta.fosil'},
+   {k:'mercado', t:'El gas del mundo', d:'Viaja en barcos enfriado hasta hacerse líquido. Una guerra lejos te puede cambiar el precio del invierno.', de:'planeta.fosil'},
+   {k:'fertilizante', t:'Fertilizante', d:'La mitad de la comida del mundo depende de un fertilizante que se fabrica con gas.', de:'planeta.foto'}],
+  sale:[
+   {k:'co2', t:'CO₂', d:'Unos 37.000 millones de toneladas por año salen de quemar petróleo, gas y carbón.'},
+   {k:'calor', t:'Calor', d:'Toda la energía que se usa termina como calor, igual que en tu cuerpo.'},
+   {k:'desigual', t:'Desigualdad', d:'Un estadounidense usa casi 4 veces el promedio, y en muchos países de África se usa menos de un décimo. Un argentino está cerca del promedio.'}],
+  decide:[
+   {k:'opep', t:'Los grandes productores', d:'La OPEP+ (Arabia Saudita, Rusia y otros) abre o cierra la canilla del petróleo.'},
+   {k:'mercados', t:'Los mercados', d:'El precio se arma en Londres y en Nueva York con millones de compras y ventas.'},
+   {k:'acuerdos', t:'Los acuerdos', d:'Como el de París: los países prometen quemar menos, y lo cumplen a medias.'}],
+  aha:'<b>Ahora entendés:</b> un argentino promedio usa casi la misma energía que el promedio del mundo, unos 24 cuerpos. Por eso lo que pasa con el petróleo en otro continente te llega al bolsillo.'},
+ {id:'planeta', nombre:'El planeta', escala:'12.700 kilómetros de diámetro', cuerpos:1.73e15, cuerposTxt:'unos 1.700 billones de cuerpos (un billón es un millón de millones)',
+  frase:'Casi toda la energía de la Tierra viene del sol. Todo lo de abajo es sol, ahora o de hace millones de años.',
+  entra:[
+   {k:'sol', t:'Luz del sol', d:'Unos 173.000 teravatios llegan todo el tiempo. Es casi 9.000 veces lo que usa toda la humanidad.'},
+   {k:'foto', t:'Fotosíntesis', d:'Las plantas y las algas atrapan una parte muy chica y la vuelven comida. Así empieza todo lo que comés.'},
+   {k:'fosil', t:'Sol viejo', d:'El gas y el petróleo son restos de algas y plancton que guardaron luz del sol hace millones de años. Vaca Muerta tiene unos 150 millones de años.'}],
+  sale:[
+   {k:'espacio', t:'Calor al espacio', d:'La Tierra devuelve al espacio casi tanta energía como recibe. Si devuelve un poco menos, se calienta.'},
+   {k:'refleja', t:'Luz reflejada', d:'Las nubes, el hielo y los mares devuelven cerca de un tercio de la luz sin usarla.'}],
+  decide:[
+   {k:'fisica', t:'Nadie', d:'Lo deciden la física y la química. El CO₂ del mundo hace que salga un poco menos de calor, y por eso la Tierra se calienta.'}],
+  aha:'<b>Ahora entendés:</b> en una hora llega del sol más energía que la que usa toda la humanidad en un año. La luz de tu lámpara y tu comida son, al final, luz del sol: la de hoy o la de hace 150 millones de años.'}
+];
+
+const RECORRIDOS = [
+ {titulo:'De tu lámpara al sol', pasos:[
+   ['casa','luz','Prendés la lámpara. La electricidad llega por el cable de la calle.'],
+   ['barrio','trafo','El cable sale del transformador de la cuadra, que baja de 13.200 a 220 volts.'],
+   ['ciudad','alta','Al transformador le llega de una subestación de la ciudad, y a ella, de las torres de alta tensión.'],
+   ['pais','centrales','Las torres vienen de las centrales. Lo más probable es que tu luz salga de quemar gas.'],
+   ['pais','gas','Ese gas sale en gran parte de Vaca Muerta, a unos 1.000 km de tu casa.'],
+   ['planeta','fosil','Vaca Muerta es plancton que guardó luz del sol hace unos 150 millones de años.'],
+   ['planeta','sol','Tu lámpara prende luz del sol de la época de los dinosaurios.']]},
+ {titulo:'De tu plato al sol', pasos:[
+   ['cuerpo','comida','Comés. Tu cuerpo la quema despacio, sin llama, y vos te mantenés a 36 grados.'],
+   ['casa','comida','La comida entró a tu casa en una bolsa.'],
+   ['barrio','super','La bolsa salió del súper, al que la comida llegó en un camión de madrugada.'],
+   ['ciudad','cinturon','La verdura viene de las quintas de Mar del Plata, y el resto, del campo.'],
+   ['pais','campo','El campo es sol convertido en comida, ayudado por gasoil y fertilizante.'],
+   ['mundo','fertilizante','La mitad de la comida del mundo depende de un fertilizante hecho con gas. Comés un poco de gas.'],
+   ['planeta','foto','Y todo empieza en la fotosíntesis: una hoja atrapando luz del sol.']]}
+];
+
+const $ = s => document.querySelector(s);
+let i = 0, marca = null, tour = null;
+
+function anillos(){
+  const svg = $('#anillos'); let h = '';
+  for (let n = NIVELES.length - 1; n >= 0; n--){
+    const r = 10 + n * 9.6;
+    const cls = n === i ? 'aca' : (n < i ? 'dentro' : '');
+    h += `<circle cx="75" cy="75" r="${r}" class="${cls}" data-n="${n}"><title>${NIVELES[n].nombre}</title></circle>`;
+  }
+  svg.innerHTML = h;
+  svg.querySelectorAll('circle').forEach(c => c.onclick = () => ir(+c.dataset.n));
+}
+
+function lista(cls, titulo, items, nivel){
+  return `<section class="col ${cls}"><h3>${titulo}</h3><ul>${items.map(it => {
+    const m = marca && marca[0] === nivel.id && marca[1] === it.k ? ' marca' : '';
+    const sube = it.de ? `<button class="sube" data-de="${it.de}">¿De dónde viene? ↑</button>` : '';
+    return `<li class="${m.trim()}" id="it-${nivel.id}-${it.k}"><b>${it.t}</b><span class="d">${it.d}</span>${sube}</li>`;
+  }).join('')}</ul></section>`;
+}
+
+function pintar(){
+  const n = NIVELES[i];
+  $('#num').textContent = `Nivel ${i + 1} de ${NIVELES.length}`;
+  $('#nombre').textContent = n.nombre;
+  $('#escala').textContent = 'Tamaño: ' + n.escala;
+  $('#acercar').disabled = i === 0;
+  $('#alejar').disabled = i === NIVELES.length - 1;
+  const max = Math.log10(NIVELES[NIVELES.length - 1].cuerpos);
+  const ancho = Math.max(2, Math.log10(n.cuerpos) / max * 100);
+  $('#nivel').innerHTML = `<div class="anim">
+    <p class="frase">${n.frase}</p>
+    <div class="cuerpos">Usa <b>${n.cuerposTxt}</b> de energía todo el tiempo (aprox.)
+      <div class="barra"><i style="width:${ancho}%"></i></div>
+      <small>Un cuerpo son unos 100 watts. La barra crece por saltos: cada tramo multiplica por diez.</small></div>
+    <div class="tres">${lista('entra','Qué entra',n.entra,n)}${lista('sale','Qué sale',n.sale,n)}${lista('decide','Quién decide',n.decide,n)}</div>
+    <div class="aha">${n.aha}</div></div>`;
+  document.querySelectorAll('.sube').forEach(b => b.onclick = () => {
+    const [nid, k] = b.dataset.de.split('.');
+    marcar(nid, k);
+  });
+  anillos();
+  if (marca){
+    const el = document.getElementById(`it-${marca[0]}-${marca[1]}`);
+    if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  try { localStorage.setItem('mapa-nivel', i); } catch(e){}
+}
+
+function ir(n){ if (n < 0 || n >= NIVELES.length) return; i = n; marca = null; pintar(); }
+function marcar(nid, k){ i = NIVELES.findIndex(n => n.id === nid); marca = [nid, k]; pintar(); }
+
+function pintarTour(){
+  const box = $('#tour');
+  if (!tour){ box.hidden = true; return; }
+  const r = RECORRIDOS[tour.r], p = r.pasos[tour.p];
+  box.hidden = false;
+  box.innerHTML = `<p><b>${r.titulo}</b><br>${p[2]}</p><div class="fila">
+    <button id="tAnt" ${tour.p === 0 ? 'disabled' : ''}>←</button>
+    <span class="paso">${tour.p + 1} de ${r.pasos.length}</span>
+    ${tour.p === r.pasos.length - 1 ? '<button id="tFin">Terminar</button>' : '<button id="tSig">Siguiente →</button>'}</div>`;
+  marcar(p[0], p[1]);
+  const ant = $('#tAnt'), sig = $('#tSig'), fin = $('#tFin');
+  if (ant) ant.onclick = () => { tour.p--; pintarTour(); };
+  if (sig) sig.onclick = () => { tour.p++; pintarTour(); };
+  if (fin) fin.onclick = () => { tour = null; marca = null; pintarTour(); pintar(); };
+}
+
+$('#recorridos').innerHTML = RECORRIDOS.map((r, n) => `<button data-r="${n}">▶ Recorrido: ${r.titulo}</button>`).join('');
+document.querySelectorAll('#recorridos button').forEach(b => b.onclick = () => { tour = {r:+b.dataset.r, p:0}; pintarTour(); });
+$('#acercar').onclick = () => ir(i - 1);
+$('#alejar').onclick = () => ir(i + 1);
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowUp' || e.key === '+') { ir(i + 1); e.preventDefault(); }
+  if (e.key === 'ArrowDown' || e.key === '-') { ir(i - 1); e.preventDefault(); }
+});
+try { const g = +localStorage.getItem('mapa-nivel'); if (g >= 0 && g < NIVELES.length) i = g; } catch(e){}
+pintar();
+</script>
+
+</body>
+</html>
