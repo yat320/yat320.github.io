@@ -2,6 +2,10 @@
 # EN EL ATHLON (como tu usuario, sin sudo): instala gcloud y abre Google Cloud Shell por SSH.
 # Primera vez:  sh cloudshell-athlon.sh   (instala, te da un link para el celu, conecta)
 # Las siguientes: sh cloudshell-athlon.sh  (solo conecta)
+# Si hay xterm y no estamos ya adentro, abrir en xterm (muestra bien a Claude Code)
+if [ -n "$DISPLAY" ] && [ -z "$EN_XTERM" ] && command -v xterm >/dev/null 2>&1; then
+  EN_XTERM=1 exec xterm -fa 'DejaVu Sans Mono' -fs 12 -bg '#1e1e1e' -fg '#e0e0e0' -geometry 120x40 -T Claude -e env EN_XTERM=1 sh "$0"
+fi
 SDK=$HOME/google-cloud-sdk
 command -v ssh >/dev/null 2>&1 || sudo apt-get install -y openssh-client python3
 if [ ! -x "$SDK/bin/gcloud" ]; then
