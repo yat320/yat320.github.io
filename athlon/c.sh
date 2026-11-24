@@ -18,7 +18,7 @@ G="$SDK/bin/gcloud"
 "$G" --version >/dev/null 2>&1 || { echo "gcloud no arranca (¿Illegal instruction?). Avisale a Claude."; exit 1; }
 if ! "$G" auth list --format='value(account)' 2>/dev/null | grep -q '@'; then
   echo "== Inicio de sesión: abrí en el CELU el link que aparece, entrá con tu Google y pegá acá el código."
-  "$G" auth login --no-launch-browser || exit 1
+  "$G" auth login --no-launch-browser </dev/tty || exit 1
 fi
 echo "== Conectando a Cloud Shell (la primera vez puede tardar un minuto)..."
-"$G" cloud-shell ssh --authorize-session
+"$G" cloud-shell ssh --authorize-session </dev/tty
