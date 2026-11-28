@@ -13,7 +13,7 @@
 */
 (function (raiz) {
   'use strict';
-  const VERSION = 1;
+  const VERSION = 2;
   const BASES = 'TCAG';
   const AA = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
   const CODIGO = {};
@@ -21,7 +21,7 @@
   // Hidrofobicidad de Kyte-Doolittle, llevada a 0..1.
   const KD = { I: 4.5, V: 4.2, L: 3.8, F: 2.8, C: 2.5, M: 1.9, A: 1.8, G: -0.4, T: -0.7, S: -0.8, W: -0.9, Y: -1.3, P: -1.6, H: -3.2, E: -3.5, Q: -3.5, D: -3.5, N: -3.5, K: -3.9, R: -4.5 };
   const CARGA = { D: -1, E: -1, K: 1, R: 1, H: 0.5 };
-  const GENES = ['metabolismo', 'temperatura', 'oxigeno', 'tamano', 'movimiento'];
+  const GENES = ['metabolismo', 'temperatura', 'oxigeno', 'tamano', 'movimiento', 'luz', 'forma'];
   const CODONES_GEN = 24;
 
   // Eventos reales (millones de años atrás). Las especies reaccionan a ellos.
@@ -37,6 +37,49 @@
     { ma: 66, tipo: 'extincion', texto: 'Meteorito de fin del Cretácico.', fuerza: 0.7 },
   ];
   const NIVELES = ['célula simple', 'célula con núcleo', 'multicelular', 'cuerpo complejo'];
+  const REINOS = ['animal', 'planta', 'hongo'];
+
+  // Reino: se decide una vez, al volverse multicelular, y se hereda.
+  function reinoDe(ra) {
+    if (ra.luz >= 0.3 && ra.luz > ra.movimiento) return 'planta';
+    if (ra.movimiento >= 0.3) return 'animal';
+    return 'hongo';
+  }
+
+  // Plan de cuerpo: sale de la proteína del gen "forma" (cada letra decide algo),
+  // del tamaño y de la fecha (no hay árboles antes de 385 Ma ni flores antes de 130 Ma).
+  function planDe(e, genoma) {
+    const p = traducir(genoma[GENES.indexOf('forma')]) || 'A';
+    const n = (k) => Math.min(0.999, 'ACDEFGHIKLMNPQRSTVWY'.indexOf(p[k % p.length]) / 19);
+    const t = e.rasgos.tamano, ma = e.nace;
+    const metros = +(0.001 * Math.pow(10, t * 4)).toPrecision(2); // de 1 mm a 10 m
+    if (e.reino === 'planta') {
+      const tipos = ['alga'];
+      if (ma <= 470) tipos.push('musgo');
+      if (ma <= 420) tipos.push('helecho');
+      if (ma <= 385) tipos.push('árbol');
+      if (ma <= 130) tipos.push('planta con flor');
+      const tipo = tipos[Math.min(tipos.length - 1, Math.floor(n(1) * tipos.length + t * 1.5))];
+      return { tipo, medio: tipo === 'alga' ? 'agua' : 'tierra', tamanoM: tipo === 'árbol' ? Math.max(metros, 2) : metros, hojas: tipo === 'alga' ? 0 : 2 + Math.floor(n(2) * 8) };
+    }
+    if (e.reino === 'hongo') {
+      const tipo = ma <= 440 && n(1) > 0.4 ? 'seta' : 'moho';
+      return { tipo, medio: tipo === 'seta' ? 'tierra' : n(2) > 0.5 ? 'agua' : 'tierra', tamanoM: Math.min(metros, 0.5) };
+    }
+    const simetria = n(0) < 0.25 ? 'radial' : 'bilateral';
+    let patas = simetria === 'radial' ? 0 : [0, 0, 2, 4, 4, 6, 8][Math.floor(n(1) * 7)];
+    const ojos = [0, 1, 2, 2, 2, 2, 4, 6, 8][Math.floor(n(2) * 9)];
+    let medio = 'agua';
+    const sale = n(7) > 0.45; // no todos los linajes salen del agua
+    if (sale && patas >= 6 && ma <= 400) medio = 'tierra';
+    if (sale && patas === 4 && ma <= 375) medio = 'tierra';
+    if (sale && patas === 2 && ma <= 230) medio = 'tierra';
+    if (medio === 'agua' && n(8) < 0.6) patas = 0; // la mayoría de los de agua nada sin patas
+    const alas = medio === 'tierra' && ((patas >= 6 && ma <= 325) || (patas <= 4 && ma <= 150)) && n(4) > 0.6 ? 2 * (1 + (patas >= 6 ? Math.floor(n(5) * 2) : 0)) : 0;
+    const aletas = medio === 'agua' && simetria === 'bilateral' ? 2 + 2 * Math.floor(n(4) * 2) : 0;
+    const cubierta = ['piel', 'caparazón', 'escamas', 'pelo', 'plumas'][Math.floor(n(6) * (medio === 'agua' ? 3 : ma <= 160 ? 5 : ma <= 220 ? 4 : 3))];
+    return { tipo: alas ? 'volador' : medio === 'agua' ? (simetria === 'radial' ? 'radial de agua' : 'nadador') : 'caminante', simetria, patas, ojos, aletas, alas, cubierta, medio: alas ? 'aire' : medio, tamanoM: medio === 'agua' && simetria === 'radial' ? Math.min(metros, 2) : metros };
+  }
 
   function azar(semilla) {
     let a = semilla >>> 0;
@@ -154,6 +197,8 @@
     const nueva = (padre, ma, genoma, nivel, extra) => {
       const e = Object.assign({ id: especies.length, nombre: nombre(), padre, nace: ma, muere: null, causa: null, nivel, adn: genoma.join(''), rasgos: rasgos(genoma) }, extra || {});
       e._g = genoma;
+      if (e.nivel >= 2) e.reino = (padre !== null && especies[padre].reino) || reinoDe(e.rasgos);
+      if (e.nivel >= 3) e.cuerpo = planDe(e, genoma);
       especies.push(e);
       return e;
     };
@@ -164,6 +209,8 @@
         const pos = 3 + Math.floor(r() * (g[gi].length - 3));
         g[gi] = g[gi].slice(0, pos) + elegir('ACGT') + g[gi].slice(pos + 1);
       }
+      // El gen de la forma cambia un poco más: así los cuerpos varían entre linajes.
+      if (r() < 0.6) { const gi = GENES.indexOf('forma'); const pos = 3 + Math.floor(r() * (g[gi].length - 3)); g[gi] = g[gi].slice(0, pos) + elegir('ACGT') + g[gi].slice(pos + 1); }
       return g;
     };
 
@@ -181,14 +228,20 @@
       const hito = HITOS.find((h) => h.tipo === 'extincion' && h.ma <= ma + op.paso && h.ma > ma);
       const cambrico = ma <= 540;
       const nacidas = [];
+      // Compiten con los de su nivel (y, si son multicelulares, con los de su reino).
+      const clave = (v) => v.reino || v.nivel;
+      const porNivel = {};
+      for (const v of vivas) porNivel[clave(v)] = (porNivel[clave(v)] || 0) + 1;
       for (const e of vivas) {
-        const desajuste = Math.abs(e.rasgos.temperatura - amb.temp) + (amb.oxigeno > 0.2 ? Math.max(0, 0.35 - e.rasgos.oxigeno) : 0);
-        let pMuere = 0.01 + desajuste * 0.12 + Math.max(0, vivas.length - op.tope) * 0.006;
-        if (hito) pMuere += hito.fuerza * (0.6 + 0.4 * e.rasgos.tamano);
+        // Las células simples sin oxígeno sobreviven en rincones sin aire (como hoy).
+        const ox = amb.oxigeno > 0.2 ? Math.max(0, 0.35 - e.rasgos.oxigeno) * (e.nivel === 0 ? 0.2 : 1) : 0;
+        const desajuste = Math.abs(e.rasgos.temperatura - amb.temp) * (e.nivel === 0 ? 0.6 : 1) + ox;
+        let pMuere = 0.01 + desajuste * 0.12 + Math.max(0, porNivel[clave(e)] - op.tope / 2) * 0.012;
+        if (hito) pMuere += hito.fuerza * (e.nivel === 0 ? 0.3 : 0.6 + 0.4 * e.rasgos.tamano);
         if (e !== luca || vivas.length > 1) {
           if (r() < pMuere) { e.muere = ma; e.causa = hito ? hito.texto : desajuste > 0.4 ? 'No se adaptó al ambiente.' : 'Le ganaron otras.'; continue; }
         }
-        const pHija = 0.05 + e.rasgos.metabolismo * 0.12 + (cambrico && e.nivel >= 2 ? 0.08 : 0);
+        const pHija = 0.05 + e.rasgos.metabolismo * 0.12 + (cambrico && e.nivel >= 2 ? 0.1 : 0) + (e.reino === 'planta' ? e.rasgos.luz * 0.05 : 0);
         if (r() < pHija) {
           let g = mutar(e._g, 2 + Math.floor(r() * 5));
           let nivel = e.nivel, extra = {};
@@ -197,8 +250,8 @@
             if (otra) { const gi = Math.floor(r() * GENES.length); g[gi] = otra._g[gi]; extra.prestamo = { de: otra.id, gen: GENES[gi] }; }
           }
           if (nivel === 0 && ma <= 2000 && e.rasgos.oxigeno > 0.4 && r() < 0.08) nivel = 1;
-          else if (nivel === 1 && ma <= 1200 && e.rasgos.tamano > 0.3 && r() < 0.06) nivel = 2;
-          else if (nivel === 2 && cambrico && r() < 0.25) nivel = 3;
+          else if (nivel === 1 && ma <= 1200 && e.rasgos.tamano > 0.2 && r() < 0.12) nivel = 2;
+          else if (nivel === 2 && cambrico && r() < 0.35) nivel = 3;
           const h = nueva(e.id, ma, g, nivel, extra);
           if (nivel > e.nivel && primero[nivel] === undefined) {
             primero[nivel] = h.id;
@@ -216,7 +269,7 @@
     }
     especies.forEach((e) => delete e._g);
     eventos.sort((a, b) => b.ma - a.ma);
-    return { version: VERSION, semilla, genes: GENES, codonesPorGen: CODONES_GEN, niveles: NIVELES, eventos, ambiente: ambientes, especies };
+    return { version: VERSION, semilla, genes: GENES, codonesPorGen: CODONES_GEN, niveles: NIVELES, reinos: REINOS, eventos, ambiente: ambientes, especies };
   }
 
   function linaje(m, id) {
