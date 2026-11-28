@@ -41,7 +41,7 @@ ol{padding-left:20px;margin:6px 0}
 </style>
 <canvas id="cv"></canvas>
 <div class="hud">
-  <div class="fila"><b id="era"></b></div>
+  <div class="fila"><b id="era"></b><span style="opacity:.6;font-size:.75rem">v3</span></div>
   <div class="fila">❤️<span class="barra" id="vida"><i></i></span></div>
   <div class="fila">🍽️<span class="barra" id="prog"><i></i></span><span id="adn">🧬 0</span></div>
 </div>
@@ -429,7 +429,7 @@ let mundo,J,npc=[],comida=[],burbujas=[],eraI=0,teclas={},puntero=null,pausa=tru
 const sprites={};
 const r01=Math.random;
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const fmt=ma=>ma>=1000?'Hace '+(ma/1000).toLocaleString('es-AR')+' mil millones de años':'Hace '+ma+' millones de años';
+const fmt=ma=>ma===0?'Hoy':ma>=1000?'Hace '+(ma/1000).toLocaleString('es-AR')+' mil millones de años':'Hace '+ma+' millones de años';
 function tono(adn){let h=0;for(let i=0;i<adn.length;i+=7)h=(h*31+adn.charCodeAt(i))%360;return h;}
 
 function sprite(esp){
@@ -568,8 +568,12 @@ function siguienteEra(){if(eraI+1>=ERAS.length){fin();return}eraI++;entrarEra();
 function morir(){mensaje('<h2>💀 Te extinguiste</h2><p>Te terminó '+(J.ultimoQueTeMordio||'algo')+'. Volvés al principio de esta época, con tus partes.</p>','Otra vez',()=>{const e=ERAS[eraI];J.x=MUNDO_TAM/2;J.y=e.orilla?MUNDO_TAM-200:MUNDO_TAM/2;J.vida=100;J.comido=0;J.r=12+eraI*3;npc=npc.filter(n=>dist(n,J)>450);while(npc.length<(e.extincion?10:18))npc.push(crearNpc(e,true));pintarHud()});}
 function fin(){
   const yo=jugadorEsp();
-  const hoy=Mundo.vivasEn(mundo,0).filter(s=>s.reino==='animal'&&s.cuerpo).slice(0,5);
-  mensaje('<h2>🏁 ¡Llegaste a hoy!</h2><p>De una célula en la sopa a caminar sobre la tierra, pasando por el oxígeno, el hielo y tres extinciones. Tu linaje sobrevivió 3.800 millones de años.</p><img class="yo" alt="Tu bicho" src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(MundoDibujo.dibujo(yo).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))+'"><p class="chico">Mundo #'+mundo.semilla+'. Otro número, otra historia.</p>','🌍 Jugar en otro mundo',()=>empezar(1+Math.floor(r01()*99999)));
+  pausa=true;
+  $('msgCont').innerHTML='<h2>🏁 ¡Llegaste a hoy!</h2><p>De una célula en la sopa a caminar sobre la tierra, pasando por el oxígeno, el hielo y tres extinciones. Tu linaje sobrevivió 3.800 millones de años.</p><img class="yo" alt="Tu bicho" src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(MundoDibujo.dibujo(yo).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))+'">'+
+    '<button class="cerrar" id="finSeguir">🐾 Seguir jugando en tierra</button><p></p><button id="finOtra" style="width:100%">🌍 Empezar otra vida (vuelve a la sopa, en otro mundo)</button><p class="chico">Mundo #'+mundo.semilla+'.</p>';
+  $('pMsg').classList.add('ver');
+  $('finSeguir').onclick=()=>{ERAS[eraI].meta=0;ERAS[eraI].ma=0;ERAS[eraI].titulo='juego libre';$('pMsg').classList.remove('ver');pausa=false;ultimo=performance.now();pintarHud()};
+  $('finOtra').onclick=()=>{$('pMsg').classList.remove('ver');location.search='?mundo='+(1+Math.floor(r01()*99999))};
 }
 
 // --- Dibujo ---
