@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b1420">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23e0a030%22/%3E%3Cpath d=%22M18 33l9 9 19-21%22 stroke=%22white%22 stroke-width=%227%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<title>El bosque que se apaga</title>
+</head>
+<body>
+<style>
+  :root { --noche:#0b1420; --oro:#f2d14b; --tinta:#f4efe2; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; background:var(--noche); color:var(--tinta); font-family:system-ui, sans-serif; overflow:hidden; touch-action:manipulation; }
+  canvas { position:fixed; inset:0; width:100%; height:100%; display:block; image-rendering:pixelated; }
+  #barra { position:fixed; left:0; right:0; bottom:0; display:flex; justify-content:center; gap:14px; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .herr { position:relative; width:64px; height:64px; border-radius:50%; border:2px solid rgba(244,239,226,.25); background:rgba(11,20,32,.7); font-size:30px; cursor:pointer; transition:transform .15s, border-color .15s, background .15s; }
+  .herr.activa { border-color:var(--oro); background:rgba(242,209,75,.18); transform:scale(1.1); }
+  .herr i { position:absolute; right:-2px; top:-2px; font-style:normal; font-size:11px; line-height:1; padding:3px 5px; border-radius:9px; background:#1b2a3a; color:var(--oro); }
+  #ayuda { position:fixed; top:calc(10px + env(safe-area-inset-top)); right:12px; padding:8px 12px; border-radius:20px; border:1px solid rgba(244,239,226,.3); background:rgba(11,20,32,.75); color:var(--tinta); font-size:14px; cursor:pointer; z-index:3; }
+  #panel { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(5,10,18,.88); padding:16px; z-index:6; }
+  #panel.abierto { display:flex; }
+  #panel > div { max-width:440px; max-height:100%; overflow:auto; background:#16243a; border-radius:14px; padding:20px; line-height:1.5; font-size:15px; }
+  #panel h2 { font-size:18px; margin-bottom:8px; }
+  #panel ul { padding-left:18px; margin:8px 0 14px; }
+  #panel button { padding:10px 18px; border-radius:10px; border:0; background:var(--oro); color:#1b1f1a; font-size:15px; cursor:pointer; }
+  #inicio { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:4; }
+  #inicio button { width:120px; height:120px; border-radius:50%; border:2px solid var(--oro); background:rgba(242,209,75,.12); color:var(--oro); font-size:48px; cursor:pointer; animation:latido 2.4s ease-in-out infinite; }
+  @keyframes latido { 50% { transform:scale(1.08); box-shadow:0 0 40px rgba(242,209,75,.35); } }
+</style>
+
+<canvas id="lienzo"></canvas>
+<div id="barra">
+  <button class="herr activa" data-h="luz" aria-label="Iluminar">✨<i>1</i></button>
+  <button class="herr" data-h="hormiga" aria-label="Soltar una hormiga">🐜<i>2</i></button>
+  <button class="herr" data-h="curar" aria-label="Curar la planta">💧</button>
+</div>
+<button id="ayuda">Qué probar</button>
+<div id="inicio"><button aria-label="Empezar">▶</button></div>
+<div id="panel"><div>
+  <h2>Qué probar (versión 1)</h2>
+  <p>De noche, una planta del claro está enferma y contagia a las de alrededor. Encontrala y curala antes de que se apaguen las luciérnagas.</p>
+  <ul>
+    <li>✨ ilumina un pedacito (gasta 1 luciérnaga). Cuanto más cerca de la enferma, más marrón se ve la planta.</li>
+    <li>🐜 suelta una hormiga (gasta 2): camina dos pasos hacia la enferma y deja un rastro.</li>
+    <li>💧 curás. Si le errás, esa planta se muere y la enfermedad avanza más rápido.</li>
+    <li>Cada tanto la enfermedad se come plantas (quedan ramitas): te da pistas, pero perdés bosque.</li>
+    <li>Son 3 claros. Las plantas que salvás quedan: la próxima noche hay más flores, más luciérnagas y más bichos.</li>
+  </ul>
+  <p>Fijate: ¿se entiende sin leer esto? ¿Se ve lindo en el celu? ¿Te dan ganas de volver otra noche?</p>
+  <p style="margin-top:12px"><button id="cerrar">Listo</button></p>
+</div></div>
+
+<script>
+(() => {
+  const ATLAS = 'data:image/png;base64,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';
+  const META = {"s":{"mushroom_red":[0,0],"mushroom_brown":[16,0],"mushroom_cluster":[32,0],"flower_yellow":[48,0],"thistle":[64,0],"daisy":[80,0],"dandelion_seed":[96,0],"fern":[112,0],"tall_grass":[0,16],"bush_berries":[16,16],"clover":[32,16],"reeds":[48,16],"beetle":[64,16],"ladybug":[80,16],"butterfly":[96,16],"bee":[112,16],"snail":[0,32],"caterpillar":[16,32],"ant":[32,32],"dragonfly":[48,32],"frog":[64,32],"worm":[80,32],"rock_small":[96,32],"rock_big":[112,32],"rock_moss":[0,48],"log":[16,48],"branch":[32,48],"leaf_fallen":[48,48],"pinecone":[64,48],"nest_eggs":[80,48],"cloud":[96,48],"grass":[112,48],"grass_flowers":[0,64],"dirt":[16,64],"sand":[32,64],"stone_floor":[48,64],"water":[64,64],"grass_edge":[80,64],"sky_day":[96,64],"sky_dusk":[112,64]},"a":{"butterfly_fly":[80,4,110],"bee_fly":[96,4,70],"dragonfly_fly":[112,2,80],"beetle_walk":[128,2,160],"ant_walk":[144,2,120],"ladybug_open":[160,2,220],"snail_crawl":[176,2,400],"caterpillar_crawl":[192,4,150],"worm_wiggle":[208,4,150],"frog_idle":[224,4,250],"frog_hop":[240,4,110],"flower_yellow_sway":[256,4,260],"thistle_sway":[272,4,260],"daisy_sway":[288,4,260],"dandelion_seed_sway":[304,4,260],"tall_grass_sway":[320,4,260],"fern_sway":[336,4,260],"reeds_sway":[352,4,260],"water_flow":[368,3,300]}};
+  const lienzo = document.getElementById('lienzo'), cx = lienzo.getContext('2d');
+  const sombra = document.createElement('canvas'), sx = sombra.getContext('2d');
+  let W = 0, H = 0, dpr = 1;
+  function medir() {
+    dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+    for (const c of [lienzo, sombra]) { c.width = W * dpr; c.height = H * dpr; }
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0); sx.setTransform(dpr, 0, 0, dpr, 0, 0); patron = null;
+  }
+  addEventListener('resize', medir);
+
+  // Memoria del bosque: lo que salvaste sigue creciendo
+  const CLAVE = 'bosqueApaga1';
+  let mem = { noches:0, jardin:0 };
+  try { const m = JSON.parse(localStorage.getItem(CLAVE)); if (m && typeof m.jardin === 'number') mem = m; } catch (e) {}
+  const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(mem)); } catch (e) {} };
+  const crece = () => Math.min(1, mem.jardin / 150);
+
+  // Sprites (Wild Meadow 16) y versiones enfermas
+  const atlas = new Image(); atlas.src = ATLAS;
+  const cache = {};
+  const MARRON = [107, 90, 69];
+  function spr(x, y, nivel) {
+    const k = x + ',' + y + ',' + nivel; if (cache[k]) return cache[k];
+    const c = document.createElement('canvas'); c.width = c.height = 16; const g = c.getContext('2d');
+    g.drawImage(atlas, x, y, 16, 16, 0, 0, 16, 16);
+    if (nivel) {
+      const m = [0, .35, .6, .85][nivel], d = g.getImageData(0, 0, 16, 16), p = d.data;
+      for (let i = 0; i < p.length; i += 4) { const gris = (p[i] + p[i + 1] + p[i + 2]) / 3;
+        for (let j = 0; j < 3; j++) p[i + j] = p[i + j] * (1 - m) + (MARRON[j] * .7 + gris * .3) * m; }
+      g.putImageData(d, 0, 0);
+    }
+    return cache[k] = c;
+  }
+  function cuadroAnim(nombre, t, fase) { const [y, n, ms] = META.a[nombre]; return [Math.floor((t * 1000 + fase) / ms) % n * 16, y]; }
+  const quieto = n => META.s[n];
+
+  const PLANTAS = ['flower_yellow_sway', 'thistle_sway', 'daisy_sway', 'dandelion_seed_sway', 'tall_grass_sway', 'fern_sway', 'bush_berries', 'clover', 'mushroom_red', 'mushroom_brown', 'mushroom_cluster'];
+  const ADORNOS = ['rock_small', 'rock_moss', 'log', 'pinecone', 'rock_big'];
+  const CLAROS = [ { C:5, R:7, luz:8 }, { C:6, R:8, luz:9 }, { C:7, R:9, luz:10 } ];
+
+  // Sonido
+  let au = null;
+  function tono(f, dur, tipo = 'sine', vol = .15, f2) {
+    if (!au) return; const t = au.currentTime, o = au.createOscillator(), g = au.createGain();
+    o.type = tipo; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g).connect(au.destination); o.start(t); o.stop(t + dur);
+  }
+  const SON = {
+    luz: () => { tono(1046, .5, 'sine', .08); tono(1568, .4, 'sine', .04); },
+    hormiga: () => [0, 1, 2, 3].forEach(i => setTimeout(() => tono(300 + i * 40, .08, 'triangle', .06), i * 140)),
+    bien: () => [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tono(f, .7, 'triangle', .12), i * 110)),
+    mal: () => tono(180, .7, 'sawtooth', .06, 70),
+    muere: () => tono(260, .5, 'triangle', .05, 120),
+    apaga: () => tono(400, 2, 'sine', .1, 60),
+  };
+
+  let n = 0, claro, celdas = [], enferma, luz, luzMax, acciones = 0, radioMuerte = -1, herr = 'luz', fase = 'espera', faseT = 0;
+  let flashes = [], hormigas = [], rastro = [], bichos = [], luciernagas = [], ola = null, gastadas = [];
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const azar = a => a[Math.floor(Math.random() * a.length)];
+
+  function armar() {
+    claro = CLAROS[n]; const { C, R } = claro; celdas = [];
+    for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+      const adorno = Math.random() < .14;
+      celdas.push({ c, r, adorno, nombre: adorno ? azar(ADORNOS) : azar(PLANTAS), fase: Math.random() * 2000, vista: 0, muerta: false,
+        flor: Math.random() < .08 + crece() * .45, dx: rnd(-2, 2), dy: rnd(-2, 2), golpe: 0 });
+    }
+    const plantas = celdas.filter(k => !k.adorno); enferma = azar(plantas);
+    for (const k of celdas) k.d = Math.max(Math.abs(k.c - enferma.c), Math.abs(k.r - enferma.r));
+    luzMax = claro.luz; luz = luzMax; acciones = 0; radioMuerte = -1;
+    flashes = []; hormigas = []; rastro = []; ola = null; gastadas = [];
+    bichos = bichos.filter(b => b.siempre);
+    luciernagas = []; for (let i = 0; i < 6 + Math.floor(crece() * 22); i++) luciernagas.push({ x:Math.random(), y:Math.random(), a:Math.random() * 7, v:.3 + Math.random() * .5 });
+    for (let i = 0; i < Math.floor(crece() * 6); i++) bichos.push(nuevoBicho(azar(['butterfly_fly', 'bee_fly', 'dragonfly_fly'])));
+    fase = 'juego'; faseT = 0;
+  }
+  function nuevoBicho(nombre) { return { nombre, x:Math.random() * W, y:Math.random() * H * .8, vx:(Math.random() - .5) * 40, vy:(Math.random() - .5) * 30, f:Math.random() * 999 }; }
+
+  function geo() {
+    const { C, R } = claro;
+    const k = Math.max(2, Math.min(6, Math.floor(Math.min((W - 24) / (C * 16), (H - 170) / (R * 16)))));
+    const T = 16 * k, x0 = Math.round((W - T * C) / 2), y0 = Math.round(60 + (H - 160 - T * R) / 2);
+    return { k, T, x0, y0 };
+  }
+  const nivel = k => k.adorno || k.muerta ? 0 : Math.max(0, 3 - k.d);
+
+  // Acciones
+  function gastar(q) {
+    for (let i = 0; i < q && luz > 0; i++) { luz--; gastadas.push({ i: luz, t: 0 }); }
+    acciones += q; const nuevo = Math.floor((acciones - 4) / 3);
+    while (radioMuerte < nuevo) { radioMuerte++;
+      for (const k of celdas) if (!k.adorno && !k.muerta && k.d === radioMuerte) { k.muerta = true; k.golpe = 1; }
+      SON.muere(); }
+    if (luz <= 0 && fase === 'juego') { fase = 'apaga'; faseT = 0; SON.apaga(); }
+  }
+  function iluminar(k) {
+    for (const o of celdas) if (Math.abs(o.c - k.c) <= 1 && Math.abs(o.r - k.r) <= 1) o.vista = Math.max(o.vista, .001);
+    flashes.push({ c:k.c, r:k.r, t:0 }); SON.luz(); gastar(1);
+  }
+  function soltar(k) {
+    const pasos = []; let c = k.c, r = k.r;
+    for (let i = 0; i < 2; i++) { const nc = c + Math.sign(enferma.c - c), nr = r + Math.sign(enferma.r - r);
+      if (nc === enferma.c && nr === enferma.r) break; c = nc; r = nr; pasos.push([c, r]); }
+    hormigas.push({ desde:[k.c, k.r], pasos, i:0, t:0 }); rastro.push([k.c, k.r]); SON.hormiga(); gastar(2);
+  }
+  function curar(k) {
+    if (k === enferma) {
+      fase = 'cura'; faseT = 0; ola = { c:k.c, r:k.r }; k.muerta = false; SON.bien();
+      const vivas = celdas.filter(o => !o.adorno && !o.muerta).length; mem.jardin += vivas; guardar();
+      for (let i = 0; i < 3 + Math.floor(vivas / 8); i++) bichos.push(nuevoBicho(azar(['butterfly_fly', 'bee_fly', 'dragonfly_fly'])));
+    } else { if (!k.adorno) k.muerta = true; k.golpe = 1; k.vista = Math.max(k.vista, .001); SON.mal(); gastar(2); }
+  }
+
+  lienzo.addEventListener('pointerdown', e => {
+    if (fase === 'fin') { mem.noches++; guardar(); n = 0; armar(); return; }
+    if (fase !== 'juego') return;
+    const g = geo(), c = Math.floor((e.clientX - g.x0) / g.T), r = Math.floor((e.clientY - g.y0) / g.T);
+    if (c < 0 || r < 0 || c >= claro.C || r >= claro.R) return;
+    const k = celdas[r * claro.C + c];
+    if (herr === 'luz') { if (luz >= 1) iluminar(k); }
+    else if (herr === 'hormiga') { if (luz >= 2) soltar(k); }
+    else curar(k);
+  });
+  document.querySelectorAll('.herr').forEach(b => b.addEventListener('click', () => {
+    herr = b.dataset.h; document.querySelectorAll('.herr').forEach(x => x.classList.toggle('activa', x === b)); tono(700, .06, 'sine', .04);
+  }));
+  document.querySelector('#inicio button').addEventListener('click', () => {
+    try { au = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    document.getElementById('inicio').remove(); mem.noches++; guardar(); n = 0; armar();
+  });
+  const panel = document.getElementById('panel');
+  document.getElementById('ayuda').onclick = () => panel.classList.add('abierto');
+  document.getElementById('cerrar').onclick = () => panel.classList.remove('abierto');
+
+  // Dibujo
+  let patron = null, antes = performance.now();
+  function pasto(T, k) {
+    if (patron && patron.T === T) return patron.p;
+    const c = document.createElement('canvas'); c.width = c.height = T * 2; const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+    const [gx, gy] = quieto('grass'), [fx, fy] = quieto('grass_flowers');
+    g.drawImage(atlas, gx, gy, 16, 16, 0, 0, T, T); g.drawImage(atlas, gx, gy, 16, 16, T, T, T, T);
+    g.drawImage(atlas, gx, gy, 16, 16, T, 0, T, T); g.drawImage(atlas, fx, fy, 16, 16, 0, T, T, T);
+    patron = { T, p: cx.createPattern(c, 'repeat') }; return patron.p;
+  }
+  function luzEn(x, y, rad, a) {
+    const gr = sx.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, `rgba(0,0,0,${a})`); gr.addColorStop(.6, `rgba(0,0,0,${a * .6})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    sx.fillStyle = gr; sx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+
+  function cuadro(ahora) {
+    const dt = Math.min(.05, (ahora - antes) / 1000); antes = ahora; const t = ahora / 1000; faseT += dt;
+    cx.imageSmoothingEnabled = false;
+    cx.fillStyle = '#0b1420'; cx.fillRect(0, 0, W, H);
+    if (atlas.complete) { if (!claro) claro = CLAROS[0]; dibujarEscena(t, dt, fase === 'espera'); }
+    requestAnimationFrame(cuadro);
+  }
+
+  function dibujarEscena(t, dt, portada) {
+    const g = geo(), T = g.T;
+    cx.fillStyle = pasto(T, g.k); cx.save(); cx.translate(g.x0, g.y0); cx.fillRect(-g.x0, -g.y0, W, H); cx.restore();
+
+    if (!portada) {
+      for (const k of celdas) {
+        if (k.vista > 0 && k.vista < 1) k.vista = Math.min(1, k.vista + dt * 2);
+        k.golpe = Math.max(0, k.golpe - dt);
+        const x = g.x0 + k.c * T + k.dx * g.k / 2, y = g.y0 + k.r * T + k.dy * g.k / 2;
+        if (k.flor) { const [fx, fy] = quieto('grass_flowers'); cx.drawImage(atlas, fx, fy, 16, 16, g.x0 + k.c * T, g.y0 + k.r * T, T, T); }
+        let sxy, nv = nivel(k);
+        if (fase === 'cura' || fase === 'fin') nv = Math.max(0, Math.round(nv * (1 - Math.min(1, faseT / 1.5))));
+        if (k.muerta) sxy = quieto(k.d % 2 ? 'branch' : 'leaf_fallen');
+        else if (META.a[k.nombre]) sxy = cuadroAnim(k.nombre, nv ? t * .4 : t, k.fase);
+        else sxy = quieto(k.nombre);
+        const sh = k.golpe ? Math.sin(t * 50) * k.golpe * 3 : 0;
+        cx.drawImage(spr(sxy[0], sxy[1], nv), x + sh, y, T, T);
+      }
+      // rastro de hormigas
+      for (const [c, r] of rastro) { cx.fillStyle = 'rgba(242,209,75,.5)'; cx.fillRect(g.x0 + c * T + T / 2 - g.k, g.y0 + r * T + T - g.k * 3, g.k * 2, g.k * 2); }
+    }
+
+    // oscuridad
+    const noche = portada ? .8 : fase === 'apaga' ? Math.min(.97, .88 + faseT * .05) : (fase === 'cura' || fase === 'fin') ? Math.max(.18, .88 - faseT * .4) : .88;
+    sx.globalCompositeOperation = 'source-over'; sx.clearRect(0, 0, W, H);
+    sx.fillStyle = `rgba(6,10,26,${noche})`; sx.fillRect(0, 0, W, H);
+    sx.globalCompositeOperation = 'destination-out';
+    if (!portada) {
+      for (const k of celdas) {
+        const x = g.x0 + k.c * T + T / 2, y = g.y0 + k.r * T + T / 2;
+        if (k.vista > 0) luzEn(x, y, T * .95, .85 * k.vista);
+        else if (k.muerta) luzEn(x, y, T * .6, .35);
+      }
+      flashes = flashes.filter(f => (f.t += dt) < 1.6);
+      for (const f of flashes) luzEn(g.x0 + f.c * T + T / 2, g.y0 + f.r * T + T / 2, T * (1.2 + f.t), Math.max(0, 1 - f.t / 1.6));
+      for (const h of hormigas) { const p = posHormiga(h, g); luzEn(p.x, p.y, T * .7, .8); }
+      for (const [c, r] of rastro) luzEn(g.x0 + c * T + T / 2, g.y0 + r * T + T * .8, T * .4, .5);
+      if (ola) luzEn(g.x0 + ola.c * T + T / 2, g.y0 + ola.r * T + T / 2, T * (1 + faseT * 6), .9);
+    }
+    for (const l of luciernagas) {
+      l.a += dt * l.v; const x = (l.x + Math.sin(l.a) * .05) * W, y = (l.y + Math.cos(l.a * 1.3) * .04) * H;
+      l.px = x; l.py = y; luzEn(x, y, 16, .4 + .3 * Math.sin(t * 3 + l.a * 5));
+    }
+    sx.globalCompositeOperation = 'source-over';
+    cx.drawImage(sombra, 0, 0, W, H);
+
+    // luciérnagas
+    for (const l of luciernagas) { const b = .5 + .5 * Math.sin(t * 3 + l.a * 5); cx.fillStyle = `rgba(242,230,120,${.4 + .6 * b})`; cx.fillRect(l.px - 1.5, l.py - 1.5, 3, 3); }
+    // hormigas
+    if (!portada) for (const h of hormigas) {
+      h.t += dt; if (h.t > .55 && h.i < h.pasos.length) { h.i++; h.t = 0; rastro.push(h.pasos[h.i - 1]); }
+      const p = posHormiga(h, g), [ax, ay] = cuadroAnim('ant_walk', performance.now() / 1000, 0);
+      cx.drawImage(atlas, ax, ay, 16, 16, p.x - T / 4, p.y - T / 4, T / 2, T / 2);
+    }
+    // bichos
+    for (const b of bichos) {
+      b.x += b.vx * dt; b.y += b.vy * dt; if (b.x < -20 || b.x > W + 20) b.vx *= -1; if (b.y < 40 || b.y > H - 120) b.vy *= -1;
+      const [ax, ay] = cuadroAnim(b.nombre, performance.now() / 1000, b.f), s = Math.max(32, T * .6);
+      cx.save(); if (b.vx < 0) { cx.translate(b.x * 2, 0); cx.scale(-1, 1); } cx.drawImage(atlas, ax, ay, 16, 16, b.x - s / 2, b.y - s / 2, s, s); cx.restore();
+    }
+
+    if (portada) return;
+    // luciérnagas que te quedan (arriba)
+    for (let i = 0; i < luzMax; i++) { const x = W / 2 + (i - (luzMax - 1) / 2) * 20, y = 34 + Math.sin(t * 2 + i) * 2;
+      if (i < luz) { cx.fillStyle = 'rgba(242,209,75,.25)'; cx.beginPath(); cx.arc(x, y, 8, 0, 7); cx.fill(); cx.fillStyle = '#f2e678'; cx.fillRect(x - 2.5, y - 2.5, 5, 5); }
+      else { cx.fillStyle = 'rgba(244,239,226,.12)'; cx.fillRect(x - 2, y - 2, 4, 4); } }
+    gastadas = gastadas.filter(q => (q.t += dt) < 1.2);
+    for (const q of gastadas) { const x = W / 2 + (q.i - (luzMax - 1) / 2) * 20; cx.fillStyle = `rgba(242,230,120,${1 - q.t / 1.2})`; cx.fillRect(x - 2 + Math.sin(q.t * 9) * 6, 34 - q.t * 50, 4, 4); }
+    // claros recorridos
+    for (let i = 0; i < CLAROS.length; i++) { const [mx, my] = quieto(i < n || (i === n && (fase === 'cura' || fase === 'fin')) ? 'flower_yellow' : 'clover');
+      cx.globalAlpha = i <= n ? 1 : .3; cx.drawImage(atlas, mx, my, 16, 16, 12 + i * 26, 20, 24, 24); cx.globalAlpha = 1; }
+
+    if (fase === 'cura' && faseT > 3) { if (n < CLAROS.length - 1) { n++; armar(); } else { fase = 'fin'; faseT = 0; } }
+    if (fase === 'apaga' && faseT > 2.5) armar();
+    if (fase === 'fin') { cx.fillStyle = `rgba(242,209,75,${.6 + .3 * Math.sin(t * 2)})`; cx.font = '44px system-ui'; cx.textAlign = 'center'; cx.fillText('↻', W / 2, H - 120); }
+  }
+  function posHormiga(h, g) {
+    const a = h.i === 0 ? h.desde : h.pasos[h.i - 1], b = h.i < h.pasos.length ? h.pasos[h.i] : a, f = Math.min(1, h.t / .55);
+    const c = a[0] + (b[0] - a[0]) * f, r = a[1] + (b[1] - a[1]) * f;
+    return { x: g.x0 + c * g.T + g.T / 2, y: g.y0 + r * g.T + g.T * .75 };
+  }
+
+  window.__bosque = () => ({ enferma, fase, n, luz });
+  medir(); requestAnimationFrame(cuadro);
+})();
+</script>
+
+</body>
+</html>
