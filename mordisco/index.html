@@ -412,6 +412,9 @@ const ERAS=[
  {ma:540,nivel:3,titulo:'Explosión cámbrica',txt:'¡Sos un animal! Aparecen cuerpos de todo tipo: cuidado con los cazadores.',meta:22,agua:'#0b4f6c'},
  {ma:443,nivel:3,titulo:'Extinción del Ordovícico',txt:'Murieron muchos. Hay más comida y menos rivales.',meta:20,agua:'#103d55',extincion:true},
  {ma:400,nivel:3,titulo:'La orilla',txt:'Arriba hay tierra. Con 4 patas (🦵🦵) podés salir. ¡Llegá a la orilla!',meta:0,agua:'#0b4f6c',orilla:true},
+ {ma:375,nivel:3,titulo:'¡En tierra!',txt:'Saliste del agua. Comé plantas y bichos chicos. Acá las patas te hacen más rápido, no las aletas.',meta:22,agua:'#5e7f35',tierra:true},
+ {ma:252,nivel:3,titulo:'Gran Mortandad del Pérmico',txt:'La peor extinción de la historia: quedan pocos y hay mucha comida. Los volcanes calientan todo.',meta:20,agua:'#7a5c34',tierra:true,extincion:true},
+ {ma:66,nivel:3,titulo:'El meteorito',txt:'Cae el meteorito: la ceniza tapa el sol. Ser chico ayuda. Aguantá hasta hoy.',meta:20,agua:'#4f4a3e',tierra:true,extincion:true,ceniza:true},
 ];
 const PARTES=[
  {id:'aleta',ico:'🐟',nom:'Aleta',txt:'Más rápido',max:3,costo:n=>3+n*3},
@@ -436,8 +439,9 @@ function sprite(esp){
 }
 function jugadorEsp(){
   const p=J.partes;
+  const t=ERAS[eraI].tierra;
   return {id:'yo'+Object.values(p).join('')+eraI,nombre:'Vos',nivel:3,reino:'animal',rasgos:{tamano:0.5},adn:J.adn,
-    cuerpo:{simetria:'bilateral',patas:p.patas*2,ojos:2+p.ojo*2,aletas:Math.min(4,2+p.aleta*2),alas:0,cubierta:p.coraza?'caparazón':'escamas',medio:'agua',tipo:'nadador',tamanoM:0.1}};
+    cuerpo:{simetria:'bilateral',patas:p.patas*2,ojos:2+p.ojo*2,aletas:t?0:Math.min(4,2+p.aleta*2),alas:0,cubierta:p.coraza?'caparazón':'escamas',medio:t?'tierra':'agua',tipo:t?'caminante':'nadador',tamanoM:0.1}};
 }
 
 function empezar(sem){
@@ -447,8 +451,11 @@ function empezar(sem){
   eraI=0;entrarEra();
 }
 function candidatos(e){
-  let c=Mundo.vivasEn(mundo,e.ma).filter(s=>e.nivel<3?s.nivel<=Math.max(1,e.nivel+1)&&s.reino!=='planta'&&s.reino!=='hongo':s.reino==='animal'&&s.cuerpo&&s.cuerpo.medio==='agua');
-  if(c.length<6)c=c.concat(mundo.especies.filter(s=>(e.nivel<3?s.nivel===e.nivel:s.reino==='animal'&&s.cuerpo&&s.cuerpo.medio==='agua')&&s.nace>=e.ma-300).sort((a,b)=>Math.abs(a.nace-e.ma)-Math.abs(b.nace-e.ma)).slice(0,10));
+  const medioOk=s=>e.tierra?s.cuerpo.medio!=='agua':s.cuerpo.medio==='agua';
+  const sirve=s=>e.nivel<3?s.nivel<=Math.max(1,e.nivel+1)&&s.reino!=='planta'&&s.reino!=='hongo':s.reino==='animal'&&s.cuerpo&&medioOk(s);
+  let c=Mundo.vivasEn(mundo,e.ma).filter(sirve);
+  if(c.length<6)c=c.concat(mundo.especies.filter(s=>sirve(s)&&s.nace>=e.ma-300).sort((a,b)=>Math.abs(a.nace-e.ma)-Math.abs(b.nace-e.ma)).slice(0,10));
+  if(!c.length&&e.tierra)c=mundo.especies.filter(s=>s.reino==='animal'&&s.cuerpo).slice(-10);
   return c.length?c:mundo.especies.slice(0,5);
 }
 function crearNpc(e,lejos){
@@ -500,7 +507,7 @@ cv.addEventListener('pointerdown',e=>{puntero={x:e.clientX,y:e.clientY};cv.setPo
 cv.addEventListener('pointermove',e=>{if(puntero)puntero={x:e.clientX,y:e.clientY}});
 cv.addEventListener('pointerup',()=>{puntero=null});cv.addEventListener('pointercancel',()=>{puntero=null});
 $('evo').onclick=abrirEvo;
-$('probar').onclick=()=>mensaje('<h2>Qué probar</h2><ol><li>Comé lo verde y bichos más chicos que vos. Los más grandes te lastiman.</li><li>Juntá ADN y tocá 🧬: probá aletas, ojos y dientes, y fijate qué cambia.</li><li>En la Gran Oxidación, sin 🫁 las burbujas te queman.</li><li>En la bola de nieve, sin 🧥 el frío te baja la vida.</li><li>En el Cámbrico sos animal: tu dibujo sale de tus partes.</li><li>Al final, con 4 patas, llegá a la orilla.</li></ol><p class="chico">Los otros bichos son especies del Mundo que vivían en esa fecha. Las fechas son reales.</p>','Volver');
+$('probar').onclick=()=>mensaje('<h2>Qué probar</h2><ol><li>Comé lo verde y bichos más chicos que vos. Los más grandes te lastiman.</li><li>Juntá ADN y tocá 🧬: probá aletas, ojos y dientes, y fijate qué cambia.</li><li>En la Gran Oxidación, sin 🫁 las burbujas te queman.</li><li>En la bola de nieve, sin 🧥 el frío te baja la vida.</li><li>En el Cámbrico sos animal: tu dibujo sale de tus partes.</li><li>Con 4 patas salí a tierra: ahí las patas te hacen rápido. Aguantá el Pérmico y el meteorito hasta hoy.</li></ol><p class="chico">Los otros bichos son especies del Mundo que vivían en esa fecha. Las fechas son reales.</p>','Volver');
 
 function pintarHud(){
   const e=ERAS[eraI];
@@ -519,12 +526,12 @@ function paso(dt){
   let dx=0,dy=0;
   if(teclas.arrowleft||teclas.a)dx--;if(teclas.arrowright||teclas.d)dx++;if(teclas.arrowup||teclas.w)dy--;if(teclas.arrowdown||teclas.s)dy++;
   if(puntero){const w=toWorld(puntero.x,puntero.y);dx=w.x-J.x;dy=w.y-J.y;if(Math.hypot(dx,dy)<J.r*0.6){dx=0;dy=0}}
-  const m=Math.hypot(dx,dy)||1,vmax=(110+p.aleta*35)*lento;
+  const m=Math.hypot(dx,dy)||1,vmax=(e.tierra?90+p.patas*35:110+p.aleta*35)*lento;
   if(dx||dy){J.vx+=(dx/m*vmax-J.vx)*Math.min(1,dt*5);J.vy+=(dy/m*vmax-J.vy)*Math.min(1,dt*5)}else{J.vx*=1-Math.min(1,dt*3);J.vy*=1-Math.min(1,dt*3)}
   J.x=Math.max(J.r,Math.min(MUNDO_TAM-J.r,J.x+J.vx*dt));J.y=Math.max(J.r,Math.min(MUNDO_TAM-J.r,J.y+J.vy*dt));
   if(Math.abs(J.vx)>5)J.dir=J.vx>0?1:-1;
   // La orilla: arriba hay tierra
-  if(e.orilla&&J.y<300){if(p.patas>=2){fin(true);return}J.y=300;banner('Necesitás 4 patas (🦵🦵) para salir a tierra.')}
+  if(e.orilla&&J.y<300){if(p.patas>=2){siguienteEra();return}J.y=300;banner('🦵 Necesitás 4 patas para salir a tierra: tocá 🧬 Evolucionar.')}
   // Comida
   for(let i=comida.length-1;i>=0;i--){const c=comida[i];if(dist(c,J)<J.r+c.r){comida.splice(i,1);comida.push(nuevaComida());J.comido+=0.5;J.puntos+=0.5;J.vida=Math.min(100,J.vida+2)}}
   // Otros bichos
@@ -552,16 +559,17 @@ function paso(dt){
   // Burbujas de oxígeno y frío
   for(const b of burbujas){b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.x<0||b.x>MUNDO_TAM)b.vx*=-1;if(b.y<0||b.y>MUNDO_TAM)b.vy*=-1;if(!p.oxi&&dist(b,J)<b.r+J.r){J.vida-=14*dt;J.ultimoQueTeMordio='el oxígeno'}}
   if(e.frio&&!p.grasa){J.vida-=3*dt;J.ultimoQueTeMordio='el frío'}
+  if(e.ceniza&&J.r>12+eraI*3+4){J.vida-=(J.r-(12+eraI*3+4))*0.6*dt;J.ultimoQueTeMordio='el hambre después del meteorito (los grandes necesitan más comida)'}
   J.vida=Math.min(100,J.vida+1.5*dt);
   if(J.vida<=0){morir();return}
   if(e.meta&&J.comido>=e.meta){siguienteEra();return}
 }
-function siguienteEra(){eraI++;entrarEra();}
+function siguienteEra(){if(eraI+1>=ERAS.length){fin();return}eraI++;entrarEra();}
 function morir(){mensaje('<h2>💀 Te extinguiste</h2><p>Te terminó '+(J.ultimoQueTeMordio||'algo')+'. Volvés al principio de esta época, con tus partes.</p>','Otra vez',()=>{const e=ERAS[eraI];J.x=MUNDO_TAM/2;J.y=e.orilla?MUNDO_TAM-200:MUNDO_TAM/2;J.vida=100;J.comido=0;J.r=12+eraI*3;npc=npc.filter(n=>dist(n,J)>450);while(npc.length<(e.extincion?10:18))npc.push(crearNpc(e,true));pintarHud()});}
 function fin(){
-  const yo=jugadorEsp();yo.cuerpo.medio='tierra';yo.cuerpo.tipo='caminante';
+  const yo=jugadorEsp();
   const hoy=Mundo.vivasEn(mundo,0).filter(s=>s.reino==='animal'&&s.cuerpo).slice(0,5);
-  mensaje('<h2>🏝️ ¡Saliste a tierra!</h2><p>Hace 400 millones de años, tu linaje pisa la tierra por primera vez. Hasta acá llega esta versión.</p><img class="yo" alt="Tu bicho" src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(MundoDibujo.dibujo(yo).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))+'"><p class="chico">Mundo #'+mundo.semilla+'. Otro número, otra historia.</p>','🌍 Jugar en otro mundo',()=>empezar(1+Math.floor(r01()*99999)));
+  mensaje('<h2>🏁 ¡Llegaste a hoy!</h2><p>De una célula en la sopa a caminar sobre la tierra, pasando por el oxígeno, el hielo y tres extinciones. Tu linaje sobrevivió 3.800 millones de años.</p><img class="yo" alt="Tu bicho" src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(MundoDibujo.dibujo(yo).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))+'"><p class="chico">Mundo #'+mundo.semilla+'. Otro número, otra historia.</p>','🌍 Jugar en otro mundo',()=>empezar(1+Math.floor(r01()*99999)));
 }
 
 // --- Dibujo ---
@@ -592,7 +600,7 @@ function dibujar(){
   cx.strokeStyle='rgba(255,255,255,.25)';cx.lineWidth=6;cx.strokeRect(0,0,MUNDO_TAM,MUNDO_TAM);
   if(e.orilla){cx.fillStyle='#c2a46b';cx.fillRect(0,0,MUNDO_TAM,300);cx.fillStyle='#5c940d';for(let i=0;i<60;i++){const x=(i*173)%MUNDO_TAM;cx.fillRect(x,80+(i*37)%160,6,-20-(i%4)*8)}cx.fillStyle='rgba(255,255,255,.5)';cx.fillRect(0,292,MUNDO_TAM,8)}
   for(const b of burbujas){cx.beginPath();cx.arc(b.x,b.y,b.r,0,7);cx.fillStyle='rgba(165,216,255,.25)';cx.fill();cx.strokeStyle='rgba(255,255,255,.4)';cx.lineWidth=2;cx.stroke()}
-  cx.fillStyle='#69db7c';for(const c of comida){cx.beginPath();cx.arc(c.x,c.y,c.r,0,7);cx.fill()}
+  cx.fillStyle=e.tierra?'#c0eb75':'#69db7c';for(const c of comida){cx.beginPath();cx.arc(c.x,c.y,c.r,0,7);cx.fill()}
   for(const n of npc){
     const dir=n.vx>=0?1:-1;
     if(n.esp.cuerpo){const img=sprite(n.esp);if(img.complete){cx.save();cx.translate(n.x,n.y);cx.scale(dir,1);const w=n.r*4;cx.drawImage(img,-w/2,-w*110/160/2,w,w*110/160);cx.restore()}}
@@ -608,6 +616,7 @@ function dibujar(){
   cx.globalAlpha=1;cx.beginPath();cx.arc(J.x,J.y,J.r*1.45,0,7);cx.strokeStyle='rgba(255,212,59,.8)';cx.lineWidth=2;cx.stroke();
   cx.restore();
   if(e.frio&&!J.partes.grasa){cx.fillStyle='rgba(220,240,255,.18)';cx.fillRect(0,0,W,H)}
+  if(e.ceniza){cx.fillStyle='rgba(60,50,40,.25)';cx.fillRect(0,0,W,H)}
 }
 function bucle(t){
   const dt=Math.min(0.05,(t-ultimo)/1000||0);ultimo=t;
