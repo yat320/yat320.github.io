@@ -41,6 +41,11 @@ li button{border:0;padding:0;background:none;color:var(--acento);text-decoration
 .barras em i{display:block;height:100%;background:var(--acento)}
 .chico{font-size:.8rem;color:var(--suave)}
 svg.bicho{width:100%;max-width:260px;height:auto;display:block;margin:6px 0;border-radius:10px;border:1px solid var(--linea)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:10px}
+.gal button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;font-size:.75rem;text-decoration:none;color:var(--tinta);border:1px solid var(--linea);border-radius:10px;background:var(--fondo);overflow:hidden}
+.gal svg.bicho{margin:0;border:0;border-radius:6px}
+.gal span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+h3{font-size:.9rem;margin:10px 0 6px}
 dialog{max-width:520px;border:1px solid var(--linea);border-radius:12px;background:var(--panel);color:var(--tinta)}
 </style>
 <main>
@@ -60,6 +65,7 @@ dialog{max-width:520px;border:1px solid var(--linea);border-radius:12px;backgrou
   <input id="t" type="range" min="0" max="4200" step="10" value="0" aria-label="Momento">
   <div class="tiempo"><b id="cuando"></b><span id="amb"></span></div>
 </div>
+<div class="caja"><h2 id="tgal">Galería</h2><p class="chico">Todos los seres vivos en el momento elegido. Mové el tiempo y cambia.</p><div id="gal"></div></div>
 <div class="grid">
   <div class="caja"><h2 id="tvivas">Vivas en ese momento</h2><ul id="vivas"></ul></div>
   <div class="caja"><h2>Lo que pasó</h2><ul id="eventos"></ul></div>
@@ -70,7 +76,7 @@ dialog{max-width:520px;border:1px solid var(--linea);border-radius:12px;backgrou
 <li>Mové el tiempo a 252 (Pérmico) y mirá cuántas especies quedan antes y después.</li>
 <li>Elegí una especie de hoy y mirá su linaje hasta LUCA.</li>
 <li>Buscá una con «préstamo»: un gen que le pasó otra especie de costado, como hacen las bacterias.</li>
-<li>Andá a hoy y abrí un 🐾, un 🌿 y un 🍄: mirá su cuerpo y su dibujo. Probá la semilla 1: ahí nunca hubo animales.</li>
+<li>Mirá la galería en hoy, en 300 y en 1.000 millones de años: cómo cambia lo que vive. Andá a hoy y abrí un 🐾, un 🌿 y un 🍄: mirá su cuerpo y su dibujo. Probá la semilla 1: ahí nunca hubo animales.</li>
 <li>Exportá el JSON: eso es lo que va a leer cualquier juego.</li>
 </ol><form method="dialog"><button class="prim">Listo</button></form></dialog>
 </main>
@@ -419,6 +425,9 @@ function tiempo(){
   $('amb').textContent='calor '+Math.round(a.temp*100)+'% · oxígeno '+Math.round(a.oxigeno*100)+'%';
   const cu={};v.forEach(e=>{const k=ico(e);cu[k]=(cu[k]||0)+1});
   $('tvivas').textContent='Vivas '+(t===0?'hoy':'en ese momento')+': '+v.length+'  '+Object.keys(cu).map(k=>k+cu[k]).join(' ');
+  const grupos=[['🐾 Animales',e=>e.reino==='animal'],['🌿 Plantas',e=>e.reino==='planta'],['🍄 Hongos',e=>e.reino==='hongo'],['🔬 Células con núcleo',e=>!e.reino&&e.nivel>=1],['🦠 Células simples',e=>e.nivel===0]];
+  $('tgal').textContent='Galería: '+fmt(t);
+  $('gal').innerHTML=grupos.map(([tit,f])=>{const g=v.filter(f);return g.length?'<h3>'+tit+' ('+g.length+')</h3><div class="gal">'+g.map(e=>'<button data-id="'+e.id+'">'+dibujo(e)+'<span>'+esc(e.nombre)+'</span></button>').join('')+'</div>':''}).join('');
   $('vivas').innerHTML=v.slice(0,200).map(e=>'<li>'+ico(e)+' <button data-id="'+e.id+'">'+esc(e.nombre)+'</button> <span class="chico">'+(e.cuerpo?e.cuerpo.tipo:e.reino||m.niveles[e.nivel])+'</span></li>').join('');
   dibujar();
 }
@@ -427,9 +436,17 @@ function describir(e){const c=e.cuerpo;
   if(e.reino!=='animal')return 'Es '+(c.tipo==='árbol'?'un ':'')+c.tipo+', vive en '+c.medio+', mide unos '+medida(c.tamanoM)+(c.hojas?', '+c.hojas+' hojas por rama':'')+'.';
   return 'Es '+c.tipo+', de simetría '+c.simetria+', '+c.patas+' patas, '+c.ojos+' ojos'+(c.aletas?', '+c.aletas+' aletas':'')+(c.alas?', '+c.alas+' alas':'')+', cubierto de '+c.cubierta+'. Vive en '+c.medio+' y mide unos '+medida(c.tamanoM)+'.';}
 function dibujo(e){
+  if(!e.cuerpo){
+    let g='<rect width="160" height="110" fill="#cfe8ff"/>';const col=e.reino==='animal'?'#e8a598':e.reino==='planta'?'#69db7c':e.reino==='hongo'?'#ced4da':e.nivel===0?'#c9a227':'#f0954a';
+    if(e.nivel===0)for(let i=0;i<5;i++)g+='<rect x="'+(30+i*22)+'" y="'+(40+(i%2)*18)+'" width="18" height="9" rx="4.5" fill="'+col+'" transform="rotate('+(i*23-30)+' '+(39+i*22)+' '+(44+(i%2)*18)+')"/>';
+    else if(e.nivel===1)g+='<circle cx="80" cy="55" r="30" fill="'+col+'" opacity=".75"/><circle cx="86" cy="50" r="10" fill="#7f3b08"/><circle cx="66" cy="64" r="4" fill="#fff" opacity=".7"/>';
+    else for(let i=0;i<9;i++)g+='<circle cx="'+(64+(i%3)*16)+'" cy="'+(38+Math.floor(i/3)*16)+'" r="9" fill="'+col+'" stroke="#fff"/>';
+    return '<svg class="bicho" viewBox="0 0 160 110" role="img" aria-label="Dibujo de '+esc(e.nombre)+'">'+g+'</svg>';
+  }
   const c=e.cuerpo,P={piel:'#e8a598',caparazón:'#8d6e63',escamas:'#4dabf7',pelo:'#b5651d',plumas:'#f2c230'};
   const fondo=c.medio==='agua'?'#cfe8ff':c.medio==='aire'?'#e7f5ff':'#f1ead7';
   let g='<rect width="160" height="110" fill="'+fondo+'"/>'+(c.medio!=='agua'?'<rect y="95" width="160" height="15" fill="#c8b48a"/>':'');
+  const fondoLen=g.length;
   const L=(x1,y1,x2,y2,col,w)=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col+'" stroke-width="'+(w||3)+'" stroke-linecap="round"/>';
   if(e.reino==='planta'){
     if(c.tipo==='alga')for(let i=0;i<4;i++)g+='<path d="M'+(50+i*18)+' 105 q-8 -20 0 -40 t0 -40" fill="none" stroke="#2f9e44" stroke-width="4"/>';
@@ -450,6 +467,10 @@ function dibujo(e){
       for(let i=0;i<c.ojos;i++)g+='<circle cx="'+(104+(i%2)*6)+'" cy="'+(cy-6+Math.floor(i/2)*4)+'" r="2.5" fill="#222"/>';
     }
   }
+  // Cada uno con su color (del ADN de su gen de forma) y su tamaño (del gen de tamaño).
+  const fo=e.adn.slice(-72);let h=0;for(let i=0;i<fo.length;i++)h=(h*31+fo.charCodeAt(i))%360;
+  const sc=(0.6+0.5*e.rasgos.tamano).toFixed(2),oy=c.medio==='agua'?55:95;
+  g=g.slice(0,fondoLen)+'<g style="filter:hue-rotate('+(h-180)*0.5+'deg)" transform="translate(80 '+oy+') scale('+sc+') translate(-80 -'+oy+')">'+g.slice(fondoLen)+'</g>';
   return '<svg class="bicho" viewBox="0 0 160 110" role="img" aria-label="Dibujo de '+esc(e.nombre)+'">'+g+'</svg>';
 }
 function ver(id){
@@ -468,7 +489,7 @@ function ver(id){
   html+='<h2>Linaje ('+lin.length+' pasos hasta LUCA)</h2><p class="chico">'+lin.map(e=>'<button data-id="'+e.id+'">'+esc(e.nombre)+'</button> '+(e.nace)+' Ma').join(' ← ')+'</p>';
   $('ficha').innerHTML=html;dibujar();
 }
-document.addEventListener('click',ev=>{const b=ev.target.closest('button[data-id]');if(b){ver(+b.dataset.id);if(ev.target.closest('#vivas,#eventos'))$('ficha').scrollIntoView({behavior:'smooth'})}});
+document.addEventListener('click',ev=>{const b=ev.target.closest('button[data-id]');if(b){ver(+b.dataset.id);if(ev.target.closest('#vivas,#eventos,#gal'))$('ficha').scrollIntoView({behavior:'smooth'})}});
 cv.addEventListener('click',ev=>{
   const r=cv.getBoundingClientRect(),w=r.width,h=r.height,x=ev.clientX-r.left,y=ev.clientY-r.top;
   const ma=Math.round((1-x/w)*4200),n=m.especies.length;let mejor=null,dm=1e9;
