@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Linaje</title>
+</head>
+<body>
+<style>
+:root{--fondo:#f4efe4;--panel:#fffdf8;--tinta:#222;--suave:#6b665c;--linea:#e0d8c6;--acento:#2f7d5b;--mal:#c92a2a;--bien:#2b8a3e;--amb:#1c7ed6;--vos:#d6336c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fondo:#14171a;--panel:#1e2226;--tinta:#eee;--suave:#a5a5a5;--linea:#343a40;--acento:#5fc79a;--mal:#ff6b6b;--bien:#69db7c;--amb:#4dabf7;--vos:#ff6b9d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:10px 16px 40px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+h1{font-size:1.25rem;margin:0}
+.fecha{font-weight:700}
+.caja{background:var(--panel);border:1px solid var(--linea);border-radius:14px;padding:10px 12px;margin:10px 0}
+.pob{display:flex;align-items:center;gap:8px}
+.pob em{flex:1;height:14px;border-radius:7px;background:var(--linea);overflow:hidden}
+.pob em i{display:block;height:100%;background:var(--bien);transition:width .5s}
+.pob em i.baja{background:var(--mal)}
+.puntos{font-size:1.1rem;letter-spacing:2px}
+svg.bicho{width:100%;height:auto;display:block;border-radius:12px}
+.yo{text-align:center}
+.yo b{display:block;margin-top:4px}
+.chico{font-size:.82rem;color:var(--suave)}
+.medidor{margin:6px 0}
+.medidor .barra{position:relative;height:12px;border-radius:6px;background:linear-gradient(90deg,#74c0fc,#ffe066,#ff8787)}
+.medidor .barra.ox{background:linear-gradient(90deg,#dee2e6,#a5d8ff)}
+.medidor .m{position:absolute;top:-5px;width:4px;height:22px;border-radius:2px;transform:translateX(-2px)}
+.medidor .amb{background:var(--amb)}.medidor .vos{background:var(--vos)}
+.ley{display:flex;gap:12px;font-size:.78rem;color:var(--suave)}
+.ley i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:3px;vertical-align:-1px}
+.evento{font-size:1rem;margin:4px 0 2px}
+.ops{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+button{font:inherit;color:var(--tinta);cursor:pointer}
+.op{display:flex;align-items:center;gap:8px;text-align:left;padding:8px;border:1px solid var(--linea);border-radius:10px;background:var(--fondo);min-height:48px}
+.op .ico{font-size:1.4rem}
+.op small{display:block;color:var(--suave);font-size:.72rem}
+.op[aria-disabled=true]{opacity:.45}
+.ir{width:100%;padding:14px;font-size:1.1rem;font-weight:700;border:0;border-radius:12px;background:var(--acento);color:#fff;margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chip{font:12px ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border-radius:6px;background:var(--fondo);border:1px solid var(--linea)}
+.chip.azar{border-color:var(--mal)}
+.linea{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid var(--linea)}
+.mas{color:var(--bien);font-weight:700}.menos{color:var(--mal);font-weight:700}
+dialog{max-width:520px;width:calc(100% - 24px);border:1px solid var(--linea);border-radius:14px;background:var(--panel);color:var(--tinta);padding:14px}
+dialog::backdrop{background:#0008}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;margin:8px 0}
+.gal div{font-size:.7rem;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gal .tuyo{outline:3px solid var(--vos);border-radius:8px}
+.pie{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.pie button,.dlgb button{padding:8px 12px;border:1px solid var(--linea);border-radius:10px;background:var(--panel)}
+.dlgb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.adn{font:11px/1.6 ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+.A{color:#2f9e44}.C{color:#1c7ed6}.G{color:#e8590c}.T{color:#c2255c}
+#aviso{min-height:1.2em;color:var(--mal);font-size:.85rem;margin-top:4px}
+</style>
+<main>
+<div class="top"><h1>🧬 Linaje</h1><span class="fecha" id="fecha"></span></div>
+<div class="caja">
+  <div class="pob"><span>👥</span><em><i id="pobBar"></i></em><b id="pobNum"></b></div>
+  <div class="yo" id="yo"></div>
+  <div class="chips" id="chips"></div>
+</div>
+<div class="caja" id="viene"></div>
+<div class="caja">
+  <div class="top"><b>Mutar</b><span class="puntos" id="puntos" aria-label="Puntos"></span></div>
+  <p class="chico">Cada mutación cambia letras reales de tu ADN. A veces se cuela otra al azar, y puede romper algo.</p>
+  <div class="ops" id="ops"></div>
+  <div id="aviso" aria-live="polite"></div>
+  <button class="ir" id="ir">Avanzar en el tiempo ⏩</button>
+</div>
+<details class="caja"><summary>Tu ADN</summary><div id="adn"></div></details>
+<div class="pie"><button id="nuevo">🌍 Mundo nuevo</button><button id="probar">❓ Qué probar</button><span class="chico" id="sem"></span></div>
+</main>
+<dialog id="res"></dialog>
+<dialog id="dlgProbar"><h2>Qué probar</h2><ol>
+<li>Antes de avanzar, mirá «Lo que viene»: la línea azul es el ambiente y la rosa sos vos. Si están lejos, mutá para acercarlas.</li>
+<li>Prepará la Gran Oxidación (hace 2.400 millones de años): sin «usar oxígeno», te intoxica.</li>
+<li>Para la bola de nieve (720): aguantá frío antes de que llegue.</li>
+<li>Saliendo a tierra entre 400 y 300 millones de años hay lugar de sobra. ¿Te animás?</li>
+<li>Antes del meteorito (66), probá ser chico.</li>
+<li>Si llegás a hoy, tu bicho aparece entre los de ese mundo. Probá otra semilla: cambia todo.</li>
+</ol><p class="chico">Las fechas y el código genético son reales; las especies, inventadas.</p><form method="dialog"><button class="ir">Jugar</button></form></dialog>
+<script>
+/* Mundo: la historia de la vida desde la sopa hasta hoy, como recurso para juegos.
+   No simula átomos: trabaja por niveles (sopa de cadenas → especies con ADN).
+   El ADN usa el código genético real; las fechas de los grandes eventos son reales;
+   las especies son inventadas. Misma semilla = mismo mundo.
+
+   Uso (navegador o Node):
+     const m = Mundo.crear(1234);         // historia completa
+     Mundo.traducir("ATGGCT...")          // ADN → proteína (letras de aminoácidos)
+     Mundo.linaje(m, id)                  // [id, padre, abuelo, ..., LUCA]
+     Mundo.ancestroComun(m, a, b)         // id del ancestro común más cercano
+     Mundo.distancia(adnA, adnB)          // letras distintas
+     Mundo.vivasEn(m, ma)                 // especies vivas hace `ma` millones de años
+*/
+(function (raiz) {
+  'use strict';
+  const VERSION = 2;
+  const BASES = 'TCAG';
+  const AA = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
+  const CODIGO = {};
+  for (let i = 0; i < 64; i++) CODIGO[BASES[i >> 4] + BASES[(i >> 2) & 3] + BASES[i & 3]] = AA[i];
+  // Hidrofobicidad de Kyte-Doolittle, llevada a 0..1.
+  const KD = { I: 4.5, V: 4.2, L: 3.8, F: 2.8, C: 2.5, M: 1.9, A: 1.8, G: -0.4, T: -0.7, S: -0.8, W: -0.9, Y: -1.3, P: -1.6, H: -3.2, E: -3.5, Q: -3.5, D: -3.5, N: -3.5, K: -3.9, R: -4.5 };
+  const CARGA = { D: -1, E: -1, K: 1, R: 1, H: 0.5 };
+  const GENES = ['metabolismo', 'temperatura', 'oxigeno', 'tamano', 'movimiento', 'luz', 'forma'];
+  const CODONES_GEN = 24;
+
+  // Eventos reales (millones de años atrás). Las especies reaccionan a ellos.
+  const HITOS = [
+    { ma: 4400, tipo: 'planeta', texto: 'La Tierra se enfría y hay océanos.' },
+    { ma: 2400, tipo: 'oxigeno', texto: 'Gran Oxidación: aparece oxígeno en el aire.' },
+    { ma: 720, tipo: 'frio', texto: 'Tierra bola de nieve: el planeta casi se congela.', hasta: 640 },
+    { ma: 540, tipo: 'cambrico', texto: 'Explosión cámbrica: aparecen muchos cuerpos nuevos.' },
+    { ma: 443, tipo: 'extincion', texto: 'Extinción del Ordovícico.', fuerza: 0.6 },
+    { ma: 372, tipo: 'extincion', texto: 'Extinción del Devónico.', fuerza: 0.5 },
+    { ma: 252, tipo: 'extincion', texto: 'Gran Mortandad del Pérmico: la peor de todas.', fuerza: 0.85 },
+    { ma: 201, tipo: 'extincion', texto: 'Extinción del Triásico.', fuerza: 0.5 },
+    { ma: 66, tipo: 'extincion', texto: 'Meteorito de fin del Cretácico.', fuerza: 0.7 },
+  ];
+  const NIVELES = ['célula simple', 'célula con núcleo', 'multicelular', 'cuerpo complejo'];
+  const REINOS = ['animal', 'planta', 'hongo'];
+
+  // Reino: se decide una vez, al volverse multicelular, y se hereda.
+  function reinoDe(ra) {
+    if (ra.luz >= 0.3 && ra.luz > ra.movimiento) return 'planta';
+    if (ra.movimiento >= 0.3) return 'animal';
+    return 'hongo';
+  }
+
+  // Plan de cuerpo: sale de la proteína del gen "forma" (cada letra decide algo),
+  // del tamaño y de la fecha (no hay árboles antes de 385 Ma ni flores antes de 130 Ma).
+  function planDe(e, genoma) {
+    const p = traducir(genoma[GENES.indexOf('forma')]) || 'A';
+    const n = (k) => Math.min(0.999, 'ACDEFGHIKLMNPQRSTVWY'.indexOf(p[k % p.length]) / 19);
+    const t = e.rasgos.tamano, ma = e.nace;
+    const metros = +(0.001 * Math.pow(10, t * 4)).toPrecision(2); // de 1 mm a 10 m
+    if (e.reino === 'planta') {
+      const tipos = ['alga'];
+      if (ma <= 470) tipos.push('musgo');
+      if (ma <= 420) tipos.push('helecho');
+      if (ma <= 385) tipos.push('árbol');
+      if (ma <= 130) tipos.push('planta con flor');
+      const tipo = tipos[Math.min(tipos.length - 1, Math.floor(n(1) * tipos.length + t * 1.5))];
+      return { tipo, medio: tipo === 'alga' ? 'agua' : 'tierra', tamanoM: tipo === 'árbol' ? Math.max(metros, 2) : metros, hojas: tipo === 'alga' ? 0 : 2 + Math.floor(n(2) * 8) };
+    }
+    if (e.reino === 'hongo') {
+      const tipo = ma <= 440 && n(1) > 0.4 ? 'seta' : 'moho';
+      return { tipo, medio: tipo === 'seta' ? 'tierra' : n(2) > 0.5 ? 'agua' : 'tierra', tamanoM: Math.min(metros, 0.5) };
+    }
+    const simetria = n(0) < 0.25 ? 'radial' : 'bilateral';
+    let patas = simetria === 'radial' ? 0 : [0, 0, 2, 4, 4, 6, 8][Math.floor(n(1) * 7)];
+    const ojos = [0, 1, 2, 2, 2, 2, 4, 6, 8][Math.floor(n(2) * 9)];
+    let medio = 'agua';
+    const sale = n(7) > 0.45; // no todos los linajes salen del agua
+    if (sale && patas >= 6 && ma <= 400) medio = 'tierra';
+    if (sale && patas === 4 && ma <= 375) medio = 'tierra';
+    if (sale && patas === 2 && ma <= 230) medio = 'tierra';
+    if (medio === 'agua' && n(8) < 0.6) patas = 0; // la mayoría de los de agua nada sin patas
+    const alas = medio === 'tierra' && ((patas >= 6 && ma <= 325) || (patas <= 4 && ma <= 150)) && n(4) > 0.6 ? 2 * (1 + (patas >= 6 ? Math.floor(n(5) * 2) : 0)) : 0;
+    const aletas = medio === 'agua' && simetria === 'bilateral' ? 2 + 2 * Math.floor(n(4) * 2) : 0;
+    const cubierta = ['piel', 'caparazón', 'escamas', 'pelo', 'plumas'][Math.floor(n(6) * (medio === 'agua' ? 3 : ma <= 160 ? 5 : ma <= 220 ? 4 : 3))];
+    return { tipo: alas ? 'volador' : medio === 'agua' ? (simetria === 'radial' ? 'radial de agua' : 'nadador') : 'caminante', simetria, patas, ojos, aletas, alas, cubierta, medio: alas ? 'aire' : medio, tamanoM: medio === 'agua' && simetria === 'radial' ? Math.min(metros, 2) : metros };
+  }
+
+  function azar(semilla) {
+    let a = semilla >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function traducir(adn) {
+    let p = '';
+    for (let i = 0; i + 2 < adn.length; i += 3) {
+      const aa = CODIGO[adn.substr(i, 3)];
+      if (aa === '*') break;
+      p += aa;
+    }
+    return p;
+  }
+
+  // Un rasgo sale de la proteína real: si una mutación mete un "stop" temprano,
+  // la proteína queda corta y el rasgo se cae (pasa en la vida real).
+  function rasgoDeGen(gen, i) {
+    const p = traducir(gen);
+    if (p.length < 2) return 0;
+    let s = 0;
+    for (const a of p) s += i % 2 ? (KD[a] + 4.5) / 9 : ((CARGA[a] || 0) + 1) / 2;
+    const media = s / p.length;
+    const completo = p.length / CODONES_GEN;
+    return Math.max(0, Math.min(1, (media - 0.3) * 2.5)) * completo;
+  }
+
+  function rasgos(genoma) {
+    const r = {};
+    GENES.forEach((g, i) => { r[g] = +rasgoDeGen(genoma[i], i).toFixed(3); });
+    return r;
+  }
+
+  function distancia(a, b) {
+    const x = Array.isArray(a) ? a.join('') : a, y = Array.isArray(b) ? b.join('') : b;
+    let d = 0;
+    for (let i = 0; i < Math.min(x.length, y.length); i++) if (x[i] !== y[i]) d++;
+    return d + Math.abs(x.length - y.length);
+  }
+
+  function ambiente(ma, r) {
+    let temp = 0.85 - 0.45 * (1 - ma / 4200) + (r() - 0.5) * 0.06;
+    if (ma <= 720 && ma >= 640) temp = 0.08;
+    let ox = ma > 2400 ? 0.02 : ma > 600 ? 0.25 : 0.25 + 0.7 * (1 - ma / 600);
+    return { ma, temp: +Math.max(0, Math.min(1, temp)).toFixed(3), oxigeno: +ox.toFixed(3) };
+  }
+
+  function crear(semilla, opciones) {
+    semilla = (semilla >>> 0) || 1;
+    const op = Object.assign({ paso: 10, tope: 70 }, opciones || {});
+    const r = azar(semilla);
+    const elegir = (s) => s[Math.floor(r() * s.length)];
+    const eventos = HITOS.map((h) => ({ ma: h.ma, tipo: h.tipo, texto: h.texto, real: true }));
+
+    // 1. La sopa: cadenas cortas de ARN que se copian con errores y a veces se pegan.
+    let sopa = [];
+    for (let i = 0; i < 200; i++) {
+      let c = '';
+      const n = 3 + Math.floor(r() * 6);
+      for (let j = 0; j < n; j++) c += elegir('ACGU');
+      sopa.push(c);
+    }
+    const copia = (c) => {
+      const gc = (c.match(/[GC]/g) || []).length / c.length;
+      return 0.25 + gc * 0.5 + Math.min(c.length, 30) * 0.008;
+    };
+    let replicador = null, vueltas = 0;
+    while (!replicador && vueltas < 5000) {
+      vueltas++;
+      const nueva = [];
+      for (const c of sopa) {
+        if (r() < copia(c)) {
+          let h = '';
+          for (const b of c) h += r() < 0.03 ? elegir('ACGU') : b;
+          nueva.push(h);
+        }
+        if (r() < 0.6) nueva.push(c);
+      }
+      for (let k = 0; k < 15 && nueva.length > 1; k++) {
+        const i = Math.floor(r() * nueva.length), j = Math.floor(r() * nueva.length);
+        if (i !== j) { nueva[i] += nueva[j]; nueva.splice(j, 1); }
+      }
+      nueva.sort((a, b) => copia(b) - copia(a));
+      sopa = nueva.slice(0, 200);
+      while (sopa.length < 50) sopa.push(elegir('ACGU') + elegir('ACGU') + elegir('ACGU'));
+      if (sopa[0].length >= 24) replicador = sopa[0].slice(0, 24);
+    }
+    if (!replicador) replicador = sopa[0];
+    eventos.push({ ma: 4300, tipo: 'replicador', texto: 'Primera cadena que se copia sola (ARN): ' + replicador + ' (' + vueltas + ' vueltas de sopa).' });
+
+    // 2. LUCA: sus genes nacen del replicador (ARN → ADN) y se completan al azar.
+    const semillaAdn = replicador.replace(/U/g, 'T');
+    const codonAzar = () => { let c; do { c = elegir('ACGT') + elegir('ACGT') + elegir('ACGT'); } while (CODIGO[c] === '*'); return c; };
+    const genLuca = (g) => {
+      let s = 'ATG';
+      for (let i = 1; i < CODONES_GEN; i++) {
+        const t = semillaAdn.substr(((i + g * 5) * 3) % (semillaAdn.length - 2), 3);
+        s += CODIGO[t] && CODIGO[t] !== '*' && r() < 0.5 ? t : codonAzar();
+      }
+      return s;
+    };
+
+    const silabas = ['ar', 'bo', 'ca', 'di', 'el', 'fu', 'ga', 'hi', 'lo', 'mu', 'ne', 'or', 'pi', 'qua', 'ru', 'sa', 'te', 'ul', 'vi', 'xe', 'zo', 'tri', 'pla', 'cro'];
+    const finales = ['a', 'is', 'us', 'um', 'ia', 'ex', 'on'];
+    const nombre = () => { let n = ''; const k = 2 + Math.floor(r() * 2); for (let i = 0; i < k; i++) n += elegir(silabas); n += elegir(finales); return n[0].toUpperCase() + n.slice(1); };
+
+    const especies = [];
+    const nueva = (padre, ma, genoma, nivel, extra) => {
+      const e = Object.assign({ id: especies.length, nombre: nombre(), padre, nace: ma, muere: null, causa: null, nivel, adn: genoma.join(''), rasgos: rasgos(genoma) }, extra || {});
+      e._g = genoma;
+      if (e.nivel >= 2) e.reino = (padre !== null && especies[padre].reino) || reinoDe(e.rasgos);
+      if (e.nivel >= 3) e.cuerpo = planDe(e, genoma);
+      especies.push(e);
+      return e;
+    };
+    const mutar = (genoma, veces) => {
+      const g = genoma.slice();
+      for (let k = 0; k < veces; k++) {
+        const gi = Math.floor(r() * g.length);
+        const pos = 3 + Math.floor(r() * (g[gi].length - 3));
+        g[gi] = g[gi].slice(0, pos) + elegir('ACGT') + g[gi].slice(pos + 1);
+      }
+      // El gen de la forma cambia un poco más: así los cuerpos varían entre linajes.
+      if (r() < 0.6) { const gi = GENES.indexOf('forma'); const pos = 3 + Math.floor(r() * (g[gi].length - 3)); g[gi] = g[gi].slice(0, pos) + elegir('ACGT') + g[gi].slice(pos + 1); }
+      return g;
+    };
+
+    const luca = nueva(null, 4200, GENES.map((_, i) => genLuca(i)), 0, { nombre: 'LUCA' });
+    eventos.push({ ma: 4200, tipo: 'luca', texto: 'LUCA, el ancestro común de todo lo que vive (fecha estimada real; su ADN, inventado).' });
+
+    // 3. Especies: cambian de golpe al separarse (equilibrio puntuado) y se extinguen
+    //    si no encajan con el ambiente. Antes del núcleo, se prestan genes de costado.
+    const ambientes = [];
+    const vivas = [luca];
+    const primero = {};
+    for (let ma = 4200 - op.paso; ma >= 0; ma -= op.paso) {
+      const amb = ambiente(ma, r);
+      ambientes.push(amb);
+      const hito = HITOS.find((h) => h.tipo === 'extincion' && h.ma <= ma + op.paso && h.ma > ma);
+      const cambrico = ma <= 540;
+      const nacidas = [];
+      // Compiten con los de su nivel (y, si son multicelulares, con los de su reino).
+      const clave = (v) => v.reino || v.nivel;
+      const porNivel = {};
+      for (const v of vivas) porNivel[clave(v)] = (porNivel[clave(v)] || 0) + 1;
+      for (const e of vivas) {
+        // Las células simples sin oxígeno sobreviven en rincones sin aire (como hoy).
+        const ox = amb.oxigeno > 0.2 ? Math.max(0, 0.35 - e.rasgos.oxigeno) * (e.nivel === 0 ? 0.2 : 1) : 0;
+        const desajuste = Math.abs(e.rasgos.temperatura - amb.temp) * (e.nivel === 0 ? 0.6 : 1) + ox;
+        let pMuere = 0.01 + desajuste * 0.12 + Math.max(0, porNivel[clave(e)] - op.tope / 2) * 0.012;
+        if (hito) pMuere += hito.fuerza * (e.nivel === 0 ? 0.3 : 0.6 + 0.4 * e.rasgos.tamano);
+        if (e !== luca || vivas.length > 1) {
+          if (r() < pMuere) { e.muere = ma; e.causa = hito ? hito.texto : desajuste > 0.4 ? 'No se adaptó al ambiente.' : 'Le ganaron otras.'; continue; }
+        }
+        const pHija = 0.05 + e.rasgos.metabolismo * 0.12 + (cambrico && e.nivel >= 2 ? 0.1 : 0) + (e.reino === 'planta' ? e.rasgos.luz * 0.05 : 0);
+        if (r() < pHija) {
+          let g = mutar(e._g, 2 + Math.floor(r() * 5));
+          let nivel = e.nivel, extra = {};
+          if (nivel === 0 && ma < 2400 && vivas.length > 1 && r() < 0.15) {
+            const otra = elegir(vivas.filter((v) => v !== e && v.nivel === 0 && !v.muere));
+            if (otra) { const gi = Math.floor(r() * GENES.length); g[gi] = otra._g[gi]; extra.prestamo = { de: otra.id, gen: GENES[gi] }; }
+          }
+          if (nivel === 0 && ma <= 2000 && e.rasgos.oxigeno > 0.4 && r() < 0.08) nivel = 1;
+          else if (nivel === 1 && ma <= 1200 && e.rasgos.tamano > 0.2 && r() < 0.12) nivel = 2;
+          else if (nivel === 2 && cambrico && r() < 0.35) nivel = 3;
+          const h = nueva(e.id, ma, g, nivel, extra);
+          if (nivel > e.nivel && primero[nivel] === undefined) {
+            primero[nivel] = h.id;
+            eventos.push({ ma, tipo: 'nivel', texto: 'Primer ser de tipo «' + NIVELES[nivel] + '»: ' + h.nombre + '.', especie: h.id });
+          }
+          nacidas.push(h);
+        }
+      }
+      for (let i = vivas.length - 1; i >= 0; i--) if (vivas[i].muere !== null) vivas.splice(i, 1);
+      vivas.push(...nacidas);
+      if (!vivas.length) { // la vida no se corta del todo: sobrevive la última
+        const ult = especies[especies.length - 1];
+        ult.muere = null; ult.causa = null; vivas.push(ult);
+      }
+    }
+    especies.forEach((e) => delete e._g);
+    eventos.sort((a, b) => b.ma - a.ma);
+    return { version: VERSION, semilla, genes: GENES, codonesPorGen: CODONES_GEN, niveles: NIVELES, reinos: REINOS, eventos, ambiente: ambientes, especies };
+  }
+
+  function linaje(m, id) {
+    const out = [];
+    for (let e = m.especies[id]; e; e = e.padre === null ? null : m.especies[e.padre]) out.push(e.id);
+    return out;
+  }
+  function ancestroComun(m, a, b) {
+    const la = new Set(linaje(m, a));
+    for (const x of linaje(m, b)) if (la.has(x)) return x;
+    return null;
+  }
+  function vivasEn(m, ma) {
+    return m.especies.filter((e) => e.nace >= ma && (e.muere === null || e.muere < ma));
+  }
+
+  const Mundo = { VERSION, CODIGO, GENES, crear, traducir, rasgos: (adn) => rasgos(adn.match(new RegExp('.{' + CODONES_GEN * 3 + '}', 'g'))), linaje, ancestroComun, distancia, vivasEn };
+  if (typeof module !== 'undefined' && module.exports) module.exports = Mundo;
+  else raiz.Mundo = Mundo;
+})(typeof self !== 'undefined' ? self : this);
+</script>
+<script>
+/* Dibujo de un ser del Mundo (SVG en texto). Lo usan el visor y los juegos.
+   MundoDibujo.dibujo(especie) → '<svg ...>'; MundoDibujo.describir(especie) → frase. */
+(function (raiz) {
+'use strict';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function medida(x){return x>=1?x.toLocaleString('es-AR',{maximumFractionDigits:1})+' m':x>=0.01?Math.round(x*100)+' cm':Math.max(1,Math.round(x*1000))+' mm'}
+function describir(e){const c=e.cuerpo;
+  if(e.reino!=='animal')return 'Es '+(c.tipo==='árbol'?'un ':'')+c.tipo+', vive en '+c.medio+', mide unos '+medida(c.tamanoM)+(c.hojas?', '+c.hojas+' hojas por rama':'')+'.';
+  return 'Es '+c.tipo+', de simetría '+c.simetria+', '+c.patas+' patas, '+c.ojos+' ojos'+(c.aletas?', '+c.aletas+' aletas':'')+(c.alas?', '+c.alas+' alas':'')+', cubierto de '+c.cubierta+'. Vive en '+c.medio+' y mide unos '+medida(c.tamanoM)+'.';}
+function dibujo(e){
+  if(!e.cuerpo){
+    let g='<rect width="160" height="110" fill="#cfe8ff"/>';const col=e.reino==='animal'?'#e8a598':e.reino==='planta'?'#69db7c':e.reino==='hongo'?'#ced4da':e.nivel===0?'#c9a227':'#f0954a';
+    if(e.nivel===0)for(let i=0;i<5;i++)g+='<rect x="'+(30+i*22)+'" y="'+(40+(i%2)*18)+'" width="18" height="9" rx="4.5" fill="'+col+'" transform="rotate('+(i*23-30)+' '+(39+i*22)+' '+(44+(i%2)*18)+')"/>';
+    else if(e.nivel===1)g+='<circle cx="80" cy="55" r="30" fill="'+col+'" opacity=".75"/><circle cx="86" cy="50" r="10" fill="#7f3b08"/><circle cx="66" cy="64" r="4" fill="#fff" opacity=".7"/>';
+    else for(let i=0;i<9;i++)g+='<circle cx="'+(64+(i%3)*16)+'" cy="'+(38+Math.floor(i/3)*16)+'" r="9" fill="'+col+'" stroke="#fff"/>';
+    return '<svg class="bicho" viewBox="0 0 160 110" role="img" aria-label="Dibujo de '+esc(e.nombre)+'">'+g+'</svg>';
+  }
+  const c=e.cuerpo,P={piel:'#e8a598',caparazón:'#8d6e63',escamas:'#4dabf7',pelo:'#b5651d',plumas:'#f2c230'};
+  const fondo=c.medio==='agua'?'#cfe8ff':c.medio==='aire'?'#e7f5ff':'#f1ead7';
+  let g='<rect width="160" height="110" fill="'+fondo+'"/>'+(c.medio!=='agua'?'<rect y="95" width="160" height="15" fill="#c8b48a"/>':'');
+  const fondoLen=g.length;
+  const L=(x1,y1,x2,y2,col,w)=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col+'" stroke-width="'+(w||3)+'" stroke-linecap="round"/>';
+  if(e.reino==='planta'){
+    if(c.tipo==='alga')for(let i=0;i<4;i++)g+='<path d="M'+(50+i*18)+' 105 q-8 -20 0 -40 t0 -40" fill="none" stroke="#2f9e44" stroke-width="4"/>';
+    else if(c.tipo==='musgo')for(let i=0;i<9;i++)g+=L(40+i*10,95,38+i*10+(i%3),82,'#5c940d',4);
+    else if(c.tipo==='árbol')g+=L(80,95,80,45,'#6b4f2a',9)+'<circle cx="80" cy="38" r="28" fill="#2f9e44"/>';
+    else{g+=L(80,95,80,30,'#2f9e44',3);for(let i=0;i<Math.min(c.hojas,8);i++){const y=88-i*7,s=i%2?1:-1;g+='<ellipse cx="'+(80+s*12)+'" cy="'+y+'" rx="11" ry="4" fill="#40c057" transform="rotate('+(s*-25)+' '+(80+s*12)+' '+y+')"/>'}if(c.tipo==='planta con flor')g+='<circle cx="80" cy="28" r="9" fill="#f783ac"/><circle cx="80" cy="28" r="3.5" fill="#ffd43b"/>'}
+  }else if(e.reino==='hongo'){
+    if(c.tipo==='seta')g+='<rect x="74" y="60" width="12" height="35" rx="4" fill="#f1e3c8"/><path d="M50 62 Q80 20 110 62 Z" fill="#c92a2a"/><circle cx="70" cy="48" r="4" fill="#fff"/><circle cx="90" cy="44" r="3" fill="#fff"/>';
+    else for(let i=0;i<14;i++)g+='<circle cx="'+(55+(i*37)%50)+'" cy="'+(70+(i*23)%25)+'" r="'+(4+i%4)+'" fill="#868e96" opacity=".8"/>';
+  }else{
+    const col=P[c.cubierta]||'#adb5bd',cy=c.medio==='agua'?55:60;
+    if(c.simetria==='radial'){g+='<circle cx="80" cy="50" r="22" fill="'+col+'"/>';for(let i=0;i<8;i++){const a=i*Math.PI/4;g+=L(80+22*Math.cos(a),50+22*Math.sin(a),80+38*Math.cos(a),50+38*Math.sin(a),col,3)}for(let i=0;i<c.ojos;i++){const a=i*2*Math.PI/Math.max(1,c.ojos);g+='<circle cx="'+(80+12*Math.cos(a))+'" cy="'+(50+12*Math.sin(a))+'" r="2.5" fill="#222"/>'}}
+    else{
+      const pares=c.patas/2;for(let i=0;i<pares;i++){const x=60+(pares>1?i*40/(pares-1):20);g+=L(x,cy+10,x-4,95,'#495057')+L(x+6,cy+10,x+10,95,'#495057')}
+      if(c.alas)for(let i=0;i<c.alas/2;i++)g+='<ellipse cx="'+(72+i*16)+'" cy="'+(cy-22)+'" rx="18" ry="9" fill="#fff" stroke="#868e96" opacity=".85"/>';
+      if(c.aletas)g+='<path d="M48 '+cy+' l-16 -12 v24 Z" fill="'+col+'"/><path d="M78 '+(cy-14)+' l10 -14 l6 14 Z" fill="'+col+'"/>'+(c.aletas>2?'<path d="M76 '+(cy+12)+' l8 12 l6 -12 Z" fill="'+col+'"/>':'');
+      g+='<ellipse cx="80" cy="'+cy+'" rx="34" ry="16" fill="'+col+'"/>';
+      for(let i=0;i<c.ojos;i++)g+='<circle cx="'+(104+(i%2)*6)+'" cy="'+(cy-6+Math.floor(i/2)*4)+'" r="2.5" fill="#222"/>';
+    }
+  }
+  // Cada uno con su color (del ADN de su gen de forma) y su tamaño (del gen de tamaño).
+  const fo=e.adn.slice(-72);let h=0;for(let i=0;i<fo.length;i++)h=(h*31+fo.charCodeAt(i))%360;
+  const sc=(0.6+0.5*e.rasgos.tamano).toFixed(2),oy=c.medio==='agua'?55:95;
+  g=g.slice(0,fondoLen)+'<g style="filter:hue-rotate('+(h-180)*0.5+'deg)" transform="translate(80 '+oy+') scale('+sc+') translate(-80 -'+oy+')">'+g.slice(fondoLen)+'</g>';
+  return '<svg class="bicho" viewBox="0 0 160 110" role="img" aria-label="Dibujo de '+esc(e.nombre)+'">'+g+'</svg>';
+}
+raiz.MundoDibujo={dibujo,describir,medida};
+})(typeof self!=='undefined'?self:this);
+</script>
+<script>
+/* Linaje: guiás a tu especie desde una célula hasta hoy, dentro de un Mundo generado.
+   Lógica pura (sin pantalla), para poder probarla. Necesita Mundo (productos/mundo/mundo.js). */
+(function (raiz) {
+'use strict';
+const M = (raiz && raiz.Mundo) || (typeof require !== 'undefined' ? require('../../productos/mundo/mundo.js') : null);
+const GL = 72; // letras por gen
+const GI = {}; M.GENES.forEach((g, i) => { GI[g] = i; });
+
+// Paradas del viaje (millones de años). Las grandes fechas son reales.
+const PARADAS = [4200, 3800, 3400, 3000, 2600, 2400, 2200, 2000, 1700, 1400, 1100, 900, 720, 640, 540, 443, 400, 372, 330, 252, 201, 150, 66, 0];
+const EVENTOS = {
+  2400: { ico: '💨', txt: 'Gran Oxidación: llega el oxígeno. Sin poder usarlo, te intoxica.' },
+  720: { ico: '❄️', txt: 'Tierra bola de nieve: todo se congela. Hay que aguantar el frío.' },
+  640: { ico: '🌤️', txt: 'Termina el hielo. Vuelve el calor.' },
+  540: { ico: '💥', txt: 'Explosión cámbrica: aparecen cuerpos complejos. Mucha competencia.' },
+  443: { ico: '☠️', txt: 'Extinción del Ordovícico. Los chicos sufren menos.', fuerza: 0.45 },
+  400: { ico: '🌱', txt: 'Las plantas cubren la tierra. La tierra está casi vacía de animales.' },
+  372: { ico: '☠️', txt: 'Extinción del Devónico. Los chicos sufren menos.', fuerza: 0.4 },
+  252: { ico: '🌋', txt: 'Gran Mortandad del Pérmico: la peor de todas. Los chicos sufren menos.', fuerza: 0.7 },
+  201: { ico: '☠️', txt: 'Extinción del Triásico. Los chicos sufren menos.', fuerza: 0.4 },
+  66: { ico: '☄️', txt: 'Meteorito de fin del Cretácico. Los grandes la pasan peor.', fuerza: 0.6 },
+  0: { ico: '🏁', txt: 'Hoy.' },
+};
+
+function azar(s) { let a = s >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+function genes(adn) { return adn.match(new RegExp('.{' + GL + '}', 'g')); }
+function ambienteEn(mundo, ma) { return mundo.ambiente.find((a) => a.ma <= ma) || mundo.ambiente[mundo.ambiente.length - 1]; }
+
+function nueva(semilla) {
+  const mundo = M.crear(semilla);
+  const luca = mundo.especies[0];
+  const e = {
+    semilla: mundo.semilla, mundo, paso: 0, ma: PARADAS[0], poblacion: 50, puntos: 3,
+    nombre: 'Tu linaje', nivel: 0, reino: null, cuerpo: null, adn: luca.adn, rasgos: luca.rasgos,
+    historia: [], vivo: true, fin: null, r: azar(semilla * 7 + 1),
+  };
+  // Tu primera célula nace adaptada a su época (vive en aguas termales, como se cree de LUCA).
+  const t0 = ambienteEn(mundo, PARADAS[1]).temp;
+  for (let k = 0; k < 20 && Math.abs(e.rasgos.temperatura - t0) > 0.08; k++) aplicarGen(e, 'temperatura', e.rasgos.temperatura < t0 ? 1 : -1);
+  return e;
+}
+
+// Cambia una letra de un gen buscando que el rasgo suba o baje (selección natural en chico).
+function mutarHacia(e, gen, dir) {
+  const g = genes(e.adn), i = GI[gen], antes = M.rasgos(e.adn)[gen];
+  let mejor = null;
+  for (let k = 0; k < 60; k++) {
+    const pos = 3 + Math.floor(e.r() * (GL - 3)), b = 'ACGT'[Math.floor(e.r() * 4)];
+    if (g[i][pos] === b) continue;
+    const ng = g.slice(); ng[i] = ng[i].slice(0, pos) + b + ng[i].slice(pos + 1);
+    const v = M.rasgos(ng.join(''))[gen];
+    const gana = (v - antes) * dir;
+    if (!mejor || gana > mejor.gana) mejor = { gana, pos, b, ng };
+  }
+  return mejor;
+}
+function codonCambio(gAntes, gDespues, pos) {
+  const c = Math.floor(pos / 3) * 3, a = gAntes.substr(c, 3), d = gDespues.substr(c, 3);
+  return { antes: a, despues: d, aaAntes: M.CODIGO[a], aaDespues: M.CODIGO[d] };
+}
+function aplicarGen(e, gen, dir) {
+  const m = mutarHacia(e, gen, dir);
+  const g = genes(e.adn), cambio = codonCambio(g[GI[gen]], m.ng[GI[gen]], m.pos);
+  e.adn = m.ng.join(''); e.rasgos = M.rasgos(e.adn);
+  return Object.assign({ gen }, cambio);
+}
+// Toda mutación elegida arrastra, a veces, otra al azar (puede romper algo).
+function mutacionAlAzar(e) {
+  if (e.r() > 0.22) return null;
+  const g = genes(e.adn), i = Math.floor(e.r() * (g.length - 1)), pos = 3 + Math.floor(e.r() * (GL - 3));
+  const b = 'ACGT'[Math.floor(e.r() * 4)], ng = g.slice();
+  ng[i] = ng[i].slice(0, pos) + b + ng[i].slice(pos + 1);
+  const antes = e.rasgos[M.GENES[i]];
+  const c = codonCambio(g[i], ng[i], pos);
+  e.adn = ng.join(''); e.rasgos = M.rasgos(e.adn);
+  return Object.assign({ gen: M.GENES[i], azar: true, delta: +(e.rasgos[M.GENES[i]] - antes).toFixed(3) }, c);
+}
+
+function cuerpoBase() { return { simetria: 'bilateral', patas: 0, ojos: 0, aletas: 0, alas: 0, cubierta: 'piel', medio: 'agua', tamanoM: 0.01, tipo: 'nadador' }; }
+function retipo(c) { c.tipo = c.alas ? 'volador' : c.medio === 'agua' ? 'nadador' : 'caminante'; if (c.alas) c.medio = 'aire'; }
+
+function opciones(e) {
+  const ma = e.ma, c = e.cuerpo, o = [];
+  const add = (id, ico, txt, costo, ok, porque) => o.push({ id, ico, txt, costo, ok: ok && e.puntos >= costo, porque: !ok ? porque : e.puntos < costo ? 'Te faltan puntos.' : '' });
+  add('frio', '🧊', 'Aguantar más frío', 1, true);
+  add('calor', '🔥', 'Aguantar más calor', 1, true);
+  add('oxigeno', '💨', 'Usar mejor el oxígeno', 1, true);
+  add('metabolismo', '⚡', 'Comer y crecer más rápido', 1, true);
+  if (e.nivel === 0) add('nucleo', '🔬', 'Célula con núcleo', 2, ma <= 2000 && e.rasgos.oxigeno >= 0.4, 'Desde hace 2.000 millones de años y con oxígeno 40 o más.');
+  if (e.nivel === 1) add('colonia', '🫧', 'Volverte multicelular', 2, ma <= 1100, 'Desde hace 1.100 millones de años.');
+  if (e.nivel === 2) add('cuerpo', '🐾', 'Cuerpo complejo (animal)', 2, ma <= 540, 'Desde el Cámbrico, hace 540 millones de años.');
+  if (e.nivel >= 1) { add('grande', '⬆️', 'Más grande', 1, true); add('chico', '⬇️', 'Más chico', 1, true); }
+  if (e.nivel >= 2) add('movimiento', '🏃', 'Moverte más', 1, true);
+  if (c) {
+    add('ojos', '👁️', 'Dos ojos más', 1, c.ojos < 8, 'Ya tenés 8.');
+    add('patas', '🦵', 'Dos patas más', 1, c.patas < 8, 'Ya tenés 8.');
+    add('aletas', '🐟', 'Aletas', 1, c.medio === 'agua' && c.aletas < 4, c.medio !== 'agua' ? 'Solo en el agua.' : 'Ya tenés 4.');
+    add('tierra', '🏝️', 'Salir a tierra', 2, c.medio === 'agua' && ((c.patas >= 4 && ma <= 375) || (c.patas >= 6 && ma <= 400)), c.medio !== 'agua' ? 'Ya estás afuera.' : '4 patas desde hace 375 millones de años, o 6 desde hace 400.');
+    add('alas', '🪽', 'Alas', 2, c.medio === 'tierra' && ((c.patas >= 6 && ma <= 330) || (c.patas <= 4 && ma <= 150)), 'En tierra: con 6 patas desde hace 330 millones de años, o con 4 o menos desde hace 150.');
+    const cubiertas = [['escamas', '🐊', 0], ['caparazón', '🐢', 0], ['pelo', '🦫', 220], ['plumas', '🪶', 160]];
+    for (const [cu, ic, desde] of cubiertas) if (c.cubierta !== cu) add('cub-' + cu, ic, 'Cubierta de ' + cu, 1, !desde || ma <= desde, 'Desde hace ' + desde + ' millones de años.');
+  }
+  return o;
+}
+
+function aplicar(e, id) {
+  const op = opciones(e).find((x) => x.id === id);
+  if (!op || !op.ok) return null;
+  e.puntos -= op.costo;
+  const cambios = [];
+  const gen = (g, d) => cambios.push(aplicarGen(e, g, d));
+  const c = e.cuerpo;
+  switch (id) {
+    case 'frio': gen('temperatura', -1); break;
+    case 'calor': gen('temperatura', 1); break;
+    case 'oxigeno': gen('oxigeno', 1); break;
+    case 'metabolismo': gen('metabolismo', 1); break;
+    case 'movimiento': gen('movimiento', 1); break;
+    case 'grande': gen('tamano', 1); break;
+    case 'chico': gen('tamano', -1); break;
+    case 'nucleo': e.nivel = 1; gen('oxigeno', 1); break;
+    case 'colonia': e.nivel = 2; e.reino = 'animal'; gen('tamano', 1); break;
+    case 'cuerpo': e.nivel = 3; e.cuerpo = cuerpoBase(); gen('forma', 1); break;
+    case 'ojos': c.ojos += 2; gen('forma', 1); break;
+    case 'patas': c.patas += 2; gen('forma', -1); break;
+    case 'aletas': c.aletas += 2; gen('movimiento', 1); break;
+    case 'tierra': c.medio = 'tierra'; c.aletas = 0; gen('oxigeno', 1); break;
+    case 'alas': c.alas = 2; gen('movimiento', 1); break;
+    default: if (id.startsWith('cub-')) { c.cubierta = id.slice(4); gen('temperatura', c.cubierta === 'pelo' || c.cubierta === 'plumas' ? -1 : 1); }
+  }
+  if (c) { retipo(c); c.tamanoM = +(0.001 * Math.pow(10, e.rasgos.tamano * 4)).toPrecision(2); }
+  const az = mutacionAlAzar(e);
+  if (az) cambios.push(az);
+  e.historia.push({ ma: e.ma, accion: op.txt, ico: op.ico, cambios });
+  return { op, cambios };
+}
+
+// Lo que viene: para leer el ambiente antes de avanzar (diagnóstico).
+function proximo(e) {
+  const sig = PARADAS[e.paso + 1];
+  if (sig === undefined) return null;
+  return { ma: sig, ambiente: ambienteEn(e.mundo, sig), evento: EVENTOS[sig] || null };
+}
+
+function fuerza(r, extra) { return (r.movimiento + r.metabolismo + r.tamano) / 3 + (extra || 0); }
+
+function avanzar(e) {
+  const p = proximo(e);
+  if (!p || !e.vivo) return null;
+  const a = p.ambiente, r = e.rasgos, c = e.cuerpo, lineas = [];
+  const linea = (ico, txt, v) => { v = Math.round(v); if (v) lineas.push({ ico, txt, v }); return v; };
+  let d = 0;
+  d += linea('🌱', 'Crecés', 8 + r.metabolismo * 10);
+  // Frío y calor: con pelo o plumas se aguanta mejor el frío.
+  let desajuste = Math.abs(r.temperatura - a.temp);
+  if (c && (c.cubierta === 'pelo' || c.cubierta === 'plumas') && r.temperatura > a.temp) desajuste *= 0.5;
+  if (desajuste > 0.12) d += linea(a.temp < r.temperatura ? '🥶' : '🥵', a.temp < r.temperatura ? 'Hace demasiado frío para vos' : 'Hace demasiado calor para vos', -(desajuste - 0.12) * 110);
+  if (a.oxigeno > 0.2) {
+    if (r.oxigeno < 0.35) d += linea('💨', 'El oxígeno te intoxica', -(0.35 - r.oxigeno) * (e.nivel === 0 ? 50 : 110));
+    else d += linea('💨', 'Usás el oxígeno', 4 + r.oxigeno * 6);
+  }
+  // Competencia: las especies del Mundo vivas en ese momento, de tu nivel para arriba y de tu medio.
+  const rivales = M.vivasEn(e.mundo, p.ma).filter((s) => s.nivel >= Math.min(e.nivel, 3) && s.reino !== 'planta' && s.reino !== 'hongo' && (!c || !s.cuerpo || s.cuerpo.medio === c.medio));
+  if (rivales.length) {
+    const prom = rivales.reduce((s, x) => s + fuerza(x.rasgos), 0) / rivales.length;
+    const mia = fuerza(r, c ? (c.ojos ? 0.08 : 0) + (c.cubierta === 'caparazón' ? 0.05 : 0) + Math.min(c.patas, 4) * 0.01 + c.aletas * 0.015 : 0);
+    d += linea('⚔️', rivales.length + ' especies compiten con vos', (mia - prom) * 70 - rivales.length * 0.15);
+  }
+  if (e.nivel < 3 && p.ma <= 540) d += linea('🦈', 'Los animales te comen', -(3 - e.nivel) * 12);
+  if (c && c.medio !== 'agua' && p.ma <= 400 && p.ma >= 300) d += linea('🏝️', 'Tierra casi vacía: hay lugar', 15);
+  if (c && c.medio === 'tierra' && c.cubierta === 'piel') d += linea('☀️', 'Con piel desnuda te secás afuera', -6);
+  if (c && c.alas) d += linea('🪽', 'Volando escapás de los cazadores', 6);
+  const ev = p.evento;
+  if (ev && ev.fuerza) {
+    let golpe = ev.fuerza * 125 * (0.55 + 0.6 * r.tamano);
+    if (r.tamano < 0.3) golpe *= p.ma === 66 ? 0.5 : 0.75;
+    d += linea(ev.ico, ev.txt, -golpe * (0.8 + e.r() * 0.4));
+  }
+  const antes = e.poblacion;
+  e.poblacion = Math.max(0, Math.min(100, Math.round(e.poblacion + d)));
+  e.paso++; e.ma = p.ma;
+  e.puntos = Math.min(6, e.puntos + 3);
+  e.historia.push({ ma: p.ma, resultado: e.poblacion - antes });
+  if (e.poblacion <= 0) { e.vivo = false; e.fin = 'extinto'; }
+  else if (p.ma === 0) e.fin = 'hoy';
+  return { ma: p.ma, lineas, antes, despues: e.poblacion, evento: ev, fin: e.fin };
+}
+
+// Para dibujar con MundoDibujo y para mostrar al lado de las especies del Mundo.
+function comoEspecie(e) { return { id: -1, nombre: e.nombre, nivel: e.nivel, reino: e.reino, cuerpo: e.cuerpo, rasgos: e.rasgos, adn: e.adn }; }
+
+const Linaje = { PARADAS, EVENTOS, nueva, opciones, aplicar, proximo, avanzar, comoEspecie, ambienteEn };
+if (typeof module !== 'undefined' && module.exports) module.exports = Linaje; else raiz.Linaje = Linaje;
+})(typeof self !== 'undefined' ? self : globalThis);
+</script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const {dibujo,describir}=MundoDibujo;
+const NIV=['Célula simple','Célula con núcleo','Multicelular','Animal'];
+const fmt=ma=>ma===0?'Hoy':ma>=1000?'Hace '+(ma/1000).toLocaleString('es-AR')+' mil millones de años':'Hace '+ma+' millones de años';
+let e;
+function empezar(sem){e=Linaje.nueva(sem);try{localStorage.setItem('linaje-sem',sem)}catch(x){}$('chips').innerHTML='';pintar();}
+function chipsDe(cambios){return cambios.map(c=>'<span class="chip'+(c.azar?' azar':'')+'" title="'+(c.azar?'Mutación al azar':'Mutación elegida')+'">'+(c.azar?'🎲 ':'')+c.gen+': '+c.antes+'→'+c.despues+' ('+(c.aaAntes==='*'?'stop':c.aaAntes)+'→'+(c.aaDespues==='*'?'stop':c.aaDespues)+')</span>').join('');}
+function medidor(nombre,clase,amb,vos){return '<div class="medidor"><div class="chico">'+nombre+'</div><div class="barra '+clase+'"><span class="m amb" style="left:'+(amb*100)+'%"></span><span class="m vos" style="left:'+(vos*100)+'%"></span></div></div>';}
+function pintar(){
+  $('fecha').textContent=fmt(e.ma);
+  $('pobNum').textContent=e.poblacion;
+  $('pobBar').style.width=e.poblacion+'%';$('pobBar').className=e.poblacion<25?'baja':'';
+  $('puntos').textContent='●'.repeat(e.puntos)+'○'.repeat(Math.max(0,6-e.puntos));
+  const yo=Linaje.comoEspecie(e);
+  $('yo').innerHTML=dibujo(yo)+'<b>'+NIV[e.nivel]+'</b>'+(e.cuerpo?'<span class="chico">'+describir(yo)+'</span>':'');
+  const p=Linaje.proximo(e);
+  if(p){
+    const ev=p.evento,a=p.ambiente;
+    $('viene').innerHTML='<b>Lo que viene: '+fmt(p.ma).toLowerCase()+'</b>'+(ev&&p.ma!==0?'<p class="evento">'+ev.ico+' '+ev.txt+'</p>':'')+
+      medidor('🌡️ Temperatura','',a.temp,e.rasgos.temperatura)+
+      medidor('💨 Oxígeno (azul: en el aire · rosa: cuánto lo podés usar)','ox',a.oxigeno,e.rasgos.oxigeno)+
+      '<div class="ley"><span><i style="background:var(--amb)"></i>ambiente</span><span><i style="background:var(--vos)"></i>vos</span></div>';
+  }
+  $('ops').innerHTML=Linaje.opciones(e).map(o=>'<button class="op" data-op="'+o.id+'" aria-disabled="'+!o.ok+'" data-porque="'+(o.porque||'')+'"><span class="ico">'+o.ico+'</span><span>'+o.txt+'<small>'+'●'.repeat(o.costo)+'</small></span></button>').join('');
+  const g=e.adn.match(/.{72}/g);
+  $('adn').innerHTML=g.map((x,i)=>'<p><b>'+Mundo.GENES[i]+'</b> '+Math.round(e.rasgos[Mundo.GENES[i]]*100)+'<br><span class="adn">'+x.replace(/[ACGT]/g,c=>'<span class="'+c+'">'+c+'</span>')+'</span><br><span class="chico">proteína: '+Mundo.traducir(x)+'</span></p>').join('');
+  $('sem').textContent='Mundo #'+e.semilla;
+}
+$('ops').addEventListener('click',ev=>{
+  const b=ev.target.closest('.op');if(!b)return;
+  if(b.getAttribute('aria-disabled')==='true'){$('aviso').textContent=b.dataset.porque||'No se puede ahora.';return}
+  const r=Linaje.aplicar(e,b.dataset.op);$('aviso').textContent='';
+  if(r){const az=r.cambios.find(c=>c.azar);if(az)$('aviso').textContent='🎲 Se coló una mutación al azar en '+az.gen+(az.delta<0?' (bajó '+Math.round(-az.delta*100)+')':az.delta>0?' (subió '+Math.round(az.delta*100)+')':' (no cambió nada)')+'.';
+    $('chips').innerHTML=chipsDe(r.cambios);}
+  pintar();
+});
+$('ir').onclick=()=>{
+  const r=Linaje.avanzar(e);if(!r)return;
+  $('chips').innerHTML='';$('aviso').textContent='';
+  let h='<h2>'+fmt(r.ma)+'</h2>'+(r.evento&&r.ma!==0?'<p class="evento">'+r.evento.ico+' '+r.evento.txt+'</p>':'');
+  h+=r.lineas.map(l=>'<div class="linea"><span>'+l.ico+' '+l.txt+'</span><span class="'+(l.v>0?'mas':'menos')+'">'+(l.v>0?'+':'')+l.v+'</span></div>').join('');
+  h+='<p><b>👥 '+r.antes+' → '+r.despues+'</b></p>';
+  if(r.fin==='extinto'){
+    const peor=r.lineas.slice().sort((a,b)=>a.v-b.v)[0];
+    h+='<p><b>Tu linaje se extinguió.</b> Lo que más te golpeó: '+(peor?peor.ico+' '+peor.txt.toLowerCase():'')+'.</p><div class="dlgb"><button id="otra">🔁 Otra vez en este mundo</button><button id="nuevo2">🌍 Mundo nuevo</button></div>';
+  }else if(r.fin==='hoy'){
+    const hoy=Mundo.vivasEn(e.mundo,0).filter(s=>s.reino==='animal'&&s.cuerpo).slice(0,11);
+    h+=e.nivel<3?'<p><b>Llegaste a hoy como '+NIV[e.nivel].toLowerCase()+'.</b> Sobreviviste, como las bacterias de verdad. Para ganar del todo, llegá con cuerpo de animal. Estos son los animales de este mundo:</p>':'<p><b>¡Llegaste a hoy como animal!</b> Tu linaje vive entre los animales de este mundo:</p>';
+    h+='<div class="gal"><div class="tuyo">'+dibujo(Linaje.comoEspecie(e))+'Vos</div>'+hoy.map(s=>'<div>'+dibujo(s)+s.nombre+'</div>').join('')+'</div>';
+    h+='<p class="chico">Tu camino: '+e.historia.filter(x=>x.accion).map(x=>x.ico).join(' ')+'</p><div class="dlgb"><button id="otra">🔁 Otra vez</button><button id="nuevo2">🌍 Mundo nuevo</button></div>';
+  }else h+='<div class="dlgb"><button id="seguir" class="ir">Seguir</button></div>';
+  $('res').innerHTML=h;$('res').showModal();
+  const cerrar=()=>{$('res').close();pintar();window.scrollTo({top:0,behavior:'smooth'})};
+  if($('seguir'))$('seguir').onclick=cerrar;
+  if($('otra'))$('otra').onclick=()=>{$('res').close();empezar(e.semilla)};
+  if($('nuevo2'))$('nuevo2').onclick=()=>{$('res').close();empezar(1+Math.floor(Math.random()*99999))};
+};
+$('nuevo').onclick=()=>empezar(1+Math.floor(Math.random()*99999));
+$('probar').onclick=()=>$('dlgProbar').showModal();
+let s0=0;try{s0=+localStorage.getItem('linaje-sem')||0}catch(x){}
+const q=+new URLSearchParams(location.search).get('mundo');
+empezar(q||s0||42);
+if(!s0)$('dlgProbar').showModal();
+})();
+</script>
+</body>
+</html>
