@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1a2340">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23e0a030%22/%3E%3Cpath d=%22M18 33l9 9 19-21%22 stroke=%22white%22 stroke-width=%227%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<title>La casa viva</title>
+</head>
+<body>
+<style>
+  :root { --noche:#141b33; --noche2:#2a2050; --ladrillo:#c8623e; --oro:#ffd27a; --tinta:#f3ead8; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; background:var(--noche); color:var(--tinta); font-family:system-ui, sans-serif; overflow:hidden; touch-action:manipulation; }
+  canvas { position:fixed; inset:0; width:100%; height:100%; display:block; }
+  #barra { position:fixed; left:0; right:0; bottom:0; display:flex; justify-content:center; gap:14px; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .herr { width:64px; height:64px; border-radius:50%; border:2px solid rgba(243,234,216,.25); background:rgba(20,27,51,.6); font-size:30px; cursor:pointer; transition:transform .15s, border-color .15s, background .15s; }
+  .herr.activa { border-color:var(--oro); background:rgba(255,210,122,.18); transform:scale(1.1); }
+  #ayuda { position:fixed; top:calc(10px + env(safe-area-inset-top)); right:12px; padding:8px 12px; border-radius:20px; border:1px solid rgba(243,234,216,.3); background:rgba(20,27,51,.7); color:var(--tinta); font-size:14px; cursor:pointer; }
+  #panel { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(10,12,28,.85); padding:16px; z-index:5; }
+  #panel.abierto { display:flex; }
+  #panel div { max-width:440px; background:#1f2748; border-radius:14px; padding:20px; line-height:1.5; font-size:15px; }
+  #panel h2 { font-size:18px; margin-bottom:8px; }
+  #panel ul { padding-left:18px; margin:8px 0 14px; }
+  #panel button { padding:10px 18px; border-radius:10px; border:0; background:var(--oro); color:#241a10; font-size:15px; cursor:pointer; }
+  #inicio { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:4; }
+  #inicio button { width:120px; height:120px; border-radius:50%; border:2px solid var(--oro); background:rgba(255,210,122,.12); color:var(--oro); font-size:48px; cursor:pointer; animation:latido 2.4s ease-in-out infinite; }
+  @keyframes latido { 50% { transform:scale(1.08); box-shadow:0 0 40px rgba(255,210,122,.35); } }
+</style>
+
+<canvas id="lienzo"></canvas>
+<div id="barra">
+  <button class="herr activa" data-h="mano" aria-label="Apretar la columna">✋</button>
+  <button class="herr" data-h="oido" aria-label="Escuchar la fila">👂</button>
+  <button class="herr" data-h="dedo" aria-label="Señalar el ladrillo flojo">👉</button>
+</div>
+<button id="ayuda">Qué probar</button>
+<div id="inicio"><button aria-label="Empezar">▶</button></div>
+<div id="panel"><div>
+  <h2>Qué probar (versión 1)</h2>
+  <p>La casa se desarma porque hay un ladrillo flojo. Encontralo antes de que se vaya volando.</p>
+  <ul>
+    <li>✋ aprieta la columna: si tiembla, el flojo está ahí; si se apaga, ahí no está.</li>
+    <li>👂 escucha la fila: sonido hueco y temblor, está ahí; sonido claro, no.</li>
+    <li>👉 señalás el ladrillo. Si errás, la casa se suelta el doble.</li>
+    <li>Cada prueba cuesta un ladrillo de arriba (la estabilidad).</li>
+    <li>Son 5 casas. En la 3 la columna de al lado tiembla un poco. En la 4 hay dos flojos.</li>
+    <li>La casa aprende: pone los flojos donde más te equivocás y, si te sobra, te da menos la próxima.</li>
+  </ul>
+  <p>Fijate: ¿se entiende sin leer esto? ¿Querés jugar otra noche?</p>
+  <p style="margin-top:12px"><button id="cerrar">Listo</button></p>
+</div></div>
+
+<script>
+(() => {
+  const lienzo = document.getElementById('lienzo'), cx = lienzo.getContext('2d');
+  let W = 0, H = 0, dpr = 1;
+  function medir() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; lienzo.width = W * dpr; lienzo.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  addEventListener('resize', medir); medir();
+
+  // Las cinco casas: columnas, filas, flojos, contagio, estabilidad base
+  const CASAS = [
+    { C:4, R:4, n:1, contagio:false, est:6 },
+    { C:6, R:5, n:1, contagio:false, est:7 },
+    { C:7, R:5, n:1, contagio:true,  est:7 },
+    { C:6, R:6, n:2, contagio:false, est:10 },
+    { C:8, R:6, n:2, contagio:true,  est:11 },
+  ];
+
+  // Memoria de la casa (lo que aprende de vos)
+  const CLAVE = 'casaViva1';
+  let mem = { noches:0, err:{L:0,R:0,T:0,B:0}, ajuste:[0,0,0,0,0] };
+  try { const m = JSON.parse(localStorage.getItem(CLAVE)); if (m && m.err) mem = m; } catch (e) {}
+  function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(mem)); } catch (e) {} }
+
+  // Sonido
+  let au = null;
+  function tono(f, dur, tipo = 'sine', vol = .18, f2) {
+    if (!au) return; const t = au.currentTime, o = au.createOscillator(), g = au.createGain();
+    o.type = tipo; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g).connect(au.destination); o.start(t); o.stop(t + dur);
+  }
+  const SON = {
+    hueco: () => { tono(110, .7, 'triangle', .25, 80); tono(165, .5, 'sine', .1, 120); },
+    claro: () => { tono(880, .35, 'sine', .12); tono(1320, .25, 'sine', .06); },
+    tiembla: () => tono(70, .5, 'sawtooth', .06, 50),
+    firme: () => tono(440, .2, 'sine', .08),
+    bien: () => [523, 659, 784].forEach((f, i) => setTimeout(() => tono(f, .5, 'sine', .14), i * 90)),
+    mal: () => tono(200, .6, 'square', .07, 60),
+    gana: () => [392, 523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tono(f, .8, 'triangle', .12), i * 120)),
+    cae: () => tono(300, 1.6, 'sawtooth', .08, 40),
+  };
+
+  let nivel = 0, casa, celdas, flojos, est, estMax, herr = 'mano', fase = 'espera', faseT = 0, usadas = 0;
+  let voladores = [], polvo = [];
+  for (let i = 0; i < 60; i++) polvo.push({ x:Math.random(), y:Math.random(), v:.004 + Math.random() * .01, s:Math.random() * 2 + .5 });
+
+  function elegirZona() {
+    const z = Object.entries(mem.err), tot = z.reduce((a, [, v]) => a + v + 1, 0);
+    let r = Math.random() * tot; for (const [k, v] of z) { r -= v + 1; if (r <= 0) return k; } return 'L';
+  }
+  function armar() {
+    casa = CASAS[nivel]; const { C, R } = casa;
+    celdas = []; for (let r = 0; r < R; r++) for (let c = 0; c < C; c++)
+      celdas.push({ c, r, apagada:0, apagar:false, sacudida:0, amp:0, vert:false, marca:0, arreglado:false, semilla:Math.random() * 6.28, error:0 });
+    flojos = [];
+    while (flojos.length < casa.n) {
+      const z = elegirZona();
+      const c = (z === 'L') ? rnd(0, Math.ceil(C / 2) - 1) : (z === 'R') ? rnd(Math.floor(C / 2), C - 1) : rnd(0, C - 1);
+      const r = (z === 'T') ? rnd(0, Math.ceil(R / 2) - 1) : (z === 'B') ? rnd(Math.floor(R / 2), R - 1) : rnd(0, R - 1);
+      if (!flojos.some(f => f.c === c && f.r === r)) flojos.push({ c, r, arreglado:false, pruebas:0 });
+    }
+    estMax = Math.max(4, casa.est + (mem.ajuste[nivel] || 0)); est = estMax; usadas = 0;
+    voladores = []; fase = 'juego'; faseT = 0;
+  }
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const celda = (c, r) => celdas[r * casa.C + c];
+  const vivos = () => flojos.filter(f => !f.arreglado);
+
+  // Geometría
+  function geo() {
+    const { C, R } = casa; const alto = H - 110 - 70;
+    const bw = Math.min((W - 32) * .9 / C, alto * .62 / R * 2, 90), bh = bw / 2;
+    const ancho = bw * C, x0 = (W - ancho) / 2, y0 = 70 + (alto - bh * R) * .72 + bh * .3;
+    return { bw, bh, x0, y0, ancho };
+  }
+  function suelto() { return fase === 'gana' ? Math.max(0, 1 - faseT * 1.2) * (1 - est / estMax) : 1 - est / estMax; }
+  function pos(k, g, t) {
+    const s = suelto() * (fase === 'cae' ? 1 + faseT * 3 : 1);
+    const ox = Math.sin(t * .7 + k.semilla) * s * g.bw * .22 + (k.c - (casa.C - 1) / 2) * s * g.bw * .1;
+    const oy = Math.cos(t * .9 + k.semilla * 1.3) * (s * g.bh * .5 + 1.2) - s * (casa.R - k.r) * g.bh * .12 - (fase === 'cae' ? faseT * faseT * 120 * (1 + k.semilla / 6) : 0);
+    let sx = 0, sy = 0;
+    if (k.sacudida > 0) { const a = k.amp * k.sacudida * g.bw * .09; if (k.vert) sy = Math.sin(t * 60) * a; else sx = Math.sin(t * 55 + k.r) * a; }
+    return { x: g.x0 + k.c * g.bw + ox + sx, y: g.y0 + k.r * g.bh + oy + sy };
+  }
+
+  // Pruebas
+  function gastar(n) {
+    est = Math.max(0, est - n); usadas += n;
+    for (let i = 0; i < n; i++) voladores.push({ x:W / 2 + (est + i - estMax / 2) * 22, y:40, vx:(Math.random() - .5) * 2, vy:-1 - Math.random(), a:1 });
+    if (est <= 0) { fase = 'cae'; faseT = 0; SON.cae(); mem.ajuste[nivel] = Math.min(2, (mem.ajuste[nivel] || 0) + 1); guardar(); }
+  }
+  function mano(c) {
+    let amp = 0;
+    for (const f of vivos()) { const d = Math.abs(f.c - c); amp = Math.max(amp, d === 0 ? 1 : (casa.contagio && d === 1 ? .4 : 0)); f.pruebas++; }
+    for (let r = 0; r < casa.R; r++) { const k = celda(c, r); if (amp === 0) k.apagar = true; else { k.sacudida = 1; k.amp = amp; k.vert = false; k.marca = Math.max(k.marca, amp); } }
+    amp ? SON.tiembla() : SON.firme(); gastar(1);
+  }
+  function oido(r) {
+    const hay = vivos().some(f => f.r === r); vivos().forEach(f => f.pruebas++);
+    for (let c = 0; c < casa.C; c++) { const k = celda(c, r); if (!hay) k.apagar = true; else { k.sacudida = 1; k.amp = .6; k.vert = true; k.marca = Math.max(k.marca, .6); } }
+    hay ? SON.hueco() : SON.claro(); gastar(1);
+  }
+  function dedo(c, r) {
+    const f = vivos().find(f => f.c === c && f.r === r), k = celda(c, r);
+    if (f) {
+      f.arreglado = true; k.arreglado = true; SON.bien();
+      if (f.pruebas > casa.C / 2 + 2) { mem.err[zona(f)]++; guardar(); }
+      if (!vivos().length) { fase = 'gana'; faseT = 0; setTimeout(SON.gana, 300);
+        if (est >= 3) mem.ajuste[nivel] = Math.max(-2, (mem.ajuste[nivel] || 0) - 1); guardar(); }
+    } else {
+      k.apagar = true; k.error = 1; SON.mal();
+      vivos().forEach(f2 => { mem.err[zona(f2)]++; }); guardar(); gastar(2);
+    }
+  }
+  const zona = f => (Math.random() < .5) ? (f.c < casa.C / 2 ? 'L' : 'R') : (f.r < casa.R / 2 ? 'T' : 'B');
+
+  lienzo.addEventListener('pointerdown', e => {
+    if (fase !== 'juego') return;
+    const g = geo(), t = performance.now() / 1000;
+    for (const k of celdas) { const p = pos(k, g, t);
+      if (e.clientX >= p.x && e.clientX <= p.x + g.bw && e.clientY >= p.y && e.clientY <= p.y + g.bh) {
+        if (k.arreglado) return;
+        if (herr === 'mano') mano(k.c); else if (herr === 'oido') oido(k.r); else dedo(k.c, k.r);
+        return; } }
+  });
+  document.querySelectorAll('.herr').forEach(b => b.addEventListener('click', () => {
+    herr = b.dataset.h; document.querySelectorAll('.herr').forEach(x => x.classList.toggle('activa', x === b)); tono(600, .08, 'sine', .05);
+  }));
+  document.querySelector('#inicio button').addEventListener('click', () => {
+    try { au = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    document.getElementById('inicio').remove(); mem.noches++; guardar(); nivel = 0; armar();
+  });
+  const panel = document.getElementById('panel');
+  document.getElementById('ayuda').onclick = () => panel.classList.add('abierto');
+  document.getElementById('cerrar').onclick = () => panel.classList.remove('abierto');
+
+  // Dibujo
+  let antes = performance.now();
+  function cuadro(ahora) {
+    const dt = Math.min(.05, (ahora - antes) / 1000); antes = ahora; const t = ahora / 1000; faseT += dt;
+    const fondo = cx.createLinearGradient(0, 0, 0, H); fondo.addColorStop(0, '#141b33'); fondo.addColorStop(1, '#2a2050');
+    cx.fillStyle = fondo; cx.fillRect(0, 0, W, H);
+    for (const p of polvo) { p.y -= p.v * dt; if (p.y < 0) p.y = 1;
+      cx.fillStyle = `rgba(255,220,170,${.15 + .15 * Math.sin(t + p.x * 9)})`; cx.beginPath(); cx.arc(p.x * W, p.y * H, p.s, 0, 7); cx.fill(); }
+    if (!casa) { requestAnimationFrame(cuadro); return; }
+    const g = geo();
+
+    // estabilidad: ladrillitos arriba
+    for (let i = 0; i < estMax; i++) { const x = W / 2 + (i - estMax / 2) * 22, y = 40 + Math.sin(t * 2 + i) * 2;
+      cx.fillStyle = i < est ? '#c8623e' : 'rgba(243,234,216,.08)'; redondo(x, y - 6, 18, 10, 3); cx.fill(); }
+    // casas recorridas
+    for (let i = 0; i < CASAS.length; i++) { cx.fillStyle = i < nivel ? '#ffd27a' : i === nivel ? 'rgba(255,210,122,.6)' : 'rgba(243,234,216,.15)';
+      const x = 16 + i * 18, y = 22; cx.beginPath(); cx.moveTo(x, y + 6); cx.lineTo(x + 6, y); cx.lineTo(x + 12, y + 6); cx.lineTo(x + 12, y + 14); cx.lineTo(x, y + 14); cx.fill(); }
+
+    // techo
+    const s = suelto(), techoY = g.y0 - g.bh * .2 - s * g.bh * 1.6 + Math.sin(t * .6) * (2 + s * 6) - (fase === 'cae' ? faseT * faseT * 160 : 0);
+    cx.fillStyle = fase === 'gana' ? '#8a4a6a' : '#5a3a5e';
+    cx.beginPath(); cx.moveTo(g.x0 - g.bw * .3, techoY); cx.lineTo(W / 2, techoY - g.bh * 2.6); cx.lineTo(g.x0 + g.ancho + g.bw * .3, techoY); cx.closePath(); cx.fill();
+
+    for (const k of celdas) {
+      k.sacudida = Math.max(0, k.sacudida - dt * .8);
+      if (k.apagar) k.apagada = Math.min(1, k.apagada + dt * 2.5);
+      k.error = Math.max(0, k.error - dt * .7);
+      const p = pos(k, g, t), luz = fase === 'gana' ? Math.min(1, faseT) : 0;
+      let col = k.arreglado ? '#ffd27a' : `rgb(${200 - k.apagada * 120},${98 - k.apagada * 40},${62 + k.apagada * 30})`;
+      cx.globalAlpha = (1 - k.apagada * .55) * (fase === 'cae' ? Math.max(0, 1 - faseT * .6) : 1);
+      if (k.arreglado || luz) { cx.shadowColor = '#ffd27a'; cx.shadowBlur = 18 * (k.arreglado ? 1 : luz); }
+      cx.fillStyle = col; redondo(p.x + 1.5, p.y + 1.5, g.bw - 3, g.bh - 3, Math.min(6, g.bh * .2)); cx.fill();
+      cx.shadowBlur = 0;
+      if (k.marca && !k.apagada && !k.arreglado) { cx.strokeStyle = `rgba(255,210,122,${.25 + k.marca * .55})`; cx.lineWidth = 1 + k.marca * 2; cx.stroke(); }
+      if (k.error) { cx.strokeStyle = `rgba(120,180,255,${k.error})`; cx.lineWidth = 3; cx.stroke(); }
+      cx.globalAlpha = 1;
+    }
+    // ventana encendida al ganar
+    if (fase === 'gana') { cx.fillStyle = `rgba(255,220,140,${Math.min(1, faseT)})`; cx.shadowColor = '#ffd27a'; cx.shadowBlur = 30;
+      redondo(W / 2 - g.bw * .4, g.y0 + g.bh * .5, g.bw * .8, g.bh * 1.2, 4); cx.fill(); cx.shadowBlur = 0; }
+
+    for (const v of voladores) { v.x += v.vx; v.y += v.vy; v.vy -= .02; v.a -= dt * .6;
+      if (v.a > 0) { cx.globalAlpha = v.a; cx.fillStyle = '#c8623e'; redondo(v.x, v.y - 6, 18, 10, 3); cx.fill(); cx.globalAlpha = 1; } }
+
+    if (fase === 'gana' && faseT > 2.6) { if (nivel < CASAS.length - 1) { nivel++; armar(); } else fase = 'fin'; }
+    if (fase === 'cae' && faseT > 2.6) armar();
+    if (fase === 'fin') {
+      cx.fillStyle = `rgba(255,210,122,${.5 + .3 * Math.sin(t * 2)})`; cx.font = '42px system-ui'; cx.textAlign = 'center'; cx.fillText('↻', W / 2, g.y0 - g.bh * 4.2);
+    }
+    requestAnimationFrame(cuadro);
+  }
+  lienzo.addEventListener('click', e => { if (fase === 'fin') { mem.noches++; guardar(); nivel = 0; armar(); } });
+  function redondo(x, y, w, h, r) { cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); }
+  requestAnimationFrame(cuadro);
+})();
+</script>
+
+</body>
+</html>
